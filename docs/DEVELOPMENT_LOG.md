@@ -13,4 +13,10 @@
 - 实现 `WorldBuilder` 与 `PropFactory`：构建可进入村长长屋、铁匠铺、猎人小屋、水井、可攀登斜坡废弃哨塔、木桥水流、哥布林营地、隐秘祭坛与古代墓穴外门。
 - 实现 `PlayerController`：WASD 移动、Shift 奔跑消耗耐力、Space 跳跃、PointerLock+拖拽视角以及基于 `AnimationMixer` 的第一人称手持武器/法球动画。
 - 测试验证：`npm run typecheck` 通过，`npm test` 6/6 通过（验证重力落体、实墙阻挡与门洞通行），`npm run build` 成功。
-- 下一步：进入 Stage 2（战斗系统、火球法术、敌人 AI 状态机、背包与装备系统）。
+
+## 2026-11-23 — Stage 2: 战斗、火球术、敌人 AI 与背包装备
+- 实现 `InventorySystem`：支持堆叠/非堆叠物品管理、武器/护甲/饰品穿脱、消耗品治疗/回蓝、世界物品丢弃、金币交易、XP 升级与属性聚合。
+- 实现 `EnemySystem` (`src/ai/EnemyAI.ts`)：构建灰木哥布林、骷髅战士与 Boss 墓穴守卫的多关节 3D 模型和 `AnimationMixer` 动作剪辑，完整实现 `IDLE -> PATROL -> DETECT -> CHASE -> ATTACK -> HURT -> DEAD` 7 状态机及战利品掉落。
+- 实现 `CombatSystem`：单手剑近战范围+前向锥角判定、火球术弹体飞行与环境/敌人碰撞结算、法力自然恢复以及玩家死亡后于溪谷村复活机制。
+- 测试验证：`npm run typecheck` 通过，`npm test` 8/8 通过，`npm run build` 成功。
+- 下一步：进入 Stage 3（NPC 放置、条件对话、数据驱动任务系统与商人交易）。
