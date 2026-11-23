@@ -145,10 +145,10 @@ export function buildCityGroundMesh(streetMaterial: THREE.Material): CityGroundR
     splats[i * 4 + 3] = puddle;
 
     // Subtle organic surface shading & wall-base darkening along sidewalks
-    const wallShadow = smoothstep(4.3, 5.4, dx) * (z <= 17.5 ? 0.18 : 0.04);
-    const gutterAO = Math.exp(-((dx - 3.35) ** 2) / 0.14) * (z <= 17.5 ? 0.14 : 0.0);
-    const microTint = (n2 - 0.5) * 0.10;
-    const vShade = Math.max(0.62, Math.min(1.04, 1.0 - wallShadow - gutterAO + microTint));
+    const wallShadow = smoothstep(4.3, 5.4, dx) * (z <= 17.5 ? 0.10 : 0.03);
+    const gutterAO = Math.exp(-((dx - 3.35) ** 2) / 0.14) * (z <= 17.5 ? 0.08 : 0.0);
+    const microTint = (n2 - 0.5) * 0.08;
+    const vShade = Math.max(0.78, Math.min(1.04, 1.0 - wallShadow - gutterAO + microTint));
     colors[i * 3] = vShade;
     colors[i * 3 + 1] = vShade * 0.99;
     colors[i * 3 + 2] = vShade * 0.96;

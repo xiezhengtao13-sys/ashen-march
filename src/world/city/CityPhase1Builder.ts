@@ -16,7 +16,7 @@ export interface BuiltAshenholdCity {
   materials: CityMaterialLibrary;
   groundVertices: Float32Array;
   groundIndices: Uint32Array;
-  update: (elapsed: number, dt: number) => void;
+  update: (elapsed: number, dt: number, timeOfDay?: number) => void;
   dispose: () => void;
 }
 
@@ -83,9 +83,10 @@ export async function buildAshenholdCity(
   physics: PhysicsWorld,
   registry: InteractableRegistry,
   callbacks: CityBuildCallbacks,
-  options: { maxAnisotropy?: number; skipAssetFetch?: boolean } = {},
+  options: { maxAnisotropy?: number; skipAssetFetch?: boolean; metalEnvMap?: THREE.Texture | null } = {},
 ): Promise<BuiltAshenholdCity> {
   const materials = new CityMaterialLibrary(options.maxAnisotropy ?? 8);
+  materials.setMetalEnvironment(options.metalEnvMap ?? null);
   const loader = new CityAssetLoader(materials);
 
   // 1. Contoured Cobblestone, Gutter, Curb, Dirt & Puddle Ground + Physics Trimesh
@@ -404,10 +405,18 @@ export async function buildAshenholdCity(
     materials,
     groundVertices: ground.vertices,
     groundIndices: ground.indices,
-    update: (elapsed: number, dt: number) => {
+    update: (elapsed: number, dt: number, timeOfDay = 12.0) => {
+      const solarY = Math.sin(((timeOfDay - 6) / 24) * Math.PI * 2);
+      const nightBlend = 1.0 - THREE.MathUtils.smoothstep(solarY, -0.08, 0.45);
+      materials.setDayNightGlow(nightBlend);
+      const lightScale = THREE.MathUtils.lerp(0.22, 1.35, nightBlend);
+      const glowOpacity = THREE.MathUtils.lerp(0.24, 0.88, nightBlend);
+      for (const sp of glowSprites) {
+        sp.material.opacity = glowOpacity;
+      }
       for (const lr of lightRefs) {
         const flicker = Math.sin(elapsed * 7.8 + lr.phase) * 0.12 + Math.sin(elapsed * 13.1 + lr.phase) * 0.06;
-        lr.light.intensity = lr.base + flicker;
+        lr.light.intensity = Math.max(0, (lr.base + flicker) * lightScale);
       }
 
       for (const puff of smokePuffs) {

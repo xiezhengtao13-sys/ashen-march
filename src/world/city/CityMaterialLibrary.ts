@@ -14,6 +14,57 @@ function createFallbackTexture(rgba: [number, number, number, number], isColor =
   return tex;
 }
 
+
+/**
+ * Vertex colours on city GLBs / ground carry baked ambient occlusion. Multiplying them straight
+ * into albedo (three.js default) also darkens *direct* sunlight, which stacked with real-time
+ * shadows made everything murky. Here AO only occludes indirect light (sky probe / bounce /
+ * specular) and has a mild effect on direct light (contact-shadow feel).
+ */
+export const AO_DIRECT_MIX = 0.3;
+
+export function injectIndirectAO(shader: { fragmentShader: string }, directMix = AO_DIRECT_MIX): void {
+  shader.fragmentShader = shader.fragmentShader
+    .replace(
+      '#include <color_fragment>',
+      `vec3 aoTint = vec3(1.0);
+       #if defined( USE_COLOR_ALPHA )
+         diffuseColor.a *= vColor.a;
+         aoTint = vColor.rgb;
+       #elif defined( USE_COLOR )
+         aoTint = vColor;
+       #endif`,
+    )
+    .replace(
+      '#include <aomap_fragment>',
+      `#include <aomap_fragment>
+       reflectedLight.indirectDiffuse *= aoTint;
+       reflectedLight.indirectSpecular *= aoTint;
+       reflectedLight.directDiffuse *= mix(vec3(1.0), aoTint, ${directMix.toFixed(2)});`,
+    );
+}
+
+/**
+ * Linear albedo gains. Several generated textures were physically too dark for sunlit
+ * building materials (e.g. weathered oak 0.046, slate 0.07, cobble 0.116 linear). The gains are
+ * applied through `material.color` (linear multiplier), tunable without regenerating textures.
+ */
+export const ALBEDO_GAIN: Record<string, number> = {
+  stone_ashlar: 1.5,
+  stone_trim: 1.4,
+  timber_oak: 2.1,
+  planks_oak: 1.65,
+  roof_slate: 1.9,
+  roof_clay: 1.55,
+  iron_forged: 1.35,
+  brass_aged: 1.1,
+  plaster_cream: 1.0,
+  plaster_ochre: 1.05,
+  plaster_sage: 1.1,
+};
+
+const METAL_ENV_MATERIALS = new Set(['iron_forged', 'brass_aged', 'window_leaded']);
+
 export class CityMaterialLibrary {
   private readonly loader: THREE.TextureLoader | null;
   private readonly cache = new Map<string, THREE.MeshStandardMaterial>();
@@ -78,13 +129,17 @@ export class CityMaterialLibrary {
 
     this.registerBase(
       'window_leaded',
-      new THREE.MeshStandardMaterial({
-        map: loadTex('window_leaded.png', true),
-        roughness: 0.22,
-        metalness: 0.15,
-        emissive: new THREE.Color(0xd9923b),
-        emissiveIntensity: 0.25,
-      }),
+      (() => {
+        const wTex = loadTex('window_leaded.png', true);
+        return new THREE.MeshStandardMaterial({
+          map: wTex,
+          emissiveMap: wTex,
+          roughness: 0.22,
+          metalness: 0.18,
+          emissive: new THREE.Color(0xf0a64b),
+          emissiveIntensity: 0.06,
+        });
+      })(),
     );
     this.registerBase(
       'glow_warm',
@@ -172,7 +227,9 @@ export class CityMaterialLibrary {
       vertexColors: true,
     });
 
+    this.streetMaterial.color.setScalar(1.42);
     this.streetMaterial.onBeforeCompile = (shader) => {
+      injectIndirectAO(shader, 0.2);
       shader.uniforms.uDirtMap = { value: dirtAlbedo };
       shader.uniforms.uDirtNormal = { value: dirtNormal };
       shader.uniforms.uDirtRough = { value: dirtRough };
@@ -208,7 +265,7 @@ export class CityMaterialLibrary {
              vec3 blendedGround = cobCol.rgb * vSplat.x + dirtCol.rgb * vSplat.y + mossCol * vSplat.z;
              // Wet puddle darkening + analytical sky mirror sheen
              float puddle = clamp(vSplat.w, 0.0, 1.0);
-             blendedGround = mix(blendedGround, blendedGround * 0.42 + vec3(0.20, 0.26, 0.34), puddle * 0.78);
+             blendedGround = mix(blendedGround, blendedGround * 0.64 + vec3(0.08, 0.11, 0.15), puddle * 0.7);
              diffuseColor *= vec4(blendedGround, cobCol.a);
            #endif`,
         )
@@ -235,7 +292,7 @@ export class CityMaterialLibrary {
            #endif`,
         );
     };
-    this.streetMaterial.customProgramCacheKey = () => 'ashenhold-street-triblend-v1';
+    this.streetMaterial.customProgramCacheKey = () => 'ashenhold-street-triblend-v2';
 
     this.waterTroughMaterial = new THREE.MeshStandardMaterial({
       color: 0x224652,
@@ -246,8 +303,37 @@ export class CityMaterialLibrary {
     });
   }
 
+  /**
+   * Prefiltered sky environment is applied ONLY to metal / glass materials (iron, brass, leaded
+   * windows, water). A global `scene.environment` made every fragment sample the PMREM cube and
+   * cost ~7 s/frame under software rendering; ambient light for everything else comes from the
+   * analytic SH sky probe (see CityLighting).
+   */
+  setMetalEnvironment(envMap: THREE.Texture | null): void {
+    this.metalEnv = envMap;
+    for (const [key, mat] of this.cache) {
+      const base = key.replace(/__vc\d$/, '');
+      if (METAL_ENV_MATERIALS.has(base)) this.applyEnv(mat, base);
+    }
+    this.waterTroughMaterial.envMap = envMap;
+    this.waterTroughMaterial.envMapIntensity = 1.0;
+    this.waterTroughMaterial.needsUpdate = true;
+  }
+
+  private applyEnv(mat: THREE.MeshStandardMaterial, base: string): void {
+    mat.envMap = this.metalEnv;
+    mat.envMapIntensity = base === 'window_leaded' ? 0.8 : 1.15;
+    mat.needsUpdate = true;
+  }
+
+  private metalEnv: THREE.Texture | null = null;
+
   private registerBase(name: string, mat: THREE.MeshStandardMaterial): void {
     mat.name = name;
+    const gain = ALBEDO_GAIN[name];
+    if (gain) mat.color.multiplyScalar(gain);
+    mat.onBeforeCompile = (shader) => injectIndirectAO(shader);
+    mat.customProgramCacheKey = () => `ashenhold-ao-${name}`;
     this.cache.set(`${name}__vc0`, mat);
   }
 
@@ -263,8 +349,24 @@ export class CityMaterialLibrary {
     const vcMat = base.clone();
     vcMat.vertexColors = true;
     vcMat.name = `${cleanName}_vc`;
+    vcMat.onBeforeCompile = (shader) => injectIndirectAO(shader);
+    vcMat.customProgramCacheKey = () => `ashenhold-ao-vc-${cleanName}`;
+    if (METAL_ENV_MATERIALS.has(cleanName)) this.applyEnv(vcMat, cleanName);
     this.cache.set(key, vcMat);
     return vcMat;
+  }
+
+  /** Adjust window glass glow & lantern bulbs so noon looks glassy and dusk/night feel warm. */
+  setDayNightGlow(nightBlend: number): void {
+    const winEm = THREE.MathUtils.lerp(0.05, 0.92, nightBlend);
+    const bulbEm = THREE.MathUtils.lerp(0.35, 1.55, nightBlend);
+    for (const [key, mat] of this.cache) {
+      if (key.startsWith('window_leaded__')) {
+        mat.emissiveIntensity = winEm;
+      } else if (key.startsWith('glow_warm__')) {
+        mat.emissiveIntensity = bulbEm;
+      }
+    }
   }
 
   dispose(): void {

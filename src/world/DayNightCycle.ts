@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { GameState } from '../core/GameState';
+import { CityAmbientProbe, type CitySkyLightingInput } from './city/CityLighting';
 
 const SKY_VERTEX_SHADER = /* glsl */ `
 varying vec3 vWorldDir;
@@ -48,6 +49,17 @@ export class DayNightCycle {
   private readonly scene: THREE.Scene;
   readonly sunLight: THREE.DirectionalLight;
   readonly hemiLight: THREE.HemisphereLight;
+  private readonly cityProbe: CityAmbientProbe;
+  private readonly probeInput: CitySkyLightingInput = {
+    zenith: new THREE.Color(),
+    horizon: new THREE.Color(),
+    bounce: new THREE.Color(),
+    sunDir: new THREE.Vector3(0, 1, 0),
+    sunColor: new THREE.Color(),
+    sunLobe: 0,
+    gain: 1,
+  };
+  private lastProbeKey = '';
   private readonly skyMesh: THREE.Mesh;
   private readonly skyUniforms: {
     uZenithColor: { value: THREE.Color };
@@ -72,6 +84,7 @@ export class DayNightCycle {
 
     this.hemiLight = new THREE.HemisphereLight(0xdbe8f5, 0x3b3528, 0.72);
     this.scene.add(this.hemiLight);
+    this.cityProbe = new CityAmbientProbe(this.scene);
 
     this.sunLight = new THREE.DirectionalLight(0xfff1d6, 1.45);
     this.sunLight.castShadow = true;
@@ -138,6 +151,8 @@ export class DayNightCycle {
       }
       this.sunLight.intensity = 0.05;
       this.hemiLight.intensity = 0.45;
+      this.cityProbe.update(this.probeInput, false);
+      this.lastProbeKey = '';
       return;
     }
 
@@ -149,10 +164,20 @@ export class DayNightCycle {
     const sunX = Math.cos(solarAngle);
 
     if (isCity) {
-      this.setShadowBounds(44, 0, 1, 2);
-      // Warm diagonal morning/midday raking sunlight across the gate & main street
-      this.sunLight.position.set(sunX * 52 + 24, Math.max(26, sunY * 72 + 12), 42);
-      this.skyUniforms.uSunDir.value.set(sunX * 0.7 + 0.35, Math.max(0.32, sunY), 0.48).normalize();
+      // Snap shadow camera around the player on a coarse texel grid so crisp 2048px shadows cover
+      // the full 200x240m city without swimming as the player walks.
+      const halfExt = 48;
+      const texel = (halfExt * 2) / 1024;
+      const snapX = Math.round(state.player.position.x / texel) * texel;
+      const snapY = Math.round(state.player.position.y / texel) * texel;
+      const snapZ = Math.round(state.player.position.z / texel) * texel;
+      this.setShadowBounds(halfExt, snapX, snapY, snapZ);
+      const sunOffX = sunX * 68 + (sunY > 0.4 ? 12 : 0);
+      const sunOffY = sunY > 0 ? Math.max(12, sunY * 82) : 48;
+      const sunOffZ = sunY > 0 ? 42 : -36;
+      const citySunDir = new THREE.Vector3(sunOffX, sunOffY, sunOffZ).normalize();
+      this.sunLight.position.set(snapX + citySunDir.x * 115, snapY + citySunDir.y * 115, snapZ + citySunDir.z * 115);
+      this.skyUniforms.uSunDir.value.copy(citySunDir);
     } else {
       this.setShadowBounds(140, 0, 0, 0);
       this.sunLight.position.set(sunX * 140, Math.max(18, sunY * 140), 55);
@@ -195,10 +220,62 @@ export class DayNightCycle {
       this.hemiLight.intensity = 0.32;
     }
 
+    if (isCity) {
+      this.applyCityLighting(sunY);
+    } else if (this.lastProbeKey !== 'off') {
+      this.cityProbe.update(this.probeInput, false);
+      this.lastProbeKey = 'off';
+    }
+
     this.scene.background = this.skyUniforms.uHorizonColor.value.clone();
     if (this.scene.fog instanceof THREE.FogExp2) {
       this.scene.fog.color.copy(this.skyUniforms.uHorizonColor.value);
-      this.scene.fog.density = (isCity ? 0.0056 : 0.0044) * fogMultiplier;
+      this.scene.fog.density = (isCity ? 0.0028 : 0.0044) * fogMultiplier;
+    }
+  }
+
+  /**
+   * City-specific lighting: SH sky probe provides directional ambient (replacing most of the flat
+   * hemisphere term) and the sun is boosted to a physically plausible illuminance relative to
+   * the albedo of stone / timber / slate. Re-projected only when the sky meaningfully changes.
+   */
+  private applyCityLighting(sunY: number): void {
+    // Clear blue daytime zenith & airy sunlit horizon for Ashenhold, smoothly blending into
+    // warm golden hour below sunY=0.52 (e.g. 17:00 has sunY=0.26 -> clear amber-gold dusk).
+    if (sunY > 0.14) {
+      const golden = 1 - THREE.MathUtils.smoothstep(sunY, 0.14, 0.56);
+      const cityZenith = new THREE.Color(0x5b8ec4).lerp(new THREE.Color(0x434d76), golden);
+      const cityHorizon = new THREE.Color(0xd2e0ec).lerp(new THREE.Color(0xe59456), golden);
+      const citySunCol = new THREE.Color(0xfff3de).lerp(new THREE.Color(0xff9f52), golden);
+
+      this.skyUniforms.uZenithColor.value.copy(cityZenith);
+      this.skyUniforms.uHorizonColor.value.copy(cityHorizon);
+      this.skyUniforms.uSunColor.value.copy(citySunCol);
+      this.sunLight.color.copy(citySunCol);
+      this.sunLight.intensity = (2.15 + sunY * 1.45) * (1 - golden * 0.30);
+      this.hemiLight.intensity = 0.10;
+    } else {
+      this.sunLight.intensity = Math.max(0.45, this.sunLight.intensity * 1.45);
+      this.hemiLight.intensity *= 0.22;
+    }
+
+    const day = THREE.MathUtils.smoothstep(sunY, -0.05, 0.45);
+    const dusk = (1 - THREE.MathUtils.smoothstep(sunY, 0.12, 0.54)) * THREE.MathUtils.smoothstep(sunY, -0.22, 0.05);
+    const input = this.probeInput;
+    input.zenith.copy(this.skyUniforms.uZenithColor.value);
+    input.horizon.copy(this.skyUniforms.uHorizonColor.value);
+    input.sunDir.copy(this.skyUniforms.uSunDir.value);
+    input.sunColor.copy(this.sunLight.color);
+    input.sunLobe = 0.18 * day + 0.16 * dusk + 0.06;
+    // Warm sunlit masonry bounce (with extra golden warmth at dusk, cool blue at night)
+    input.bounce.setRGB(0.32 + dusk * 0.10, 0.25 + dusk * 0.02, 0.18 - dusk * 0.03)
+      .multiplyScalar(0.32 + day * 0.96);
+    input.gain = 0.85 + day * 1.25;
+
+    const key = `${input.zenith.getHexString()}${input.horizon.getHexString()}${input.sunDir.x.toFixed(2)}${input.sunDir.y.toFixed(2)}${input.gain.toFixed(2)}`;
+    if (key !== this.lastProbeKey) {
+      this.cityProbe.update(input, true);
+      this.lastProbeKey = key;
     }
   }
 

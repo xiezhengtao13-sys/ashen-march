@@ -1,0 +1,8 @@
+[
+ {"name":"gate_1000","time":10,"pos":[0,0.35,8.2],"yaw":0,"pitch":0.02},
+ {"name":"gate_1300","time":13,"pos":[0,0.35,8.2],"yaw":0,"pitch":0.02},
+ {"name":"gate_1700","time":17,"pos":[0,0.35,8.2],"yaw":0,"pitch":0.02},
+ {"name":"gate_2200","time":22,"pos":[0,0.35,8.2],"yaw":0,"pitch":0.02},
+ {"name":"tavern_1300","time":13,"pos":[1.8,0.85,-4.8],"yaw":0.68,"pitch":-0.02},
+ {"name":"approach_1300","time":13,"pos":[0,0.2,25.5],"yaw":0,"pitch":0.05}
+]
