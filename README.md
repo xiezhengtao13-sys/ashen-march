@@ -5,16 +5,14 @@
 ## ▶ 一键在线游玩（浏览器直玩）
 
 [![立即在线游玩 - Ashen March](https://img.shields.io/badge/▶_立即在线游玩-Ashen_March_灰烬边境-d9a043?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/)
-[![直达灰烬城 Phase 2 - 分支在线预览](https://img.shields.io/badge/▶_直达灰烬城_Phase_2-中央市集与双环城区-c86228?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city)
-[![直达灰烬城 Phase 1 - 分支预览](https://img.shields.io/badge/▶_直达灰烬城_Phase_1-城门样板区-7c4d30?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase1/?zone=city)
-[![直达灰烬城 - 主干入口](https://img.shields.io/badge/▶_直达灰烬城-main_%3Fzone%3Dcity-6f4e37?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/?zone=city)
+[![一键试玩 - 灰烬城山城重设计 Phase 2 样板区](https://img.shields.io/badge/▶_一键试玩_灰烬城山城重设计-Phase_2_依山样板区-b54524?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city)
+[![直达灰烬城旧版 Phase 2 - 分支预览](https://img.shields.io/badge/▶_灰烬城旧版_Phase_2-平坦市集对比-7c4d30?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city)
 
 - **开放世界试玩入口（溪谷村出生点）**：https://xiezhengtao13-sys.github.io/ashen-march/
-- **额外入口 — 灰烬城 Phase 2（200×240m 城市规模 · 光照重修 + 中央市集 + 东西双环城区 + 城堡大道）**：
-  - **Phase 2 最新分支在线预览（免合并 `main` 直玩中央市集与双城区）**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city
-  - **Phase 1 样板区归档预览**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase1/?zone=city
-  - **主干入口（合并 `main` 后生效）**：https://xiezhengtao13-sys.github.io/ashen-march/?zone=city
-  - **游戏内互传入口**：可在任意模式按 `Esc` 打开系统菜单点击 **「前往灰烬城」**，或在溪谷村口路牌直接传送往返；城内按 `[M]` 可打开灰烬城街道舆图。
+- **最新入口 — 灰烬城·紧凑型依山立体主城重设计 (`feature/ashenhold-hillside-redesign` · Phase 2 样板区)**：
+  - **一键在线试玩（0m 城门 S 形贸易街 → 双层旅店二楼阳台 → 市集廊桥 → 紧凑市集与药铺室内 → +7.5m 北墙双折大石阶观景台）**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city
+  - **旧版平坦城市对比预览**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city
+  - **游戏内互传入口**：可在任意模式按 `Esc` 打开系统菜单点击 **「前往灰烬城」**，或在溪谷村口路牌直接传送往返；城内按 `[M]` 可打开五重台地山城舆图。
 - **零安装直玩**：由 GitHub Actions 自动构建并托管于 GitHub Pages，点击上方按钮即可在桌面浏览器（支持 WebGL2）中直接运行，存档自动保存于浏览器本地 IndexedDB。
 
 ## 核心特性

@@ -62,11 +62,11 @@
       "title": "灰烬城南门卫戍官",
       "zone": "ashenhold_city",
       "position": {
-        "x": 2.9,
+        "x": -2.4,
         "y": 0,
-        "z": 18.8
+        "z": 9.2
       },
-      "yaw": -0.35,
+      "yaw": 0.45,
       "robeColor": "#5c2323",
       "accentColor": "#a8b2bd",
       "hasStaff": true,
@@ -78,11 +78,11 @@
       "title": "灰烬城卫士",
       "zone": "ashenhold_city",
       "position": {
-        "x": -2.6,
+        "x": 2.9,
         "y": 0,
-        "z": 9.8
+        "z": 18.2
       },
-      "yaw": 0.42,
+      "yaw": -0.35,
       "robeColor": "#3e4652",
       "accentColor": "#bfa065",
       "hasStaff": true,
@@ -91,14 +91,14 @@
     {
       "id": "city_merchant_elena",
       "name": "药商伊琳娜",
-      "title": "铁锚药铺掌柜",
+      "title": "铁锚药剂堂掌柜（室内）",
       "zone": "ashenhold_city",
       "position": {
-        "x": 4.2,
-        "y": 0,
-        "z": 2.6
+        "x": -16.5,
+        "y": 3.55,
+        "z": -28.0
       },
-      "yaw": -1.52,
+      "yaw": -1.57,
       "robeColor": "#3c5446",
       "accentColor": "#c9a359",
       "hasStaff": false,
@@ -116,11 +116,11 @@
       "title": "市集面包摊主",
       "zone": "ashenhold_city",
       "position": {
-        "x": -12.6,
-        "y": 0,
-        "z": -55.0
+        "x": 7.5,
+        "y": 3.52,
+        "z": -27.4
       },
-      "yaw": 0.92,
+      "yaw": 1.45,
       "robeColor": "#965d38",
       "accentColor": "#e3c588",
       "hasStaff": false,
@@ -136,11 +136,11 @@
       "title": "中央市集大商行主事",
       "zone": "ashenhold_city",
       "position": {
-        "x": 1.8,
-        "y": 0,
-        "z": -66.5
+        "x": -6.6,
+        "y": 3.52,
+        "z": -41.4
       },
-      "yaw": 0.18,
+      "yaw": -1.15,
       "robeColor": "#2e486e",
       "accentColor": "#d9b166",
       "hasStaff": true,
@@ -156,14 +156,14 @@
     {
       "id": "city_smith_brennan",
       "name": "铁匠大师布伦南",
-      "title": "工坊街锻造坊主",
+      "title": "西翼工匠区锻造坊主",
       "zone": "ashenhold_city",
       "position": {
-        "x": -44.8,
-        "y": 0,
-        "z": -75.2
+        "x": -13.6,
+        "y": 7.52,
+        "z": -56.5
       },
-      "yaw": 0.25,
+      "yaw": -1.57,
       "robeColor": "#54342b",
       "accentColor": "#9ca6b3",
       "hasStaff": false,
@@ -177,14 +177,14 @@
     {
       "id": "city_weaver_claire",
       "name": "织坊女匠克莱尔",
-      "title": "东高地锦缎行掌柜",
+      "title": "东翼高地锦缎行掌柜",
       "zone": "ashenhold_city",
       "position": {
-        "x": 49.0,
-        "y": 0,
-        "z": -72.8
+        "x": 13.6,
+        "y": 7.52,
+        "z": -56.5
       },
-      "yaw": -0.45,
+      "yaw": 1.57,
       "robeColor": "#456348",
       "accentColor": "#dfd0a6",
       "hasStaff": false,
@@ -198,14 +198,14 @@
     {
       "id": "city_citadel_warden",
       "name": "内堡卫队长加雷斯",
-      "title": "领主城堡瓮城守官",
+      "title": "高地圣堂与城堡守官",
       "zone": "ashenhold_city",
       "position": {
-        "x": 0.9,
-        "y": 0,
-        "z": -167.2
+        "x": 2.4,
+        "y": 7.52,
+        "z": -59.8
       },
-      "yaw": 0.18,
+      "yaw": 3.05,
       "robeColor": "#592121",
       "accentColor": "#d4af64",
       "hasStaff": true,

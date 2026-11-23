@@ -1,0 +1,11 @@
+[
+ {"name":"hs_01_gate_street_1300","time":13,"pos":[0.0,0.35,9.2],"yaw":0.0,"pitch":0.06},
+ {"name":"hs_02_tavern_interior_1f","time":13,"pos":[5.6,1.35,-4.0],"yaw":-1.32,"pitch":-0.04},
+ {"name":"hs_03_tavern_balcony_2f","time":13,"pos":[4.15,4.85,-3.2],"yaw":0.75,"pitch":-0.10},
+ {"name":"hs_04_market_terrace_1300","time":13,"pos":[0.0,3.85,-20.2],"yaw":0.0,"pitch":0.10},
+ {"name":"hs_05_apothecary_interior","time":13,"pos":[-11.8,3.85,-28.0],"yaw":1.57,"pitch":-0.04},
+ {"name":"hs_06_overlook_south_panorama","time":13,"pos":[0.0,7.85,-53.6],"yaw":3.1416,"pitch":-0.18},
+ {"name":"hs_07_overlook_north_skyline","time":13,"pos":[0.0,7.85,-55.8],"yaw":0.0,"pitch":0.24},
+ {"name":"hs_08_market_1700_golden","time":17,"pos":[0.0,3.85,-20.2],"yaw":0.0,"pitch":0.10},
+ {"name":"hs_09_hillside_map_modal","time":13,"pos":[0.0,3.85,-30.0],"yaw":0.0,"pitch":0.0,"pressKey":"KeyM"}
+]

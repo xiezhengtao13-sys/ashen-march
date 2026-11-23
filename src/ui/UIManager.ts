@@ -1000,12 +1000,12 @@ export class UIManager {
   private renderAshenholdCityMap(): void {
     this.modalPanelEl.innerHTML = `
       <div class="modal-header" data-testid="modal-map">
-        <h2>灰烬城舆图 · Ashenhold (约 200 × 240 米规划)</h2>
+        <h2>灰烬城山城舆图 · Ashenhold (约 104 × 144 米 · 五重台地)</h2>
         <button class="btn" id="btn-close-modal">关闭 [M]</button>
       </div>
       <canvas id="world-map-canvas" width="520" height="520"></canvas>
       <div class="item-desc" style="text-align:center; line-height:1.5;">
-        实线灰路：可通行主街与双环巷道 · 虚线红框：实际可探索城墙边界 · 斜影深区：Phase 3 城堡内堡 / 墙外装饰远景
+        金色实块：A类完整室内 · 青色方格：B类半开放/商摊 · 红色实框：Phase 2 实机可探索样板区 (0m→+7.5m) · 虚线外框：104×144m 全城规划边界
       </div>
     `;
     this.modalPanelEl.querySelector('#btn-close-modal')?.addEventListener('click', () => this.closeModal());
@@ -1016,12 +1016,11 @@ export class UIManager {
     if (!ctx) return;
 
     const size = 520;
-    // Map world x in [-105, 105] (210m) and z in [-212, +42] (254m)
+    // Map compact hillside x in [-76, 76] (152m) and z in [-148, +32] (180m)
     const toMap = (wx: number, wz: number): [number, number] => [
-      ((wx + 105) / 210) * size,
-      ((wz + 212) / 254) * size,
+      ((wx + 76) / 152) * size,
+      ((wz + 148) / 180) * size,
     ];
-    const scaleM = size / 254;
 
     const grad = ctx.createRadialGradient(size / 2, size / 2, 40, size / 2, size / 2, size * 0.72);
     grad.addColorStop(0, '#dfd1b3');
@@ -1029,55 +1028,55 @@ export class UIManager {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, size, size);
 
-    // Decorative outer countryside shading (outside walls)
-    ctx.fillStyle = 'rgba(72, 84, 58, 0.16)';
+    // Outer mountain ridges shading
+    ctx.fillStyle = 'rgba(72, 84, 58, 0.18)';
     ctx.fillRect(0, 0, size, size);
 
-    // Explorable city wall polygon fill
-    const [exL, exT] = toMap(-71, -173);
-    const [exR, exB] = toMap(71, 14);
-    const [apL, apT] = toMap(-16, 14);
-    const [apR, apB] = toMap(16, 32);
-    ctx.fillStyle = '#d8caa9';
+    // Compact 104x144m city wall perimeter fill
+    const [exL, exT] = toMap(-52, -124);
+    const [exR, exB] = toMap(52, 14);
+    const [apL, apT] = toMap(-15, 14);
+    const [apR, apB] = toMap(15, 26);
+    ctx.fillStyle = '#d9cba9';
     ctx.fillRect(exL, exT, exR - exL, exB - exT);
     ctx.fillRect(apL, apT, apR - apL, apB - apT);
 
-    // Plaza pads
+    // 5-Tier Elevation Contour Terrace Bands (0m -> +3.5m -> +7.5m -> +12.2m -> +18.0m -> +21.0m)
+    const tierFills: Record<string, string> = {
+      tier0_gate_approach: 'rgba(196, 180, 148, 0.55)',
+      tier1_market_plaza: 'rgba(182, 162, 128, 0.65)',
+      tier1_fountain_dais: 'rgba(165, 145, 112, 0.75)',
+      tier2_mid_overlook: 'rgba(162, 138, 102, 0.75)',
+      tier2_west_artisan: 'rgba(155, 124, 104, 0.45)',
+      tier2_east_residential: 'rgba(128, 148, 118, 0.42)',
+      tier3_temple_acropolis: 'rgba(142, 122, 112, 0.58)',
+      tier4_castle_forecourt: 'rgba(118, 102, 92, 0.62)',
+      tier4_citadel_keep: 'rgba(92, 80, 72, 0.72)',
+    };
     for (const pad of CITY_PLAZA_PADS) {
       const [px0, pz0] = toMap(pad.cx - pad.halfX, pad.cz - pad.halfZ);
       const [px1, pz1] = toMap(pad.cx + pad.halfX, pad.cz + pad.halfZ);
-      ctx.fillStyle = pad.id === 'castle_keep_plateau' ? 'rgba(92, 82, 74, 0.42)' : '#c7b899';
+      ctx.fillStyle = tierFills[pad.id] ?? '#c7b899';
       ctx.fillRect(px0, pz0, px1 - px0, pz1 - pz0);
+      ctx.strokeStyle = 'rgba(78, 58, 38, 0.25)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(px0, pz0, px1 - px0, pz1 - pz0);
     }
 
-    // Phase-1 gate corridor + Main street
-    ctx.strokeStyle = '#9c8b70';
-    ctx.lineCap = 'round';
-    ctx.lineWidth = 7.6 * scaleM * (size / 210);
-    ctx.beginPath();
-    const [m1x, m1z] = toMap(0, 32);
-    const [m2x, m2z] = toMap(0, -14);
-    const [m3x, m3z] = toMap(2.5, -26);
-    ctx.moveTo(m1x, m1z);
-    ctx.lineTo(m2x, m2z);
-    ctx.lineTo(m3x, m3z);
-    ctx.stroke();
-
-    // All walkable road segments
+    // All Hillside Road & Stair Segments
     for (const seg of CITY_ROAD_SEGMENTS) {
       const [ax, az] = toMap(seg.a.x, seg.a.z);
       const [bx, bz] = toMap(seg.b.x, seg.b.z);
-      ctx.lineWidth = Math.max(4, seg.a.halfWidth * 2 * (size / 210));
-      ctx.strokeStyle = seg.route === 'alley' ? '#a89678' : '#b8a686';
+      ctx.lineWidth = Math.max(4, seg.a.halfWidth * 2 * (size / 152));
+      ctx.strokeStyle = seg.route === 'main' ? '#b39e7a' : 'rgba(168, 150, 120, 0.65)';
       ctx.beginPath();
       ctx.moveTo(ax, az);
       ctx.lineTo(bx, bz);
       ctx.stroke();
 
-      // Highlight center walkable path
-      ctx.lineWidth = 1.6;
-      ctx.strokeStyle = seg.route === 'castle' ? '#7a4424' : '#574630';
-      ctx.setLineDash(seg.route === 'alley' ? [4, 3] : []);
+      ctx.lineWidth = seg.route === 'main' ? 2.0 : 1.3;
+      ctx.strokeStyle = seg.route === 'main' ? '#7a441e' : '#5c4b36';
+      ctx.setLineDash(seg.route === 'main' ? [] : [4, 3]);
       ctx.beginPath();
       ctx.moveTo(ax, az);
       ctx.lineTo(bx, bz);
@@ -1085,38 +1084,62 @@ export class UIManager {
       ctx.setLineDash([]);
     }
 
-    // Buildings, Stalls, Walls & Closed/Decorative structures from cityLayout
-    for (const a of cityLayout.architecture as Array<{ id: string; model: string; position: { x: number; z: number }; tier?: string }>) {
+    // Structures from cityLayout (differentiate A-class Interiors, B-class Semi-Interiors/Stalls, Landmarks)
+    for (const a of cityLayout.architecture as Array<{
+      id: string;
+      model: string;
+      position: { x: number; z: number };
+      tier?: string;
+      buildingClass?: string;
+      isInterior?: boolean;
+    }>) {
+      if (a.isInterior) continue;
       const [bx, bz] = toMap(a.position.x, a.position.z);
-      if (a.model.startsWith('stall_')) {
-        ctx.fillStyle = '#b55131';
-        ctx.fillRect(bx - 4, bz - 4, 8, 8);
-      } else if (a.model.startsWith('landmark_market_fountain')) {
-        ctx.fillStyle = '#3f768c';
+      if (a.model.startsWith('landmark_market_fountain')) {
+        ctx.fillStyle = '#2d7a96';
         ctx.beginPath();
-        ctx.arc(bx, bz, 6, 0, Math.PI * 2);
+        ctx.arc(bx, bz, 6.5, 0, Math.PI * 2);
         ctx.fill();
+      } else if (a.model.startsWith('stall_')) {
+        ctx.fillStyle = '#c4542d';
+        ctx.fillRect(bx - 4, bz - 4, 8, 8);
       } else if (a.tier === 'decorative') {
-        ctx.fillStyle = 'rgba(110, 102, 92, 0.45)';
+        ctx.fillStyle = 'rgba(100, 94, 86, 0.42)';
         ctx.fillRect(bx - 6, bz - 5, 12, 10);
       } else if (a.tier === 'landmark_closed') {
         ctx.fillStyle = '#4c4642';
         ctx.strokeStyle = '#241e1c';
         ctx.lineWidth = 1.5;
-        const rw = a.model === 'castle_citadel_keep.glb' ? 32 : 16;
-        const rh = a.model === 'castle_citadel_keep.glb' ? 20 : 10;
+        const rw = a.model === 'castle_citadel_keep.glb' ? 36 : 18;
+        const rh = a.model === 'castle_citadel_keep.glb' ? 22 : 11;
         ctx.fillRect(bx - rw / 2, bz - rh / 2, rw, rh);
         ctx.strokeRect(bx - rw / 2, bz - rh / 2, rw, rh);
-      } else if (!a.model.includes('wall') && !a.model.includes('courtyard')) {
-        ctx.fillStyle = '#6f5c49';
-        ctx.fillRect(bx - 7, bz - 6, 14, 12);
+      } else if (a.buildingClass === 'A' && !a.model.includes('retaining') && !a.model.includes('bridge')) {
+        ctx.fillStyle = '#b87616';
+        ctx.strokeStyle = '#fff3d6';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(bx - 8, bz - 7, 16, 14);
+        ctx.strokeRect(bx - 8, bz - 7, 16, 14);
+      } else if (a.buildingClass === 'B') {
+        ctx.fillStyle = '#2c7e96';
+        ctx.fillRect(bx - 6, bz - 5, 12, 10);
+      } else if (!a.model.includes('wall') && !a.model.includes('barricade')) {
+        ctx.fillStyle = 'rgba(105, 88, 70, 0.78)';
+        ctx.fillRect(bx - 6, bz - 5, 12, 10);
       }
     }
 
-    // Explicit Red-Gold Dashed Explorable Boundary
+    // Solid Red Box: Phase-2 Currently Explorable Compact Hillside Slice (0m -> +7.5m Overlook)
+    const [sL, sT] = toMap(-17, -62);
+    const [sR, sB] = toMap(17, 24);
     ctx.save();
-    ctx.strokeStyle = '#9c2d23';
-    ctx.lineWidth = 2.0;
+    ctx.strokeStyle = '#a8281c';
+    ctx.lineWidth = 2.2;
+    ctx.strokeRect(sL, sT, sR - sL, sB - sT);
+
+    // Dashed Outer Box: Full 104x144m Hillside City Perimeter
+    ctx.strokeStyle = '#6c3824';
+    ctx.lineWidth = 1.6;
     ctx.setLineDash([6, 4]);
     ctx.beginPath();
     ctx.moveTo(exL, exT);
@@ -1131,24 +1154,24 @@ export class UIManager {
     ctx.stroke();
     ctx.restore();
 
-    // Labels
-    ctx.fillStyle = '#2b1d12';
-    ctx.font = 'bold 12px serif';
+    // Elevation & District Labels
+    ctx.fillStyle = '#24160d';
+    ctx.font = 'bold 11px serif';
     ctx.textAlign = 'center';
     const labels: Array<[number, number, string]> = [
-      [4, -74, '中央市集广场 (10商摊 · 喷泉)'],
-      [-52, -52, '铁匠工坊区 (环道A)'],
-      [53, -46, '织坊居民高地 (环道B)'],
-      [0, -4, '南门主街'],
-      [0, 23, '南城门'],
-      [4, -158, '城堡前庭'],
-      [4, -191, '领主内堡 [Phase 3 未开放]'],
-      [-90, -80, '墙外远景装饰'],
-      [90, -80, '墙外远景装饰'],
+      [0, 21, '南城门 (0m)'],
+      [0, 2, 'S形贸易街 · A1卫戍/A2双层酒馆'],
+      [0, -35, '中央市集 (+3.5m) · A3药铺'],
+      [0, -56, '北墙大石阶观景台 (+7.5m)'],
+      [-37, -44, '西翼工匠区 (+7m · P3)'],
+      [37, -44, '东翼居民高地 (+7.5m · P3)'],
+      [0, -84, '圣堂高地 (+12.2m · P4)'],
+      [0, -114, '城堡前庭 (+18m · P4)'],
+      [0, -134, '领主主堡 (+21→53m)'],
     ];
     for (const [lx, lz, text] of labels) {
       const [tx, ty] = toMap(lx, lz);
-      ctx.fillText(text, tx, ty - 8);
+      ctx.fillText(text, tx, ty - 6);
     }
 
     // Player live marker

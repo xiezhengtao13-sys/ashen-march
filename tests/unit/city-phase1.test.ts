@@ -8,23 +8,28 @@ import { getCityGroundHeight, getCityRoadCenterX } from '../../src/world/city/Ci
 import { buildAshenholdCity, getCityRegionAt } from '../../src/world/city/CityPhase1Builder';
 import { InteractableRegistry } from '../../src/world/InteractableRegistry';
 
-describe('Ashenhold City Phase 1: Gatehouse, Main Street & Isolated Physics', () => {
-  it('computes deterministic street cross-section with crowned roadway, gutters, curbs, and upward grade', () => {
-    const hCenterGate = getCityGroundHeight(0, 20);
-    const hGutterGate = getCityGroundHeight(3.35, 20);
-    const hSidewalkGate = getCityGroundHeight(4.5, 20);
-    expect(hCenterGate).toBe(getCityGroundHeight(0, 20));
+describe('Ashenhold Compact Hillside — Tier 0 Gatehouse, S-Curved Trade Street & Walkable Interiors', () => {
+  it('computes deterministic S-curved Tier 0 street, gutter profile, and upward hillside grade', () => {
+    const hCenterGate = getCityGroundHeight(0, 18);
+    const hGutterGate = getCityGroundHeight(2.6, 18);
+    const hSidewalkGate = getCityGroundHeight(3.6, 18);
+    expect(hCenterGate).toBe(getCityGroundHeight(0, 18));
     expect(hCenterGate).toBeGreaterThan(hGutterGate);
     expect(hSidewalkGate).toBeGreaterThan(hGutterGate);
 
-    const hNorthStreet = getCityGroundHeight(getCityRoadCenterX(-20), -20);
-    expect(hNorthStreet).toBeGreaterThan(hCenterGate);
+    // S-curve deflects gently off centerline between South Gate and Market Bridge Arch
+    expect(Math.abs(getCityRoadCenterX(3.0))).toBeGreaterThan(0.5);
+    expect(getCityRoadCenterX(18)).toBe(0);
 
-    expect(getCityRegionAt(15)).toBe('ashenhold_gate');
-    expect(getCityRegionAt(-5)).toBe('ashenhold_main_street');
+    // Significant climb from South Gate (0m) -> Market Terrace (+3.5m)
+    const hMarket = getCityGroundHeight(0, -35);
+    expect(hMarket).toBeGreaterThan(hCenterGate + 3.2);
+
+    expect(getCityRegionAt(0, 15)).toBe('ashenhold_gate');
+    expect(getCityRegionAt(0, -2)).toBe('ashenhold_main_street');
   });
 
-  it('builds isolated city physics: settles on ground, passes through gate arch & tavern doorway, blocks solid piers', async () => {
+  it('builds isolated city physics: passes Gate arch, enters A1 Guardhouse & B1 Warehouse, blocks solid piers', async () => {
     const physics = new PhysicsWorld();
     await physics.init({ x: 0, y: 5, z: 58 });
 
@@ -46,7 +51,7 @@ describe('Ashenhold City Phase 1: Gatehouse, Main Street & Isolated Physics', ()
     );
 
     physics.setActiveZone('ashenhold_city');
-    physics.teleportPlayer({ x: 0, y: 1.5, z: 25.5 });
+    physics.teleportPlayer({ x: 0, y: 1.5, z: 22.0 });
 
     // Settle onto cobbled approach outside South Gate
     let pos = physics.getPlayerFeetPosition();
@@ -57,9 +62,9 @@ describe('Ashenhold City Phase 1: Gatehouse, Main Street & Isolated Physics', ()
       grounded = res.grounded;
     }
     expect(grounded).toBe(true);
-    expect(pos.y).toBeCloseTo(getCityGroundHeight(0, 25.5), 0.25);
+    expect(pos.y).toBeCloseTo(getCityGroundHeight(0, 22.0), 0.25);
 
-    // 1. Walk straight north through the Gatehouse arched tunnel (z = 18 -> z < 9.5)
+    // 1. Walk straight north through South Gatehouse arched tunnel (z = 18.5 -> z < 9.5)
     physics.teleportPlayer({ x: 0, y: 0.3, z: 18.5 });
     for (let i = 0; i < 90; i++) {
       pos = physics.movePlayer({ x: 0, y: 0, z: -0.12 }, false, 1 / 60).position;
@@ -73,14 +78,21 @@ describe('Ashenhold City Phase 1: Gatehouse, Main Street & Isolated Physics', ()
     }
     expect(pos.z).toBeGreaterThan(17.1);
 
-    // 3. Walk inside Guardhouse open arched doorway (x = -4.2 -> -7.5 at z = 1.5)
-    physics.teleportPlayer({ x: -4.2, y: 0.65, z: 1.5 });
-    for (let i = 0; i < 45; i++) {
+    // 3. Walk inside A1 Guardhouse open arched doorway (x = -3.2 -> < -6.2 at z = 5.5)
+    physics.teleportPlayer({ x: -3.2, y: 0.85, z: 5.5 });
+    for (let i = 0; i < 50; i++) {
       pos = physics.movePlayer({ x: -0.1, y: 0, z: 0 }, false, 1 / 60).position;
     }
-    expect(pos.x).toBeLessThan(-7.0);
+    expect(pos.x).toBeLessThan(-6.2);
 
-    // 4. Portal exit callback works
+    // 4. Walk inside B1 Caravan Warehouse flung-open barn doors (x = -4.2 -> < -7.5 at z = -4.5)
+    physics.teleportPlayer({ x: -4.2, y: 1.78, z: -4.5 });
+    for (let i = 0; i < 50; i++) {
+      pos = physics.movePlayer({ x: -0.1, y: 0, z: 0 }, false, 1 / 60).position;
+    }
+    expect(pos.x).toBeLessThan(-7.5);
+
+    // 5. Portal exit callback works
     registry.get('portal:city_exit')?.onInteract();
     expect(exited).toBe(true);
 
@@ -97,7 +109,7 @@ describe('Ashenhold City Phase 1: Gatehouse, Main Street & Isolated Physics', ()
     stateA.markLocationDiscovered('ashenhold_gate', '灰烬城 · 南城门');
 
     const saveSystem = new SaveSystem();
-    await saveSystem.saveSlot('city_slot', stateA, '灰烬城 · 门卫主街');
+    await saveSystem.saveSlot('city_slot', stateA, '灰烬城 · 城门贸易街');
     const loaded = await saveSystem.loadSlot('city_slot');
     expect(loaded).not.toBeNull();
     if (!loaded) return;

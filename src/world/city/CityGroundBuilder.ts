@@ -10,9 +10,7 @@ import {
 export { getCityRoadCenterX, getCityStreetBaseY };
 
 /**
- * Deterministic ground elevation for 200x240m Ashenhold.
- * Preserves Phase 1 south gate & main street coordinates while smoothly generating
- * the Central Market Plaza, West Artisan loop, East Weavers' Hill terrace, and Castle Causeway.
+ * Deterministic ground elevation for the compact 104x144m 5-Tier Hillside Ashenhold.
  */
 export function getCityGroundHeight(x: number, z: number): number {
   return sampleCityNetwork(x, z).height;
@@ -80,82 +78,70 @@ function buildGroundChunk(
     normals[i * 3 + 1] = invLen;
     normals[i * 3 + 2] = nz * invLen;
 
+    // Metric UVs (1 tile = 2.6m)
     uvAttr.setXY(i, x / 2.6, z / 2.6);
 
-    const n1 = noise2(x * 0.35 + 11, z * 0.35 - 7);
-    const n2 = noise2(x * 0.85 - 5, z * 0.85 + 19);
-    const nLarge = noise2(x * 0.14 + 31, z * 0.14 + 41);
+    const nA = noise2(x * 0.24 + 5.1, z * 0.24 - 2.3);
+    const nB = noise2(x * 0.55 - 1.7, z * 0.55 + 4.9);
 
-    let cobble = 1.0;
-    let dirt = 0.0;
-    let moss = 0.0;
-    let puddle = 0.0;
+    let cobble = 0;
+    let dirt = 0;
+    let moss = 0;
+    let puddle = 0;
 
-    const outsideWall =
-      Math.abs(x) > 72 || z > 17.5 || z < -176;
+    // Steep hillside retaining slopes show mossy mountain rock/earth
+    const slopeAmt = 1.0 - invLen;
 
-    if (z > 17.5 && Math.abs(x) < 16) {
-      const roadCenter = getCityRoadCenterX(z);
-      const dx = Math.abs(x - roadCenter);
-      const roadKeep = 1.0 - smoothstep(2.9, 4.4, dx + (n1 - 0.5) * 0.9);
-      cobble = roadKeep;
-      dirt = (1 - roadKeep) * (1 - smoothstep(5.8, 12.5, dx + (n1 - 0.5) * 1.8));
-      moss = Math.max(0, 1 - cobble - dirt * 0.75);
-      if (dx > 2.4 && dx < 4.5 && z > 19.5 && z < 26.5) {
-        puddle = smoothstep(0.56, 0.78, n1) * 0.85;
+    if (slopeAmt > 0.14) {
+      dirt = 0.6;
+      moss = 0.4;
+      cobble = 0.0;
+    } else if (sample.plazaWeight > 0.25 || sample.roadDist <= 0.35) {
+      cobble = 0.94;
+      dirt = 0.06;
+      if (sample.stepWeight > 0.2) {
+        cobble = 0.97;
+        dirt = 0.03;
+      } else if (sample.roadDist > -0.65 && sample.roadDist < 0.25 && sample.plazaWeight < 0.4) {
+        // Curbside damp moss & puddle glint along trade street gutters
+        moss = 0.22 * nB;
+        puddle = smoothstep(0.62, 0.88, nA) * 0.45;
+      } else if (sample.plazaWeight > 0.5) {
+        // Subtle worn stone patches in Central Market square
+        dirt = 0.08 * nA;
+        puddle = smoothstep(0.76, 0.94, nA * nB) * 0.22;
       }
-    } else if (outsideWall) {
-      // Countryside meadows & outer earth ramparts outside curtain walls
-      cobble = 0.04 * (1 - smoothstep(0.5, 4.0, Math.abs(sample.roadDist)));
-      dirt = (1 - smoothstep(0.4, 0.8, nLarge)) * 0.36;
-      moss = 1.0 - cobble - dirt;
+    } else if (sample.roadDist <= 2.6) {
+      const f = smoothstep(0.35, 2.6, sample.roadDist);
+      cobble = (1 - f) * 0.65;
+      dirt = 0.35 + f * 0.45;
+      moss = f * (0.28 + 0.25 * nB);
     } else {
-      // Interior urban streets, market plaza, alleys & courtyards
-      const roadEdge = Math.exp(-((sample.roadDist + 0.55) ** 2) / 0.32);
-      const wheelWear = Math.exp(-((sample.roadDist + 1.4) ** 2) / 0.45) * 0.36;
-      const offRoad = smoothstep(-0.2, 2.4, sample.roadDist);
-
-      dirt = Math.min(
-        1,
-        roadEdge * 0.48 + wheelWear * n1 + offRoad * (0.45 + n1 * 0.35) + smoothstep(0.66, 0.90, n1) * 0.2,
-      );
-      moss =
-        roadEdge * smoothstep(0.54, 0.82, n2) * 0.42 +
-        offRoad * smoothstep(0.42, 0.76, n2) * 0.52;
-      // Stepped stone stairs stay cleaner cobble/stone
-      dirt *= 1 - sample.stepWeight * 0.7;
-      moss *= 1 - sample.stepWeight * 0.65;
-      // Central plaza shows clean flagstone/cobble ring + subtle cart wear
-      if (sample.plazaWeight > 0.1) {
-        dirt *= 1 - sample.plazaWeight * 0.55;
+      // Mountain hillside turf & rocky earth outside paved terraces
+      dirt = 0.42 + 0.18 * nA;
+      moss = 0.58 - 0.12 * nA;
+      if (Math.abs(x) > 52 || z < -126) {
+        dirt = 0.32 + 0.15 * nA;
+        moss = 0.68 - 0.1 * nA;
       }
-      cobble = Math.max(0.28, 1.0 - dirt * 0.65 - moss * 0.5);
-
-      const narrativePuddles =
-        Math.exp(-((x + 2.8) ** 2 + (z - 7.5) ** 2) / 2.6) +
-        Math.exp(-((x - 3.1) ** 2 + (z + 4.5) ** 2) / 3.0) +
-        Math.exp(-((x + 3.0) ** 2 + (z + 15.0) ** 2) / 2.2) +
-        Math.exp(-((x + 12.5) ** 2 + (z + 67.0) ** 2) / 3.2) +
-        Math.exp(-((x - 20.5) ** 2 + (z + 77.0) ** 2) / 2.8) +
-        Math.exp(-((x + 48.0) ** 2 + (z + 55.0) ** 2) / 2.8) +
-        roadEdge * smoothstep(0.68, 0.86, n1) * 0.72;
-      puddle = Math.max(0, Math.min(0.92, narrativePuddles * (1 - sample.stepWeight)));
     }
 
-    const sum = cobble + dirt + moss || 1;
+    const sum = Math.max(0.001, cobble + dirt + moss);
     splats[i * 4] = cobble / sum;
     splats[i * 4 + 1] = dirt / sum;
     splats[i * 4 + 2] = moss / sum;
     splats[i * 4 + 3] = puddle;
 
-    // Gentle organic edge AO without muddying midday shading
-    const gutterAO = Math.exp(-((sample.roadDist + 0.55) ** 2) / 0.25) * (outsideWall ? 0 : 0.08);
-    const edgeShade = smoothstep(0.0, 2.5, sample.roadDist) * (outsideWall ? 0.04 : 0.10);
-    const microTint = (n2 - 0.5) * 0.08;
-    const vShade = Math.max(0.76, Math.min(1.04, 1.0 - edgeShade - gutterAO + microTint));
-    colors[i * 3] = vShade;
-    colors[i * 3 + 1] = vShade * 0.99;
-    colors[i * 3 + 2] = vShade * 0.96;
+    // Crisp bright natural daylight stone albedo modulation
+    let shade = 0.95 + 0.05 * nA;
+    if (sample.curbOffset < -0.02) {
+      shade *= 0.91;
+    } else if (sample.plazaWeight > 0.5) {
+      shade *= 1.03;
+    }
+    colors[i * 3] = Math.min(1, shade * 1.01);
+    colors[i * 3 + 1] = Math.min(1, shade * 1.0);
+    colors[i * 3 + 2] = Math.min(1, shade * 0.98);
   }
 
   geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
@@ -163,8 +149,8 @@ function buildGroundChunk(
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
   const mesh = new THREE.Mesh(geometry, streetMaterial);
-  mesh.receiveShadow = true;
   mesh.name = name;
+  mesh.receiveShadow = true;
 
   const indexAttr = geometry.getIndex();
   const vertices = new Float32Array(posAttr.array as ArrayLike<number>);
@@ -176,51 +162,45 @@ function buildGroundChunk(
 }
 
 /**
- * Builds tiled/chunked cobblestone + gravel + moss + puddle terrain across the full
- * ~200x240m Ashenhold city domain so frustum culling and Rapier trimesh checks stay fast.
+ * Builds the chunked 104x144m Hillside Ashenhold terrain + flanking mountain backdrop skirts.
+ * Finer resolution (0.50m) on the S-curved Gateward street, Market Bridge Steps, and Compact Market Plaza;
+ * medium resolution (0.85m) on upper wings/acropolis/citadel; coarse (2.5m) on outer mountain ridges.
  */
 export function buildCityGroundMesh(streetMaterial: THREE.Material): CityGroundResult {
-  const group = new THREE.Group();
-  group.name = 'AshenholdGroundChunks';
+  const root = new THREE.Group();
+  root.name = 'AshenholdHillsideGround';
+
+  const specs: Array<[number, number, number, number, number, string]> = [
+    // Tier 0 Gatehouse & S-Curved Trade Street + Bridge Steps (high-res 0.50m)
+    [-20, 20, -20, 28, 0.5, 'Ground_Tier0_GateAndTrade'],
+    // Tier 1 Compact Central Market Terrace + North Retaining Wall Step (high-res 0.55m)
+    [-22, 22, -64, -20, 0.55, 'Ground_Tier1_MarketAndOverlook'],
+    // Tier 2 West Artisan Wing (0.85m)
+    [-54, -20, -84, 14, 0.85, 'Ground_Tier2_WestArtisan'],
+    // Tier 2 East Residential Heights Wing (0.85m)
+    [20, 54, -84, 14, 0.85, 'Ground_Tier2_EastResidential'],
+    // Tier 3 Temple Acropolis + Tier 4 Citadel Forecourt & Keep Crag (0.85m)
+    [-28, 28, -142, -64, 0.85, 'Ground_Tier34_AcropolisCitadel'],
+    // Flanking Mountain Ridges (West / East / North / South skirts at 2.5m)
+    [-92, -54, -142, 42, 2.5, 'Ground_Ridge_West'],
+    [54, 92, -142, 42, 2.5, 'Ground_Ridge_East'],
+    [-92, 92, -166, -142, 2.5, 'Ground_Ridge_North'],
+    [-54, 54, 28, 48, 2.2, 'Ground_Approach_South'],
+    [-54, -28, -142, -84, 2.0, 'Ground_Ridge_NW'],
+    [28, 54, -142, -84, 2.0, 'Ground_Ridge_NE'],
+  ];
 
   const chunks: GroundChunkData[] = [];
-  // Inner urban tiles (~0.6m resolution) spanning x in [-72, +72], z in [-176, +36]
-  const xBands = [-72, -36, 0, 36, 72];
-  const zBands = [-176, -134, -92, -50, -8, 36];
-
-  for (let zi = 0; zi < zBands.length - 1; zi++) {
-    for (let xi = 0; xi < xBands.length - 1; xi++) {
-      const x0 = xBands[xi];
-      const x1 = xBands[xi + 1];
-      const z0 = zBands[zi];
-      const z1 = zBands[zi + 1];
-      // Core South Gate & Central Market corridors get finer 0.55m mesh; outer blocks get 0.8m
-      const isHeroStrip = x0 >= -36 && x1 <= 36 && z1 > -140;
-      const step = isHeroStrip ? 0.55 : 0.8;
-      const c = buildGroundChunk(streetMaterial, x0, x1, z0, z1, step, `CityGround_${xi}_${zi}`);
-      group.add(c.mesh);
-      chunks.push(c);
-    }
+  for (const [x0, x1, z0, z1, step, name] of specs) {
+    const chunk = buildGroundChunk(streetMaterial, x0, x1, z0, z1, step, name);
+    root.add(chunk.mesh);
+    chunks.push(chunk);
   }
 
-  // Outer Perimeter Hillside Skirt Strips (beyond x=±72 or north of z=-176, coarse 2.5m mesh)
-  const skirtBoxes: Array<[number, number, number, number, string]> = [
-    [-108, -72, -210, 38, 'SkirtWest'],
-    [72, 108, -210, 38, 'SkirtEast'],
-    [-72, 72, -210, -176, 'SkirtNorth'],
-  ];
-  for (const [x0, x1, z0, z1, label] of skirtBoxes) {
-    const c = buildGroundChunk(streetMaterial, x0, x1, z0, z1, 2.5, label);
-    group.add(c.mesh);
-    chunks.push(c);
-  }
-
-  // Primary Gate-Street chunk vertices/indices kept for backward compatibility
-  const primary = chunks.find((c) => c.mesh.name === 'CityGround_1_4') ?? chunks[0];
   return {
-    mesh: group,
+    mesh: root,
     chunks,
-    vertices: primary.vertices,
-    indices: primary.indices,
+    vertices: chunks[0].vertices,
+    indices: chunks[0].indices,
   };
 }

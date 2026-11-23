@@ -17,9 +17,26 @@ interface CityArchEntry {
   yaw: number;
   district?: string;
   tier?: string;
+  buildingClass?: string;
+  isInterior?: boolean;
   cullDist?: number;
   colliders?: Array<{ center: [number, number, number]; half: [number, number, number] }>;
   cylinderColliders?: Array<{ center: [number, number, number]; halfHeight: number; radius: number }>;
+  orientedColliders?: Array<{
+    center: [number, number, number];
+    half: [number, number, number];
+    rot: [number, number, number];
+  }>;
+}
+
+interface CityLoreEntry {
+  id: string;
+  label: string;
+  title: string;
+  body: string;
+  position: Vec3;
+  radius?: number;
+  meshKind?: 'book' | 'board';
 }
 
 const cityLayout = cityLayoutRaw as unknown as {
@@ -29,6 +46,7 @@ const cityLayout = cityLayoutRaw as unknown as {
   architecture: CityArchEntry[];
   propBatches: Record<string, Array<{ x: number; z: number; yaw: number; scale: number; yOffset?: number; collider?: boolean }>>;
   lights: Array<{ position: Vec3; color: string; intensity: number; distance: number }>;
+  loreInteractables?: CityLoreEntry[];
 };
 
 export interface CityBuildCallbacks {
@@ -169,6 +187,21 @@ export async function buildAshenholdCity(
         physics.addStaticCylinder(col.halfHeight, col.radius, { x: wx, y: pos.y + ly, z: wz }, 'ashenhold_city');
       }
     }
+    if (arch.orientedColliders) {
+      for (const col of arch.orientedColliders) {
+        const [lx, ly, lz] = col.center;
+        const [hx, hy, hz] = col.half;
+        const [lpitch, lyaw, lroll] = col.rot;
+        const wx = pos.x + lx * ca + lz * sa;
+        const wz = pos.z - lx * sa + lz * ca;
+        physics.addStaticOrientedBox(
+          { x: hx, y: hy, z: hz },
+          { x: wx, y: pos.y + ly, z: wz },
+          { x: lpitch, y: yaw + lyaw, z: lroll },
+          'ashenhold_city',
+        );
+      }
+    }
   }
 
   // 3. Register Selective Solid Prop Colliders (Carts, Troughs, Benches, Bollards, Stone Wells, Barrels, Crates)
@@ -220,12 +253,15 @@ export async function buildAshenholdCity(
   }
 
   // 4. Reflective Water Surfaces: Gate Horse Trough + Two-Tier Central Market Phoenix Fountain!
-  const troughY = getCityGroundHeight(4.2, 8.2);
-  const troughWater = new THREE.Mesh(new THREE.PlaneGeometry(1.56, 0.56), materials.waterTroughMaterial);
-  troughWater.rotation.x = -Math.PI / 2;
-  troughWater.rotation.z = 1.57;
-  troughWater.position.set(4.2, troughY + 0.76, 8.2);
-  parent.add(troughWater);
+  const troughEntry = (cityLayout.propBatches['prop_trough.glb'] ?? [])[0];
+  if (troughEntry) {
+    const troughY = getCityGroundHeight(troughEntry.x, troughEntry.z);
+    const troughWater = new THREE.Mesh(new THREE.PlaneGeometry(1.56, 0.56), materials.waterTroughMaterial);
+    troughWater.rotation.x = -Math.PI / 2;
+    troughWater.rotation.z = troughEntry.yaw;
+    troughWater.position.set(troughEntry.x, troughY + 0.76, troughEntry.z);
+    parent.add(troughWater);
+  }
 
   const fountainArch = resolvedArch.find((a) => a.id === 'landmark_market_fountain');
   if (fountainArch) {
@@ -239,16 +275,18 @@ export async function buildAshenholdCity(
     parent.add(lowerWater, upperWater);
   }
 
-  // 5. Auto-Instance Repeated Walls/Horizon & Statically Merge Buildings by District/Material
+  // 5. Auto-Instance Repeated Walls/Horizon, Distance-Cull Interior Packs (<28m), & Merge District Shells
   const cullTargets: Array<{ group: THREE.Group; x: number; z: number; maxDistSq: number }> = [];
   if (!options.skipAssetFetch && typeof fetch !== 'undefined') {
     const INSTANCED_ARCH_MODELS = new Set([
       'perimeter_curtain_wall.glb',
       'city_retaining_wall.glb',
+      'hillside_terrace_wall_16m.glb',
       'outer_decorative_horizon.glb',
     ]);
 
     const instancedArch = new Map<string, PropInstanceTransform[]>();
+    const interiorEntries: Array<(typeof resolvedArch)[number]> = [];
     const districtBuckets = new Map<
       string,
       { entries: import('./CityAssetLoader').StaticBatchEntry[]; cx: number; cz: number; maxDist: number }
@@ -264,6 +302,10 @@ export async function buildAshenholdCity(
     };
 
     for (const arch of resolvedArch) {
+      if (arch.isInterior) {
+        interiorEntries.push(arch);
+        continue;
+      }
       if (INSTANCED_ARCH_MODELS.has(arch.model)) {
         const list = instancedArch.get(arch.model) ?? [];
         list.push({ x: arch.worldPos.x, y: arch.worldPos.y, z: arch.worldPos.z, yaw: arch.yaw, scale: 1 });
@@ -273,8 +315,10 @@ export async function buildAshenholdCity(
 
       const isLandmark =
         arch.model === 'bldg_market_chapel.glb' ||
+        arch.model === 'bldg_mason_hall.glb' ||
         arch.model === 'castle_barbican_gate.glb' ||
-        arch.model === 'castle_citadel_keep.glb';
+        arch.model === 'castle_citadel_keep.glb' ||
+        arch.district === 'ashenhold_temple_acropolis';
 
       let bucketKey: string;
       let cx: number;
@@ -283,39 +327,33 @@ export async function buildAshenholdCity(
       if (isLandmark) {
         bucketKey = 'skyline_landmarks';
         cx = 0;
-        cz = -135;
-        maxDist = 420;
+        cz = -105;
+        maxDist = 380;
       } else if (arch.district === 'ashenhold_gate' || arch.district === 'ashenhold_main_street') {
         bucketKey = 'gate_and_main';
         cx = 0;
-        cz = -6;
-        maxDist = 140;
+        cz = 2;
+        maxDist = 115;
       } else if (arch.district === 'ashenhold_market_plaza') {
-        if (arch.worldPos.x <= 4) {
-          bucketKey = 'market_west';
-          cx = -10;
-          cz = -74;
-        } else {
-          bucketKey = 'market_east';
-          cx = 20;
-          cz = -74;
-        }
-        maxDist = 140;
+        bucketKey = arch.worldPos.x <= 0 ? 'market_west' : 'market_east';
+        cx = arch.worldPos.x <= 0 ? -8 : 8;
+        cz = -35;
+        maxDist = 115;
       } else if (arch.district === 'ashenhold_artisan_quarter') {
         bucketKey = 'artisan_quarter';
-        cx = -48;
-        cz = -50;
+        cx = -32;
+        cz = -42;
         maxDist = 125;
       } else if (arch.district === 'ashenhold_residential_quarter') {
         bucketKey = 'residential_quarter';
-        cx = 48;
+        cx = 32;
         cz = -42;
         maxDist = 125;
       } else {
         bucketKey = 'castle_forecourt';
-        cx = 4;
-        cz = -158;
-        maxDist = 180;
+        cx = 0;
+        cz = -114;
+        maxDist = 200;
       }
 
       const b = ensureBucket(bucketKey, cx, cz, maxDist);
@@ -335,8 +373,20 @@ export async function buildAshenholdCity(
       cullTargets.push({ group: grp, x: bucket.cx, z: bucket.cz, maxDistSq: bucket.maxDist * bucket.maxDist });
     });
 
+    const interiorPromises = interiorEntries.map(async (arch) => {
+      const grp = new THREE.Group();
+      grp.name = `CityInterior_${arch.id}`;
+      const model = await loader.instantiateModel(arch.model, { castShadow: false, receiveShadow: true });
+      model.position.set(arch.worldPos.x, arch.worldPos.y, arch.worldPos.z);
+      model.rotation.y = arch.yaw;
+      grp.add(model);
+      parent.add(grp);
+      const d = arch.cullDist ?? 28;
+      cullTargets.push({ group: grp, x: arch.worldPos.x, z: arch.worldPos.z, maxDistSq: d * d });
+    });
+
     const instArchPromises = [...instancedArch.entries()].map(async ([modelName, transforms]) => {
-      const castShadow = modelName === 'city_retaining_wall.glb';
+      const castShadow = modelName === 'city_retaining_wall.glb' || modelName === 'hillside_terrace_wall_16m.glb';
       await loader.createInstancedPropBatch(modelName, transforms, parent, castShadow);
     });
 
@@ -346,7 +396,7 @@ export async function buildAshenholdCity(
       await loader.createInstancedPropBatch(modelName, transforms, parent, castShadow);
     });
 
-    await Promise.all([...archBatchPromises, ...instArchPromises, ...propPromises]);
+    await Promise.all([...archBatchPromises, ...interiorPromises, ...instArchPromises, ...propPromises]);
   }
 
   // 6. Selective Local Warm Point Lights (<= 6 GPU light budget) & Soft Lantern Glow Sprites
@@ -393,15 +443,15 @@ export async function buildAshenholdCity(
     }
   }
 
-  // 7. Gentle Chimney & Forge Smoke Wisps (Guardhouse, Tavern, Bakery & Smiths' Row Hearth)
+  // 7. Gentle Chimney & Forge Smoke Wisps (A1 Guardhouse, A2 Tavern, A3 Apothecary & West Smithy)
   const smokePuffs: SmokePuff[] = [];
   const smokeTex = createSmokeTexture();
   if (smokeTex) {
     const chimneyOrigins: Vec3[] = [
-      { x: -11.0, y: 12.1, z: 4.0 },
-      { x: -11.6, y: 13.0, z: -10.8 },
-      { x: -30.5, y: 11.2, z: -61.0 },
-      { x: -45.5, y: 10.6, z: -80.2 },
+      { x: -9.6, y: 10.7, z: 8.6 },
+      { x: 9.0, y: 12.1, z: -7.2 },
+      { x: -16.4, y: 14.5, z: -31.0 },
+      { x: -28.5, y: 18.2, z: -44.0 },
     ];
     for (const origin of chimneyOrigins) {
       for (let i = 0; i < 6; i++) {
@@ -424,7 +474,7 @@ export async function buildAshenholdCity(
     }
   }
 
-  // 8. Carved Stone Return Portal Milestone + Lore & Municipal Notices
+  // 8. Carved Stone Return Portal Milestone + Data-Driven Lore & Municipal Notices
   const portalPos = cityLayout.portals.toRavendale.position;
   const milestoneGroup = new THREE.Group();
   milestoneGroup.position.set(portalPos.x + 2.9, getCityGroundHeight(portalPos.x + 2.9, portalPos.z), portalPos.z);
@@ -455,59 +505,9 @@ export async function buildAshenholdCity(
     onInteract: callbacks.onExitCity,
   });
 
-  // Guardhouse Interior Military Ledger
-  const guardTableBook = new THREE.Mesh(
-    new THREE.BoxGeometry(0.46, 0.07, 0.34),
-    new THREE.MeshStandardMaterial({ color: 0x6f2d21, roughness: 0.7 }),
-  );
-  guardTableBook.position.set(-9.2, 1.32, -0.6);
-  parent.add(guardTableBook);
-  registry.register({
-    id: 'lore:city_guardhouse_log',
-    kind: 'lore',
-    label: '翻阅《灰烬城南门防务日志》',
-    zone: 'ashenhold_city',
-    position: { x: -9.2, y: 0.5, z: -0.6 },
-    radius: 3.2,
-    enabled: true,
-    mesh: guardTableBook,
-    onInteract: () => {
-      callbacks.onLoreRead(
-        '《灰烬城南门防务日志》',
-        '【灰烬历 312 年 · 初秋】\n中央市集今日十座商摊全数开市！东西两条城区环路亦已打通：\n• 向西可经【铜角巷】与【铁匠街】巡查工坊区；\n• 向东可经【行会马车拱门】与【织坊高地】巡视居民高坡。\n北巅城堡前庭石阶已可通行，内堡大殿将于下一阶段【Phase 3】解封。',
-      );
-    },
-  });
-
-  // Ember & Flagon Tavern Bar Ledger
-  const tavernLedger = new THREE.Mesh(
-    new THREE.BoxGeometry(0.48, 0.08, 0.36),
-    new THREE.MeshStandardMaterial({ color: 0x423022, roughness: 0.72 }),
-  );
-  tavernLedger.position.set(-9.75, 2.02, -14.7);
-  parent.add(tavernLedger);
-  registry.register({
-    id: 'lore:city_tavern_ledger',
-    kind: 'lore',
-    label: '翻阅《余烬酒馆账簿》',
-    zone: 'ashenhold_city',
-    position: { x: -9.75, y: 1.0, z: -14.7 },
-    radius: 3.4,
-    enabled: true,
-    mesh: tavernLedger,
-    onInteract: () => {
-      callbacks.onLoreRead(
-        '《余烬与酒杯酒馆账簿》',
-        '1. 溪谷村铁匠葛伦订购麦芽黑啤 3 桶 —— 已结清 18 金币。\n2. 中央市集烘焙娘玛尔塔送来麦芽面包 —— 记账酒馆厨司。\n3. 铁匠街大师布伦南赊购烈酒 2 坛 —— 待月底结算。',
-      );
-    },
-  });
-
-  // Updated Municipal Charter Notice Board placed safely on curb beside Market Gate Mouth (-2.0, -24.5)
-  const makeBoardMesh = (x: number, z: number): THREE.Group => {
+  const makeBoardMesh = (x: number, y: number, z: number): THREE.Group => {
     const g = new THREE.Group();
-    const gy = getCityGroundHeight(x, z);
-    g.position.set(x, gy, z);
+    g.position.set(x, y, z);
     const postA = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.9, 0.14), materials.getMaterial('timber_oak', false));
     postA.position.set(-0.58, 0.95, 0);
     const postB = postA.clone();
@@ -524,48 +524,31 @@ export async function buildAshenholdCity(
     return g;
   };
 
-  const noticeGroup = makeBoardMesh(-2.0, -24.5);
-  noticeGroup.rotation.y = 0.42;
-  registry.register({
-    id: 'lore:city_phase2_notice',
-    kind: 'lore',
-    label: '查看《灰烬城通衢告示》',
-    zone: 'ashenhold_city',
-    position: { x: -2.0, y: getCityGroundHeight(-2.0, -24.5), z: -24.5 },
-    radius: 3.6,
-    enabled: true,
-    mesh: noticeGroup,
-    onInteract: () => {
-      callbacks.onLoreRead(
-        '《灰烬城市政通衢告示》',
-        '【灰烬城 · 中央市集与东西城区已正式贯通】\n\n' +
-          '• 北行穿过集市拱门 → 【中央市集广场】（十座特色商摊、凤凰喷泉、钟楼圣堂）。\n' +
-          '• 西行经【铜角巷】或市集西口 → 【铁匠工坊区】（锻造坊、制桶坊、制革坊，可作环形路线返回主街）。\n' +
-          '• 东行经行会拱门或市集东阶 → 【织坊居民高地】（阶梯观景台与提灯古巷）。\n' +
-          '• 按 [M] 随时查看全城街道舆图（含可探索区与未开放的 Phase 3 领主内堡标识）。',
+  for (const lore of cityLayout.loreInteractables ?? []) {
+    let loreMesh: THREE.Object3D;
+    if (lore.meshKind === 'board') {
+      loreMesh = makeBoardMesh(lore.position.x, lore.position.y, lore.position.z);
+    } else {
+      const book = new THREE.Mesh(
+        new THREE.BoxGeometry(0.46, 0.08, 0.34),
+        new THREE.MeshStandardMaterial({ color: 0x6f2d21, roughness: 0.72 }),
       );
-    },
-  });
-
-  // Citadel Barbican Portcullis Imperial Decree Board (Phase 3 Closure Boundary)
-  const citadelSign = makeBoardMesh(7.6, -168.5);
-  citadelSign.rotation.y = -0.35;
-  registry.register({
-    id: 'lore:city_castle_decree',
-    kind: 'lore',
-    label: '查看《领主城堡戒严令》',
-    zone: 'ashenhold_city',
-    position: { x: 7.6, y: getCityGroundHeight(7.6, -168.5), z: -168.5 },
-    radius: 3.8,
-    enabled: true,
-    mesh: citadelSign,
-    onInteract: () => {
-      callbacks.onLoreRead(
-        '《领主内堡 · 戒严公告 (Phase 3 筹备区)》',
-        '此处为灰烬城北部【领主城堡瓮城前庭】。\n铁闸之后的主堡庭院与领主大厅归属【Phase 3】开发内容，目前落闸戒严、尚不可进入，敬请知悉。',
-      );
-    },
-  });
+      book.position.set(lore.position.x, lore.position.y, lore.position.z);
+      parent.add(book);
+      loreMesh = book;
+    }
+    registry.register({
+      id: lore.id,
+      kind: 'lore',
+      label: lore.label,
+      zone: 'ashenhold_city',
+      position: { ...lore.position },
+      radius: lore.radius ?? 3.4,
+      enabled: true,
+      mesh: loreMesh,
+      onInteract: () => callbacks.onLoreRead(lore.title, lore.body),
+    });
+  }
 
   return {
     materials,

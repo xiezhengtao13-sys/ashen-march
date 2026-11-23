@@ -1,0 +1,7 @@
+[
+ {"name":"hs_01_gate_street_1300","time":13,"pos":[0.0,0.35,9.2],"yaw":0.0,"pitch":0.06},
+ {"name":"hs_02_tavern_interior_1f","time":13,"pos":[5.8,1.88,-4.0],"yaw":-1.32,"pitch":-0.04},
+ {"name":"hs_03_tavern_balcony_2f","time":13,"pos":[4.15,5.35,-3.2],"yaw":0.75,"pitch":-0.10},
+ {"name":"hs_05_apothecary_interior","time":13,"pos":[-12.6,3.85,-28.0],"yaw":1.57,"pitch":-0.04},
+ {"name":"hs_07_overlook_north_skyline","time":13,"pos":[0.0,7.85,-55.8],"yaw":0.0,"pitch":0.24}
+]

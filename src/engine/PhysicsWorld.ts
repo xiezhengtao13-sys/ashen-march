@@ -134,6 +134,35 @@ export class PhysicsWorld {
     return ctx.world.createCollider(colDesc, body);
   }
 
+  /**
+   * Oriented static cuboid using YXZ Euler angles (rot.x = pitch, rot.y = yaw, rot.z = roll).
+   * Ideal for smooth sloped collision ramps beneath visible stone/oak staircases.
+   */
+  addStaticOrientedBox(
+    halfExtents: Vec3,
+    center: Vec3,
+    rot: Vec3,
+    zone: ZoneId = 'overworld',
+  ): RAPIER.Collider {
+    const ctx = this.getOrCreateContext(zone);
+    const c1 = Math.cos(rot.x * 0.5);
+    const s1 = Math.sin(rot.x * 0.5);
+    const c2 = Math.cos(rot.y * 0.5);
+    const s2 = Math.sin(rot.y * 0.5);
+    const c3 = Math.cos(rot.z * 0.5);
+    const s3 = Math.sin(rot.z * 0.5);
+    const qx = s1 * c2 * c3 + c1 * s2 * s3;
+    const qy = c1 * s2 * c3 - s1 * c2 * s3;
+    const qz = c1 * c2 * s3 - s1 * s2 * c3;
+    const qw = c1 * c2 * c3 + s1 * s2 * s3;
+    const bodyDesc = RAPIER.RigidBodyDesc.fixed()
+      .setTranslation(center.x, center.y, center.z)
+      .setRotation({ x: qx, y: qy, z: qz, w: qw });
+    const body = ctx.world.createRigidBody(bodyDesc);
+    const colDesc = RAPIER.ColliderDesc.cuboid(halfExtents.x, halfExtents.y, halfExtents.z);
+    return ctx.world.createCollider(colDesc, body);
+  }
+
   addStaticCylinder(halfHeight: number, radius: number, center: Vec3, zone: ZoneId = 'overworld'): RAPIER.Collider {
     const ctx = this.getOrCreateContext(zone);
     const bodyDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(center.x, center.y, center.z);
@@ -193,9 +222,9 @@ export class PhysicsWorld {
       nextPos.x = Math.max(-248, Math.min(248, nextPos.x));
       nextPos.z = Math.max(-248, Math.min(248, nextPos.z));
     } else if (this.activeKey === 'ashenhold_city') {
-      const southOutsideLimitX = nextPos.z > 15.5 ? 16 : 69;
+      const southOutsideLimitX = nextPos.z > 15.5 ? 15 : 52;
       nextPos.x = Math.max(-southOutsideLimitX, Math.min(southOutsideLimitX, nextPos.x));
-      nextPos.z = Math.max(-171, Math.min(31, nextPos.z));
+      nextPos.z = Math.max(-124, Math.min(26, nextPos.z));
     }
 
     this.playerBody.setNextKinematicTranslation(nextPos);

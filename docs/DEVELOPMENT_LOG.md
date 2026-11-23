@@ -95,4 +95,13 @@
   - `npm run test:e2e` (Playwright + headless Chrome WebGL2，SwiftShader CPU 软件渲染) **2/2 全部通过**（`2 passed / 5.1m`，0 控制台/页面错误）：完整验证原有开放世界/墓穴/IndexedDB 存档无回归，以及从南城门进入主街→与卫队长交互→进入酒馆阅读账簿→穿过市集拱门抵达中央市集→向烘焙娘玛尔塔购买热面包扣减金币→探索西侧铁匠工坊区与东侧织坊高地→受阻于城堡前庭铁闸→打开 `[M]` 灰烬城舆图。
   - **硬件/软件渲染遥测透明披露**：当前云服务器无独立 GPU，所有截图与 E2E 均于 Chrome SwiftShader CPU 软件渲染运行（1080p 中央市集 High 档：**210 Draw Calls / 655,832 Triangles / 398 Geometries / 70 Textures**，CPU 软件单帧 ~9.1s / 0 FPS；720p 中央市集 **210 Draw Calls / 655,828 Triangles**；铁匠工坊区 **113 Draw Calls / 345,750 Triangles**；城堡前庭 **82 Draw Calls / 122,262 Triangles**）。待在实体硬件 GPU 环境下补充真实 60 FPS 帧率测试。
 
+## 2026-11-23 — Ashenhold 紧凑型依山立体主城重设计 (`feature/ashenhold-hillside-redesign`)：Phase 1 蓝图与 Phase 2 样板区
+- **Phase 1 空间重设计获批**：放弃平坦 200×240m 铺开式格局，重新规划约 **104×144 m** 的五重台地依山山城（`0m → +3.5m → +7.5m → +12.2m → +18.0m / +21.0m`），确立 A 类 8 栋完整室内 + B 类 12 栋半可进入空间 + C 类外观建筑的三级策略及三环六捷径路线网。
+- **Phase 2 高品质紧凑山城样板区实现 (`CityRoadNetwork.ts`, `CityGroundBuilder.ts`, `PhysicsWorld.ts`, `hillside_kit.py`, `build_hillside_layout.py`, `CityPhase1Builder.ts`)**：
+  - `PhysicsWorld.ts` 新增 `addStaticOrientedBox`（精确 YXZ 四元数倾斜斜坡碰撞体），为双层旅店内梯与 4.2m 挡土墙石阶提供丝滑攀登手感；城市边界收束至 `104×144m`。
+  - `scripts/city/hillside_kit.py` 新增 14 个 Blender 4.0 山城定制 `.glb` 模型（零大面异常 UV）：含 **A1 南门卫戍室（室内）**、**A2 双层余烬旅店（可走橡木楼梯上二楼观景阳台 `+5.1m`）**、**A3 铁锚药剂堂（完整室内与伊琳娜柜台）**、**B1 商队货仓**、**B2 车夫歇脚棚**、**市集木石廊桥拱门**、**4.2m 北侧挡土石墙与双折礼仪大石阶**、模块化山体挡土墙及 3 款高密窄街三层民居。
+  - 实装 `< 28m` 室内家具距离剔除 (`CityInterior_*`) 与五重台地等高线 `[M]` 灰烬城舆图 (`UIManager.ts`)。
+  - **实测对比与回归**：相比旧版平坦城市，南门与市集同机位视锥三角面分别由 `816k / 656k` 降至 `514k (-37%) / 499k (-24%)`，室内视角仅 `108–113 Draw Calls / 242k–384k Tris`；`npm run typecheck`、`npm test`（9 套件 23 用例，含实机 Rapier 攀登 A2 二楼楼梯与 4.2m 北墙大石阶验证）、`npm run build` 与 `npm run test:e2e`（Playwright 2/2，0 控制台/页面报错）全量通过。
+
+
 

@@ -72,3 +72,15 @@
 - [ ] **Phase 6：场景整合 (World & Gameplay Integration)**
   - [ ] 完整整合城市 NPC 日程、城市支线任务线与跨城区剧情联动
 
+## Ashenhold — 灰烬城紧凑型依山立体主城重设计 (`feature/ashenhold-hillside-redesign`)
+- [x] **Redesign Phase 1：空间总规划与蓝图确认**（104×144m 五重台地 `0m → +3.5m → +7.5m → +12.2m → +18.0m`、A 类 8 栋 + B 类 12 栋分级室内清单、三环六捷径）
+- [x] **Redesign Phase 2：紧凑依山高品质样板区**
+  - [x] 重建 5 级山体台地地形 (`CityRoadNetwork`, `CityGroundBuilder`) 与 14 个山城定制 GLB 资产 (`scripts/city/hillside_kit.py`)
+  - [x] 实现 Tier 0 南城门、S 形贸易街、A1 南门卫戍室（室内）、A2 双层余烬旅店（实机内梯上二楼观景阳台）、B1 商队货仓、B2 车夫歇脚棚
+  - [x] 实现 Tier 0→1 门卫石阶与市集木石廊桥拱门、Tier 1 紧凑中央市集（凤凰喷泉 + 6 彩篷摊位 + A3 铁锚药剂堂完整室内与伊琳娜柜台）
+  - [x] 实现北侧 4.2m 挡土石墙双折礼仪大石阶（Rapier `addStaticOrientedBox` 平滑斜坡碰撞）直抵 `+7.5m` 观景台，并呈现 Tier 2/3/4 依山天际线与 `< 28m` 内饰距离剔除
+- [ ] **Redesign Phase 3：核心东西两翼（西工匠区 A5/B5–B7 + 东居民高地 A4/A6/B8–B11 屋顶连廊 + 酒馆二楼天桥与 +7.5m 悬空拱桥）**
+- [ ] **Redesign Phase 4：高地圣堂与城堡区（A7 圣伊格尼斯圣堂/公会大厅与钟楼观景廊 + B12 抄本室 + 王道阶梯与 A8 城堡瓮城前厅）**
+- [ ] **Redesign Phase 5：全功能 RPG 整合、双模式等高线舆图与最终发布验证**
+
+

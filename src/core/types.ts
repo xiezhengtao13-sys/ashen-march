@@ -11,6 +11,7 @@ export type RegionId =
   | 'ashenhold_market_plaza'
   | 'ashenhold_artisan_quarter'
   | 'ashenhold_residential_quarter'
+  | 'ashenhold_temple_acropolis'
   | 'ashenhold_castle_approach';
 
 export interface Vec3 {
