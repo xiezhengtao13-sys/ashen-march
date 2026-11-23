@@ -1,0 +1,131 @@
+{
+  "archetypes": [
+    {
+      "id": "goblin_raider",
+      "name": "灰木哥布林",
+      "nameEn": "Goblin Raider",
+      "maxHp": 55,
+      "attack": 10,
+      "defense": 3,
+      "xpReward": 35,
+      "goldMin": 12,
+      "goldMax": 22,
+      "moveSpeed": 4.1,
+      "detectRange": 18,
+      "attackRange": 2.3,
+      "attackCooldown": 1.35,
+      "scale": 0.9,
+      "bodyColor": "#4e7544",
+      "accentColor": "#754f34",
+      "isBoss": false,
+      "drops": [
+        { "itemId": "goblin_totem", "chance": 0.85, "quantity": 1 },
+        { "itemId": "minor_health_potion", "chance": 0.4, "quantity": 1 }
+      ]
+    },
+    {
+      "id": "skeleton_warrior",
+      "name": "骷髅战士",
+      "nameEn": "Skeleton Warrior",
+      "maxHp": 85,
+      "attack": 15,
+      "defense": 6,
+      "xpReward": 55,
+      "goldMin": 20,
+      "goldMax": 35,
+      "moveSpeed": 3.7,
+      "detectRange": 20,
+      "attackRange": 2.5,
+      "attackCooldown": 1.4,
+      "scale": 1.05,
+      "bodyColor": "#cfc7b6",
+      "accentColor": "#524c44",
+      "isBoss": false,
+      "drops": [
+        { "itemId": "mana_potion", "chance": 0.5, "quantity": 1 },
+        { "itemId": "minor_health_potion", "chance": 0.4, "quantity": 1 }
+      ]
+    },
+    {
+      "id": "crypt_guardian",
+      "name": "墓穴守卫·阿卡索尔",
+      "nameEn": "Crypt Guardian Arkathor",
+      "maxHp": 220,
+      "attack": 22,
+      "defense": 9,
+      "xpReward": 180,
+      "goldMin": 90,
+      "goldMax": 130,
+      "moveSpeed": 3.9,
+      "detectRange": 24,
+      "attackRange": 3.0,
+      "attackCooldown": 1.5,
+      "scale": 1.35,
+      "bodyColor": "#3e4656",
+      "accentColor": "#53b8d9",
+      "isBoss": true,
+      "drops": [
+        { "itemId": "watchers_runeblade", "chance": 1.0, "quantity": 1 },
+        { "itemId": "greater_health_potion", "chance": 1.0, "quantity": 1 }
+      ]
+    }
+  ],
+  "spawns": [
+    {
+      "id": "enemy_goblin_1",
+      "archetypeId": "goblin_raider",
+      "zone": "overworld",
+      "position": { "x": -78, "y": 0, "z": -10 },
+      "patrolOffset": { "x": -88, "z": -16 },
+      "unique": false
+    },
+    {
+      "id": "enemy_goblin_2",
+      "archetypeId": "goblin_raider",
+      "zone": "overworld",
+      "position": { "x": -104, "y": 0, "z": -24 },
+      "patrolOffset": { "x": -115, "z": -32 },
+      "unique": false
+    },
+    {
+      "id": "enemy_goblin_3",
+      "archetypeId": "goblin_raider",
+      "zone": "overworld",
+      "position": { "x": -120, "y": 0, "z": -38 },
+      "patrolOffset": { "x": -130, "z": -46 },
+      "unique": false
+    },
+    {
+      "id": "enemy_goblin_4",
+      "archetypeId": "goblin_raider",
+      "zone": "overworld",
+      "position": { "x": 92, "y": 0, "z": -56 },
+      "patrolOffset": { "x": 99, "z": -66 },
+      "unique": false
+    },
+    {
+      "id": "enemy_skeleton_1",
+      "archetypeId": "skeleton_warrior",
+      "zone": "ancient_crypt",
+      "position": { "x": -3, "y": -500, "z": -22 },
+      "patrolOffset": { "x": 3, "z": -28 },
+      "unique": true
+    },
+    {
+      "id": "enemy_skeleton_2",
+      "archetypeId": "skeleton_warrior",
+      "zone": "ancient_crypt",
+      "position": { "x": 4, "y": -500, "z": -38 },
+      "patrolOffset": { "x": -4, "z": -44 },
+      "unique": true
+    },
+    {
+      "id": "enemy_crypt_guardian",
+      "archetypeId": "crypt_guardian",
+      "zone": "ancient_crypt",
+      "position": { "x": 0, "y": -500, "z": -64 },
+      "patrolOffset": { "x": 0, "z": -58 },
+      "unique": true
+    }
+  ]
+}

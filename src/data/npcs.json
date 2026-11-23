@@ -1,0 +1,48 @@
+{
+  "npcs": [
+    {
+      "id": "elder_aldrin",
+      "name": "村长奥尔德林",
+      "title": "溪谷村长老",
+      "zone": "overworld",
+      "position": { "x": 0, "y": 4.0, "z": 31 },
+      "yaw": 0,
+      "robeColor": "#5b3b6e",
+      "accentColor": "#d9b166",
+      "hasStaff": true,
+      "dialogueId": "elder_aldrin_dialogue"
+    },
+    {
+      "id": "merchant_garrick",
+      "name": "铁匠商人葛伦",
+      "title": "军械与杂货商",
+      "zone": "overworld",
+      "position": { "x": -13.5, "y": 4.0, "z": 38 },
+      "yaw": 1.35,
+      "robeColor": "#754632",
+      "accentColor": "#a8b2bd",
+      "hasStaff": false,
+      "shopInventory": [
+        "hunters_saber",
+        "chainmail_vest",
+        "ashen_amulet",
+        "minor_health_potion",
+        "greater_health_potion",
+        "mana_potion"
+      ],
+      "dialogueId": "merchant_garrick_dialogue"
+    },
+    {
+      "id": "hunter_lyra",
+      "name": "猎人莱拉",
+      "title": "灰木林斥候",
+      "zone": "overworld",
+      "position": { "x": 13.5, "y": 4.0, "z": 39 },
+      "yaw": -1.35,
+      "robeColor": "#355c42",
+      "accentColor": "#8c6b48",
+      "hasStaff": false,
+      "dialogueId": "hunter_lyra_dialogue"
+    }
+  ]
+}

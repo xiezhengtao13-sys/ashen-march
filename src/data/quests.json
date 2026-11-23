@@ -1,0 +1,143 @@
+{
+  "quests": [
+    {
+      "id": "main_lost_watchers",
+      "title": "失落的守望者",
+      "isMain": true,
+      "giverNpcId": "elder_aldrin",
+      "summary": "溪谷村东侧废弃哨塔重新燃起火光，北方山麓也传出异动。调查真相，寻找失落的守望者圣物。",
+      "stages": [
+        {
+          "id": "investigate_watchtower",
+          "description": "前往溪谷村东北方向的【废弃哨塔】，攀登塔楼并寻找线索（拾取《守望者日志》）。",
+          "objective": {
+            "id": "obj_journal",
+            "type": "collect",
+            "targetId": "watchers_journal",
+            "requiredCount": 1,
+            "description": "取得《守望者日志》"
+          },
+          "nextStageId": "explore_crypt"
+        },
+        {
+          "id": "explore_crypt",
+          "description": "根据日志指引前往北方山麓进入【古代墓穴】，击败墓穴守卫并取回《守望者圣物》。",
+          "objective": {
+            "id": "obj_relic",
+            "type": "collect",
+            "targetId": "watchers_relic",
+            "requiredCount": 1,
+            "description": "夺回《守望者圣物》"
+          },
+          "nextStageId": "return_to_elder"
+        },
+        {
+          "id": "return_to_elder",
+          "description": "返回溪谷村，向村长奥尔德林决定《守望者圣物》的归属。",
+          "objective": {
+            "id": "obj_return_elder",
+            "type": "talk",
+            "targetId": "elder_aldrin",
+            "requiredCount": 1,
+            "description": "向村长奥尔德林复命"
+          },
+          "nextStageId": null
+        }
+      ],
+      "rewards": {
+        "return_relic": {
+          "xp": 300,
+          "gold": 250,
+          "bonusStats": {
+            "defense": 5,
+            "maxHp": 25
+          }
+        },
+        "keep_relic": {
+          "xp": 200,
+          "gold": 0
+        }
+      }
+    },
+    {
+      "id": "side_goblin_menace",
+      "title": "灰木林的威胁",
+      "isMain": false,
+      "giverNpcId": "hunter_lyra",
+      "summary": "猎人莱拉发现灰木森林中的哥布林正在集结。消灭 3 名灰木哥布林以保卫商路。",
+      "stages": [
+        {
+          "id": "hunt_goblins",
+          "description": "进入西方【灰木森林】，消灭 3 名灰木哥布林。",
+          "objective": {
+            "id": "obj_kill_goblins",
+            "type": "kill",
+            "targetId": "goblin_raider",
+            "requiredCount": 3,
+            "description": "击败灰木哥布林"
+          },
+          "nextStageId": "report_lyra"
+        },
+        {
+          "id": "report_lyra",
+          "description": "返回溪谷村向猎人莱拉复命领取赏金。",
+          "objective": {
+            "id": "obj_report_lyra",
+            "type": "talk",
+            "targetId": "hunter_lyra",
+            "requiredCount": 1,
+            "description": "向猎人莱拉复命"
+          },
+          "nextStageId": null
+        }
+      ],
+      "rewards": {
+        "default": {
+          "xp": 120,
+          "gold": 100,
+          "items": [{ "itemId": "hunters_saber", "quantity": 1 }]
+        }
+      }
+    },
+    {
+      "id": "side_frontier_herbs",
+      "title": "边境物资筹备",
+      "isMain": false,
+      "giverNpcId": "merchant_garrick",
+      "summary": "铁匠商人葛伦急需灰烬草补充疗伤药剂储备，在森林与河谷交界采集 3 株灰烬草。",
+      "stages": [
+        {
+          "id": "gather_herbs",
+          "description": "在灰木森林或河谷区域采集 3 株【灰烬草】。",
+          "objective": {
+            "id": "obj_collect_herbs",
+            "type": "collect",
+            "targetId": "ashen_herb",
+            "requiredCount": 3,
+            "description": "采集灰烬草"
+          },
+          "nextStageId": "deliver_garrick"
+        },
+        {
+          "id": "deliver_garrick",
+          "description": "将灰烬草交给铁匠商人葛伦。",
+          "objective": {
+            "id": "obj_deliver_garrick",
+            "type": "talk",
+            "targetId": "merchant_garrick",
+            "requiredCount": 1,
+            "description": "向铁匠商人葛伦交付物资"
+          },
+          "nextStageId": null
+        }
+      ],
+      "rewards": {
+        "default": {
+          "xp": 90,
+          "gold": 80,
+          "items": [{ "itemId": "greater_health_potion", "quantity": 2 }]
+        }
+      }
+    }
+  ]
+}

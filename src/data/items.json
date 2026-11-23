@@ -1,0 +1,166 @@
+{
+  "items": [
+    {
+      "id": "iron_sword",
+      "name": "铁制长剑",
+      "nameEn": "Iron Sword",
+      "category": "weapon",
+      "equipSlot": "weapon",
+      "description": "边境铁匠锻造的标准铁剑，平衡可靠。",
+      "value": 35,
+      "stackable": false,
+      "stats": { "attack": 8 },
+      "color": "#a8b2bd"
+    },
+    {
+      "id": "hunters_saber",
+      "name": "猎人短剑",
+      "nameEn": "Hunter's Saber",
+      "category": "weapon",
+      "equipSlot": "weapon",
+      "description": "轻巧锋利的弧刃短剑，专为林间近身缠斗打造。",
+      "value": 95,
+      "stackable": false,
+      "stats": { "attack": 14 },
+      "color": "#c9d4de"
+    },
+    {
+      "id": "watchers_runeblade",
+      "name": "守望者符文剑",
+      "nameEn": "Watcher's Runeblade",
+      "category": "weapon",
+      "equipSlot": "weapon",
+      "description": "刻有古代守望者铭文的银钢战剑，能同时增幅剑气与法术。",
+      "value": 240,
+      "stackable": false,
+      "stats": { "attack": 22, "magic": 6 },
+      "color": "#7ec8e3"
+    },
+    {
+      "id": "traveler_tunic",
+      "name": "旅者皮甲",
+      "nameEn": "Traveler's Tunic",
+      "category": "armor",
+      "equipSlot": "armor",
+      "description": "缝制结实的旅行皮甲，足以抵御荒野荆棘与轻型劈砍。",
+      "value": 30,
+      "stackable": false,
+      "stats": { "defense": 4 },
+      "color": "#7a5838"
+    },
+    {
+      "id": "chainmail_vest",
+      "name": "链甲背心",
+      "nameEn": "Chainmail Vest",
+      "category": "armor",
+      "equipSlot": "armor",
+      "description": "精钢环扣编织的中甲，大幅提升近战防护力。",
+      "value": 110,
+      "stackable": false,
+      "stats": { "defense": 10, "maxHp": 15 },
+      "color": "#8f99a3"
+    },
+    {
+      "id": "warden_plate",
+      "name": "守望者胸甲",
+      "nameEn": "Warden Plate",
+      "category": "armor",
+      "equipSlot": "armor",
+      "description": "古代守望者骑士传世护甲，坚不可摧。",
+      "value": 220,
+      "stackable": false,
+      "stats": { "defense": 16, "maxHp": 30 },
+      "color": "#58687a"
+    },
+    {
+      "id": "ashen_amulet",
+      "name": "灰烬护符",
+      "nameEn": "Ashen Amulet",
+      "category": "accessory",
+      "equipSlot": "accessory",
+      "description": "温热的黑曜石护符，蕴含余烬魔力。",
+      "value": 120,
+      "stackable": false,
+      "stats": { "magic": 8, "maxMp": 20 },
+      "color": "#d97742"
+    },
+    {
+      "id": "watchers_relic",
+      "name": "守望者圣物",
+      "nameEn": "Watcher's Relic",
+      "category": "accessory",
+      "equipSlot": "accessory",
+      "description": "封印着灰烬边境古老结界之力的星辉圣物，既可用于重塑封印，亦可佩戴执掌其力量。",
+      "value": 350,
+      "stackable": false,
+      "stats": { "attack": 12, "magic": 15, "defense": 6 },
+      "color": "#e8c468"
+    },
+    {
+      "id": "minor_health_potion",
+      "name": "小型治疗药水",
+      "nameEn": "Minor Health Potion",
+      "category": "consumable",
+      "description": "饮用后立即恢复 45 点生命值。",
+      "value": 20,
+      "stackable": true,
+      "stats": { "healHp": 45 },
+      "color": "#d44646"
+    },
+    {
+      "id": "greater_health_potion",
+      "name": "强化治疗药水",
+      "nameEn": "Greater Health Potion",
+      "category": "consumable",
+      "description": "炼金术士精酿的急救药水，恢复 90 点生命值。",
+      "value": 45,
+      "stackable": true,
+      "stats": { "healHp": 90 },
+      "color": "#e32b50"
+    },
+    {
+      "id": "mana_potion",
+      "name": "法力药水",
+      "nameEn": "Mana Potion",
+      "category": "consumable",
+      "description": "清冽的秘银药剂，立即恢复 40 点法力值。",
+      "value": 25,
+      "stackable": true,
+      "stats": { "restoreMp": 40 },
+      "color": "#3d7bd9"
+    },
+    {
+      "id": "watchers_journal",
+      "name": "守望者日志",
+      "nameEn": "Watcher's Journal",
+      "category": "quest",
+      "description": "残破的羊皮笔记：『北方山麓的古代墓穴已被震动开启，圣物切勿落入暗影之手……』",
+      "value": 0,
+      "stackable": false,
+      "stats": {},
+      "color": "#d4bc8b"
+    },
+    {
+      "id": "ashen_herb",
+      "name": "灰烬草",
+      "nameEn": "Ashen Herb",
+      "category": "material",
+      "description": "生长在灰木林与河谷交界处的药用植物，可用于调配炼金药剂。",
+      "value": 15,
+      "stackable": true,
+      "stats": {},
+      "color": "#64a86e"
+    },
+    {
+      "id": "goblin_totem",
+      "name": "哥布林图腾",
+      "nameEn": "Goblin Totem",
+      "category": "material",
+      "description": "哥布林掠夺者随身携带的骨制图腾，可卖给商人换取金币。",
+      "value": 22,
+      "stackable": true,
+      "stats": {},
+      "color": "#8c7b62"
+    }
+  ]
+}

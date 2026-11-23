@@ -1,0 +1,193 @@
+{
+  "seed": 133742,
+  "worldSize": 512,
+  "spawnPoint": { "x": 0, "y": 4.2, "z": 58 },
+  "regions": [
+    {
+      "id": "ravendale_village",
+      "name": "溪谷村",
+      "nameEn": "Ravendale Village",
+      "center": { "x": 0, "z": 40 },
+      "radius": 55,
+      "description": "灰烬边境南麓的宁静村落，旅者由此踏上旅程。",
+      "color": "#d9b166"
+    },
+    {
+      "id": "ashwood_forest",
+      "name": "灰木森林",
+      "nameEn": "Ashwood Forest",
+      "center": { "x": -105, "z": -25 },
+      "radius": 85,
+      "description": "古木参天且雾气弥漫的西部林海，哥布林氏族近来在此出没。",
+      "color": "#4f8f5c"
+    },
+    {
+      "id": "ruined_watchtower",
+      "name": "废弃哨塔",
+      "nameEn": "Ruined Watchtower",
+      "center": { "x": 105, "z": -65 },
+      "radius": 55,
+      "description": "东侧山脊上的守望者石塔遗迹，顶层重新燃起了异常的烽火。",
+      "color": "#c97442"
+    },
+    {
+      "id": "ancient_crypt",
+      "name": "古代墓穴",
+      "nameEn": "Ancient Crypt",
+      "center": { "x": 0, "z": -175 },
+      "radius": 45,
+      "description": "北方山脉深处的古老地下陵墓，尘封着守望者遗留的秘密。",
+      "color": "#7b6fb9"
+    },
+    {
+      "id": "river_valley",
+      "name": "河谷区域",
+      "nameEn": "River Valley",
+      "center": { "x": 95, "z": 75 },
+      "radius": 70,
+      "description": "奔流溪水切割出的低洼谷地，木桥连接着村落与东岸荒野。",
+      "color": "#4f8eb9"
+    }
+  ],
+  "chests": [
+    {
+      "id": "chest_elder_house",
+      "name": "长屋储物箱",
+      "zone": "overworld",
+      "position": { "x": -3.2, "y": 4.0, "z": 19.5 },
+      "gold": 25,
+      "items": [{ "itemId": "minor_health_potion", "quantity": 1 }]
+    },
+    {
+      "id": "chest_forest_camp",
+      "name": "哥布林营地宝箱",
+      "zone": "overworld",
+      "position": { "x": -108, "y": 0, "z": -30 },
+      "gold": 45,
+      "items": [
+        { "itemId": "chainmail_vest", "quantity": 1 },
+        { "itemId": "minor_health_potion", "quantity": 1 }
+      ]
+    },
+    {
+      "id": "chest_hidden_shrine",
+      "name": "隐秘祭坛供箱",
+      "zone": "overworld",
+      "position": { "x": -146, "y": 0, "z": -66 },
+      "gold": 60,
+      "items": [
+        { "itemId": "ashen_amulet", "quantity": 1 },
+        { "itemId": "mana_potion", "quantity": 2 }
+      ]
+    },
+    {
+      "id": "chest_watchtower_top",
+      "name": "哨塔补给箱",
+      "zone": "overworld",
+      "position": { "x": 103.5, "y": 0, "z": -65 },
+      "gold": 40,
+      "items": [
+        { "itemId": "greater_health_potion", "quantity": 1 },
+        { "itemId": "mana_potion", "quantity": 1 }
+      ]
+    },
+    {
+      "id": "chest_river_cove",
+      "name": "河谷旅人箱",
+      "zone": "overworld",
+      "position": { "x": 116, "y": 0, "z": 92 },
+      "gold": 55,
+      "items": [
+        { "itemId": "minor_health_potion", "quantity": 2 }
+      ]
+    },
+    {
+      "id": "crypt_treasury_chest",
+      "name": "墓穴陪葬箱",
+      "zone": "ancient_crypt",
+      "position": { "x": 14, "y": -500, "z": -34 },
+      "gold": 90,
+      "items": [
+        { "itemId": "warden_plate", "quantity": 1 },
+        { "itemId": "greater_health_potion", "quantity": 1 }
+      ]
+    },
+    {
+      "id": "crypt_relic_chest",
+      "name": "守望者圣物祭坛箱",
+      "zone": "ancient_crypt",
+      "position": { "x": 0, "y": -500, "z": -74 },
+      "gold": 120,
+      "requiresDefeatedEnemyId": "enemy_crypt_guardian",
+      "items": [
+        { "itemId": "watchers_relic", "quantity": 1 }
+      ]
+    }
+  ],
+  "pickups": [
+    {
+      "id": "pickup_watchers_journal",
+      "itemId": "watchers_journal",
+      "quantity": 1,
+      "zone": "overworld",
+      "position": { "x": 106.5, "y": 0, "z": -65 },
+      "label": "守望者日志"
+    },
+    {
+      "id": "pickup_herb_1",
+      "itemId": "ashen_herb",
+      "quantity": 1,
+      "zone": "overworld",
+      "position": { "x": -62, "y": 0, "z": 5 },
+      "label": "灰烬草"
+    },
+    {
+      "id": "pickup_herb_2",
+      "itemId": "ashen_herb",
+      "quantity": 1,
+      "zone": "overworld",
+      "position": { "x": -84, "y": 0, "z": -12 },
+      "label": "灰烬草"
+    },
+    {
+      "id": "pickup_herb_3",
+      "itemId": "ashen_herb",
+      "quantity": 1,
+      "zone": "overworld",
+      "position": { "x": 74, "y": 0, "z": 66 },
+      "label": "灰烬草"
+    },
+    {
+      "id": "pickup_herb_4",
+      "itemId": "ashen_herb",
+      "quantity": 1,
+      "zone": "overworld",
+      "position": { "x": 112, "y": 0, "z": 52 },
+      "label": "灰烬草"
+    },
+    {
+      "id": "pickup_herb_5",
+      "itemId": "ashen_herb",
+      "quantity": 1,
+      "zone": "overworld",
+      "position": { "x": -125, "y": 0, "z": -48 },
+      "label": "灰烬草"
+    }
+  ],
+  "portals": {
+    "cryptEntrance": {
+      "position": { "x": 0, "y": 0, "z": -175 },
+      "targetZone": "ancient_crypt",
+      "targetPosition": { "x": 0, "y": -499.0, "z": -4 },
+      "targetYaw": 0,
+      "label": "进入古代墓穴 (Ancient Crypt)"
+    },
+    "cryptExit": {
+      "position": { "x": 0, "y": -499.0, "z": 2.5 },
+      "targetZone": "overworld",
+      "targetPosition": { "x": 0, "y": 0, "z": -167 },
+      "targetYaw": 3.14159,
+      "label": "返回灰烬边境地面"
+    }
+  }
+}
