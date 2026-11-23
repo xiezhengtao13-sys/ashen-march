@@ -46,3 +46,26 @@
 - [x] Phase D：极简探索 HUD、三栏背包、下三分之一电影化对话、分栏日志与羊皮纸地图 (`UIManager`, `IconRegistry`)
 - [x] Phase E：`InstancedMesh` 多树种森林生态 (`VegetationBuilder`)、GLSL 天空穹顶着色器、角色/敌人/武器/墓穴精细升级
 - [x] Phase F：回归测试、实测截图与性能对比、提交 Pull Request 至 `main`（待审阅合并）
+
+## Ashenhold — 灰烬城：中世纪奇幻城市高密度重制
+- [x] **Phase 1：城门与一条主街样板区（~40×60m 高品质垂直切片）**
+  - [x] 建立 C99 + Python PBR 材质管线 (`scripts/city/texgen.c`, `generate_textures.py`)，生成 44 张无缝 512/1024 Albedo/Normal/Roughness 贴图与纹章招牌
+  - [x] 建立 Blender 4.0 Python Headless GLB 建模管线 (`scripts/city/generate_models.py`)，含倒角 (`bmesh.ops.bevel`)、米制三平面 UV 与 BVH 光线投射顶点 AO (`COLOR_0`)，导出 20 个原创中世纪建筑与道具 `.glb` 模型
+  - [x] 构建南城门 (`gatehouse.glb`)、八角侧翼防御塔 (`bastion_tower.glb`)、带木制悬楼的城墙 (`curtain_wall.glb`)、铁闸门、铆钉橡木大门、守卫与旗帜
+  - [x] 构建门卫主街 (`Gateward Street`) 4 栋非对称中世纪建筑：南门卫戍营房（**可进入室内**，含壁炉燃木、铁吊灯、防御日志）、铁锚药剂与织物行（双层悬挑木骨结构 + 红白条纹遮阳篷 + 药商伊琳娜）、《余烬与酒壶》转角酒馆（**可进入室内**，含柱廊、凸窗、橡木吧台、酒桶架、壁炉燃木、吊灯与酒馆账簿）、铜炉与军需行会（弗拉芒阶梯山墙、拱门通道、二楼铁艺阳台与吊货梁）
+  - [x] 实现带路拱、排水沟、花岗岩路缘、泥土碎石过渡与局部积水反射 (`onBeforeCompile` 四通道顶点混合着色器) 的城市地面 (`CityGroundBuilder`, `CityMaterialLibrary`)
+  - [x] 实现 `GLTFLoader` + `InstancedMesh` 静态合批加载器 (`CityAssetLoader`, `CityPhase1Builder`)、完整 Rapier 物理碰撞（含室内门洞与阶梯）、局部暖光街灯/壁炉点光源与炊烟粒子
+  - [x] 封闭街巷侧翼石墙与次级建筑、北端跨街木拱廊与远景领主主堡 (`Ashenhold Citadel Keep`) 天际线，保留原有开放世界并通过 `?zone=city` / 系统菜单 / 溪谷村传送路牌无缝切换
+  - [x] 通过 Vitest 单元测试、生产构建与 Playwright 真实浏览器多视角截图及遥测验收
+- [ ] **Phase 2：中央市集 (Central Market)**
+  - [ ] 扩展主街北端拱门后的可探索中央市集广场
+  - [ ] 增加多品类商铺摊位（布篷、陶器、布料、食物、木箱木桶）、中央喷泉/雕像、排水沟与市集商人 NPC
+- [ ] **Phase 3：领主城堡 (Lord's Citadel)**
+  - [ ] 构建城市高地天际线核心：石砌主堡、瞭望塔、扶壁、拱门、石阶、内庭院与可进入城堡大厅
+- [ ] **Phase 4：居民与商业街区 (Residential & Commercial Districts)**
+  - [ ] 扩展 15～25 栋不同高度、屋顶与立面构造的街巷建筑（铁匠铺、普通住宅、杂货店、曲折窄巷与更多可进入室内）
+- [ ] **Phase 5：光照与天气 (Lighting & Weather States)**
+  - [ ] 在精致白天场景基础上，开发黄昏、夜晚与雨后积水反射视觉状态
+- [ ] **Phase 6：场景整合 (World & Gameplay Integration)**
+  - [ ] 完整整合城市 NPC 日程、物理碰撞、多区域按需加载、城市支线任务与 IndexedDB 存档
+

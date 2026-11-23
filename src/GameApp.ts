@@ -3,6 +3,7 @@ import { EnemySystem } from './ai/EnemyAI';
 import { CombatSystem } from './combat/CombatSystem';
 import { GameState } from './core/GameState';
 import type { Vec3, ZoneId } from './core/types';
+import cityConfig from './data/cityPhase1Config.json';
 import worldConfig from './data/worldConfig.json';
 import { DialogueSystem } from './dialogue/DialogueSystem';
 import { AudioSystem } from './engine/AudioSystem';
@@ -17,6 +18,7 @@ import { PlayerController } from './player/PlayerController';
 import { QuestSystem } from './quests/QuestSystem';
 import { applySavePayloadToState, SaveSystem } from './save/SaveSystem';
 import { UIManager } from './ui/UIManager';
+import { buildAshenholdCity, getCityRegionAt } from './world/city/CityPhase1Builder';
 import { DayNightCycle } from './world/DayNightCycle';
 import { buildAncientCrypt } from './world/DungeonBuilder';
 import { InteractableRegistry } from './world/InteractableRegistry';
@@ -49,6 +51,9 @@ export class GameApp {
   private readonly clock = new THREE.Clock();
   private overworldUpdate: (elapsed: number, dt?: number) => void = () => {};
   private cryptUpdate: (elapsed: number) => void = () => {};
+  private cityUpdate: (elapsed: number, dt: number) => void = () => {};
+  private cityDispose: () => void = () => {};
+  private cityEnvMap: THREE.Texture | null = null;
   private vegetation: VegetationController | null = null;
   private activeInteractable: ReturnType<InteractableRegistry['findBestInteractable']> = null;
   private rafId = 0;
@@ -129,6 +134,13 @@ export class GameApp {
       onSetQuality: (preset) => this.setQualityPreset(preset),
       getQualityPreset: () => this.quality.getPreset(),
       getTelemetry: () => this.quality.getTelemetry(this.engine.renderer),
+      onToggleCityZone: () => {
+        if (this.state.player.currentZone === 'ashenhold_city') {
+          this.exitCity();
+        } else {
+          this.enterCity();
+        }
+      },
     });
 
     this.player = new PlayerController(this.engine.camera, this.physics, this.state, canvas, {
@@ -187,6 +199,7 @@ export class GameApp {
       this.registry,
       {
         onEnterCrypt: () => this.enterCrypt(),
+        onEnterCity: () => this.enterCity(),
         onLoreRead: (title, body) => this.ui.openLore(title, body),
       },
       this.materials,
@@ -205,10 +218,16 @@ export class GameApp {
     );
     this.cryptUpdate = cryptBuilt.update;
 
-    this.npcs.spawnAll(this.engine.overworldGroup, this.physics, this.registry, (npcId) => {
-      this.player.clearInputs();
-      this.ui.openDialogue(npcId);
-    });
+    this.npcs.spawnAll(
+      this.engine.overworldGroup,
+      this.physics,
+      this.registry,
+      (npcId) => {
+        this.player.clearInputs();
+        this.ui.openDialogue(npcId);
+      },
+      this.engine.cityGroup,
+    );
 
     this.spawner.spawnConfiguredProps(this.engine.overworldGroup, this.engine.cryptGroup, (pos) => {
       this.particles.spawnBurst({ x: pos.x, y: pos.y + 0.5, z: pos.z }, 0xf2cf88, 12, 3.5, 0.5);
@@ -216,13 +235,31 @@ export class GameApp {
 
     this.enemies.spawnAll(this.engine.overworldGroup, this.engine.cryptGroup);
 
+    // Quick-entry URL flag (?zone=city or ?zone=ashenhold) drops directly at Ashenhold South Gate
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const requestedZone = params?.get('zone');
+    if (requestedZone === 'city' || requestedZone === 'ashenhold') {
+      await this.ensureCityLoaded();
+      this.state.player.currentZone = 'ashenhold_city';
+      this.state.player.currentRegion = 'ashenhold_gate';
+      this.state.player.position = { ...cityConfig.spawnPoint };
+      this.state.player.yaw = cityConfig.spawnYaw;
+      this.state.world.timeOfDay = 10.2;
+      this.state.markLocationDiscovered('ashenhold_gate', '灰烬城 · 南城门');
+    }
+
     this.applyZoneVisibility(this.state.player.currentZone);
     this.physics.teleportPlayer(this.state.player.position);
     this.player.syncCameraFromState();
     this.setQualityPreset('high');
     this.dayNight.update(0, this.state, this.quality.getConfig().fogMultiplier);
 
-    this.ui.pushToast('欢迎来到灰烬边境！按 [E] 与溪谷村长老对话开启冒险。', 'quest');
+    this.ui.pushToast(
+      this.state.player.currentZone === 'ashenhold_city'
+        ? '已抵达【灰烬城 · Ashenhold】南城门（Phase 1 样板区），按 [E] 与守门队长交谈。'
+        : '欢迎来到灰烬边境！按 [E] 与溪谷村长老对话，或在村口路牌前往【灰烬城】。',
+      'quest',
+    );
     this.exposeDebugBridge();
     this.loop();
   }
@@ -260,21 +297,69 @@ export class GameApp {
   private applyZoneVisibility(zone: ZoneId): void {
     this.engine.overworldGroup.visible = zone === 'overworld';
     this.engine.cryptGroup.visible = zone === 'ancient_crypt';
+    this.engine.cityGroup.visible = zone === 'ashenhold_city';
+    this.physics.setActiveZone(zone);
   }
 
   enterCrypt(): void {
     const target = worldConfig.portals.cryptEntrance.targetPosition;
+    this.state.player.currentRegion = 'ancient_crypt';
     this.switchZone('ancient_crypt', target, worldConfig.portals.cryptEntrance.targetYaw);
     this.state.markLocationDiscovered('ancient_crypt', '古代墓穴');
     this.state.setFlag('entered_crypt', true);
+    this.ui.refreshHUD();
     this.ui.pushToast('已进入地下城：【古代墓穴】', 'quest');
   }
 
   exitCrypt(): void {
     const p = worldConfig.portals.cryptExit.targetPosition;
     const y = getTerrainHeight(p.x, p.z) + 0.25;
+    this.state.player.currentRegion = getRegionAt(p.x, p.z);
     this.switchZone('overworld', { x: p.x, y, z: p.z }, worldConfig.portals.cryptExit.targetYaw);
+    this.ui.refreshHUD();
     this.ui.pushToast('已返回灰烬边境地面', 'info');
+  }
+
+  private cityLoadPromise: Promise<void> | null = null;
+
+  private ensureCityLoaded(): Promise<void> {
+    if (!this.cityLoadPromise) {
+      this.cityLoadPromise = buildAshenholdCity(
+        this.engine.cityGroup,
+        this.physics,
+        this.registry,
+        {
+          onExitCity: () => this.exitCity(),
+          onLoreRead: (title, body) => this.ui.openLore(title, body),
+        },
+        { maxAnisotropy: Math.min(8, this.engine.renderer.capabilities.getMaxAnisotropy()) },
+      ).then((cityBuilt) => {
+        this.cityUpdate = cityBuilt.update;
+        this.cityDispose = cityBuilt.dispose;
+      });
+    }
+    return this.cityLoadPromise;
+  }
+
+  enterCity(): void {
+    void this.ensureCityLoaded().then(() => {
+      this.state.player.currentRegion = 'ashenhold_gate';
+      this.switchZone('ashenhold_city', { ...cityConfig.spawnPoint }, cityConfig.spawnYaw);
+      this.state.markLocationDiscovered('ashenhold_gate', '灰烬城 · 南城门');
+      this.dayNight.update(0, this.state, this.quality.getConfig().fogMultiplier);
+      this.ui.refreshHUD();
+      this.ui.pushToast('已抵达【灰烬城 · Ashenhold】南城门', 'quest');
+    });
+  }
+
+  exitCity(): void {
+    const p = cityConfig.portals.toRavendale.targetPosition;
+    const y = getTerrainHeight(p.x, p.z) + 0.25;
+    this.state.player.currentRegion = 'ravendale_village';
+    this.switchZone('overworld', { x: p.x, y, z: p.z }, cityConfig.portals.toRavendale.targetYaw);
+    this.dayNight.update(0, this.state, this.quality.getConfig().fogMultiplier);
+    this.ui.refreshHUD();
+    this.ui.pushToast('已返回灰烬边境 · 溪谷村', 'info');
   }
 
   switchZone(to: ZoneId, pos: Vec3, yaw: number): void {
@@ -287,6 +372,7 @@ export class GameApp {
     this.applyZoneVisibility(to);
     this.physics.teleportPlayer(pos);
     this.player.syncCameraFromState();
+    this.ui.refreshHUD();
     this.state.events.emit('zone:changed', { from, to });
   }
 
@@ -298,6 +384,9 @@ export class GameApp {
     }
 
     applySavePayloadToState(payload, this.state);
+    if (this.state.player.currentZone === 'ashenhold_city') {
+      await this.ensureCityLoaded();
+    }
     this.applyZoneVisibility(this.state.player.currentZone);
     this.physics.teleportPlayer(this.state.player.position);
     this.player.syncCameraFromState();
@@ -311,16 +400,29 @@ export class GameApp {
 
   private loop = (): void => {
     this.rafId = requestAnimationFrame(this.loop);
-    const dt = Math.min(this.clock.getDelta(), 0.05);
+    const rawDt = this.clock.getDelta();
+    const dt = Math.min(rawDt, 0.05);
     const elapsed = this.clock.elapsedTime;
-    this.quality.recordFrame(dt);
+    this.quality.recordFrame(rawDt);
 
-    this.player.update(dt);
+    let remainingSim = Math.min(Math.max(rawDt, 0.016), 0.45);
+    while (remainingSim > 0.0001) {
+      const stepDt = Math.min(remainingSim, 0.05);
+      this.player.update(stepDt);
+      remainingSim -= stepDt;
+    }
     this.dayNight.update(dt, this.state, this.quality.getConfig().fogMultiplier);
 
     if (this.state.player.currentZone === 'overworld') {
       this.overworldUpdate(elapsed, dt);
       const region = getRegionAt(this.state.player.position.x, this.state.player.position.z);
+      if (region !== this.state.player.currentRegion) {
+        this.state.player.currentRegion = region;
+        this.state.markLocationDiscovered(region, getRegionDisplayName(region));
+      }
+    } else if (this.state.player.currentZone === 'ashenhold_city') {
+      this.cityUpdate(elapsed, dt);
+      const region = getCityRegionAt(this.state.player.position.z);
       if (region !== this.state.player.currentRegion) {
         this.state.player.currentRegion = region;
         this.state.markLocationDiscovered(region, getRegionDisplayName(region));
@@ -393,6 +495,12 @@ export class GameApp {
         );
         this.ui.setInteractPrompt(this.activeInteractable?.label ?? null);
       },
+      enterCity: () => this.enterCity(),
+      exitCity: () => this.exitCity(),
+      setTimeOfDay: (h: number) => {
+        this.state.world.timeOfDay = h;
+        this.dayNight.update(0, this.state, this.quality.getConfig().fogMultiplier);
+      },
       interact: (id?: string) => {
         if (id) {
           this.registry.get(id)?.onInteract();
@@ -415,6 +523,8 @@ export class GameApp {
   dispose(): void {
     cancelAnimationFrame(this.rafId);
     this.player.dispose();
+    this.cityDispose();
+    this.cityEnvMap?.dispose();
     this.physics.dispose();
     this.engine.dispose();
   }

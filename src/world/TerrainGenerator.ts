@@ -131,6 +131,8 @@ export function getRegionAt(x: number, z: number): RegionId {
 }
 
 export function getRegionDisplayName(regionId: RegionId): string {
+  if (regionId === 'ashenhold_gate') return '灰烬城 · 南城门';
+  if (regionId === 'ashenhold_main_street') return '灰烬城 · 门卫主街';
   const found = worldConfig.regions.find((r) => r.id === regionId);
   return found ? found.name : '灰烬边境';
 }

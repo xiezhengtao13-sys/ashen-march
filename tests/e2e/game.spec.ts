@@ -20,7 +20,7 @@ interface Telemetry {
   textures: number;
 }
 
-const ARTIFACT_DIR = '/Users/xiezhengtao/.gemini/antigravity/brain/18b17123-6ece-4197-8525-b4755d0739bf';
+const ARTIFACT_DIR = 'test-results/screenshots';
 
 test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
   test('renders overhauled 3D world & UI, captures comparison screenshots, verifies gameplay, quality tiers & IndexedDB save/load', async ({
@@ -73,7 +73,8 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
       (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
     );
     await page.keyboard.down('KeyW');
-    await page.waitForTimeout(750);
+    await page.waitForTimeout(400);
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     await page.keyboard.up('KeyW');
     const afterMove: Snapshot = await page.evaluate(() =>
       (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
@@ -224,6 +225,75 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
     );
     expect(restoredSnap.zone).toBe('ancient_crypt');
     expect(restoredSnap.quests.main_lost_watchers?.status).toBe('active');
+
+    expect(errors).toEqual([]);
+  });
+
+  test('loads Ashenhold City Phase 1 (?zone=city), verifies Gatehouse passage, city NPCs, shop, enterable Tavern & Guardhouse', async ({
+    page,
+  }) => {
+    const errors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') errors.push(`console.error: ${msg.text()}`);
+    });
+    page.on('pageerror', (err) => {
+      errors.push(`pageerror: ${err.message}`);
+    });
+
+    await page.goto('/?zone=city');
+    await page.waitForFunction(() => Boolean((window as unknown as { __ASHEN_MARCH__?: unknown }).__ASHEN_MARCH__), {
+      timeout: 25_000,
+    });
+    await page.waitForTimeout(800);
+
+    await expect(page.getByTestId('hud-compass')).toContainText('灰烬城 · 南城门');
+
+    // Walk north through Gatehouse tunnel into Gateward Main Street
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(0, 0.25, 16.5);
+      api.setLook(0, 0);
+    });
+    await page.keyboard.down('KeyW');
+    await page.waitForTimeout(400);
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await page.keyboard.up('KeyW');
+
+    const streetSnap: Snapshot = await page.evaluate(() =>
+      (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+    );
+    expect(streetSnap.zone).toBe('ashenhold_city');
+    expect(streetSnap.position.z).toBeLessThan(15.2);
+
+    // Talk to South Gate Captain Marcus
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(1.8, 0.2, 20.4);
+      api.setLook(-0.55, -0.04);
+    });
+    await page.waitForTimeout(200);
+    await expect(page.getByTestId('hud-interact-prompt')).toContainText('守门队长马库斯');
+    await page.keyboard.press('KeyE');
+    await expect(page.getByTestId('modal-dialogue')).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    // Enter The Ember & Flagon Tavern and read the Tavern Ledger
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(-8.5, 0.42, -13.8);
+      api.setLook(1.15, -0.06);
+    });
+    await page.waitForTimeout(200);
+    await expect(page.getByTestId('hud-interact-prompt')).toContainText('余烬酒馆账簿');
+    await page.keyboard.press('KeyE');
+    await expect(page.getByTestId('modal-lore')).toBeVisible();
+    await page.keyboard.press('Escape');
 
     expect(errors).toEqual([]);
   });

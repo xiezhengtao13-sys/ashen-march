@@ -11,6 +11,7 @@ import { buildInstancedVegetation, type VegetationController } from './Vegetatio
 export interface WorldBuildCallbacks {
   onEnterCrypt: () => void;
   onLoreRead: (title: string, body: string) => void;
+  onEnterCity?: () => void;
 }
 
 export interface BuiltWorld {
@@ -37,6 +38,36 @@ export function buildOverworld(
 
   // 2. Modular Medieval Architecture (Village, Bridge, Watchtower, Crypt Archway)
   buildAllArchitecture(parent, physics, mats, registry, flames, callbacks);
+
+  if (callbacks.onEnterCity) {
+    const citySignGroup = new THREE.Group();
+    citySignGroup.position.set(-5.8, 4.0, 55.5);
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.22, 2.2, 0.22), mats.darkTimber);
+    post.position.y = 1.1;
+    post.castShadow = true;
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.34, 0.10), mats.oakPlanks);
+    arm.position.set(0.35, 1.85, 0);
+    arm.rotation.y = 0.22;
+    const lantern = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12, 0.10, 0.24, 6),
+      new THREE.MeshStandardMaterial({ color: 0xffd58f, emissive: 0xff9f38, emissiveIntensity: 1.6 }),
+    );
+    lantern.position.set(0.85, 1.56, -0.1);
+    citySignGroup.add(post, arm, lantern);
+    parent.add(citySignGroup);
+
+    registry.register({
+      id: 'portal:city_enter',
+      kind: 'portal',
+      label: '前往 灰烬城 (Ashenhold)',
+      zone: 'overworld',
+      position: { x: -5.8, y: 4.0, z: 55.5 },
+      radius: 3.8,
+      enabled: true,
+      mesh: citySignGroup,
+      onInteract: callbacks.onEnterCity,
+    });
+  }
 
   // 3. River Valley Flowing Water
   const waterGeo = new THREE.PlaneGeometry(36, 235, 22, 56);

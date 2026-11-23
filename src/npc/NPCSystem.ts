@@ -3,6 +3,7 @@ import type { Vec3, ZoneId } from '../core/types';
 import npcsData from '../data/npcs.json';
 import type { PhysicsWorld } from '../engine/PhysicsWorld';
 import type { InteractableRegistry } from '../world/InteractableRegistry';
+import { getCityGroundHeight } from '../world/city/CityGroundBuilder';
 import { getTerrainHeight } from '../world/TerrainGenerator';
 
 export interface NPCDefinition {
@@ -48,18 +49,26 @@ export class NPCSystem {
     physics: PhysicsWorld | null,
     registry: InteractableRegistry,
     onTalk: (npcId: string) => void,
+    cityParent?: THREE.Group,
   ): void {
     let idx = 0;
     for (const def of this.npcMap.values()) {
+      if (def.zone === 'ashenhold_city' && !cityParent) {
+        continue;
+      }
+
+      const targetParent = def.zone === 'ashenhold_city' && cityParent ? cityParent : overworldParent;
       const groundY =
-        def.zone === 'overworld' && def.position.y === 0
-          ? getTerrainHeight(def.position.x, def.position.z)
-          : def.position.y;
+        def.zone === 'ashenhold_city' && def.position.y === 0
+          ? getCityGroundHeight(def.position.x, def.position.z)
+          : def.zone === 'overworld' && def.position.y === 0
+            ? getTerrainHeight(def.position.x, def.position.z)
+            : def.position.y;
       const pos: Vec3 = { x: def.position.x, y: groundY, z: def.position.z };
 
       const group = this.buildNPCMesh(def, pos);
-      overworldParent.add(group);
-      physics?.addStaticCylinder(0.9, 0.42, { x: pos.x, y: pos.y + 0.9, z: pos.z });
+      targetParent.add(group);
+      physics?.addStaticCylinder(0.9, 0.42, { x: pos.x, y: pos.y + 0.9, z: pos.z }, def.zone);
 
       registry.register({
         id: `npc:${def.id}`,
@@ -217,6 +226,28 @@ export class NPCSystem {
       bow.position.set(0.05, 1.22, -0.24);
       bow.rotation.z = -Math.PI / 3;
       body.add(hood, quiver, bow);
+    } else if (def.id === 'city_gate_captain' || def.id === 'city_guard_sentinel') {
+      // Steel kettle helm, chest cuirass, pauldrons & halberd polearm
+      const helm = new THREE.Mesh(new THREE.SphereGeometry(0.215, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55), steelMat);
+      helm.position.set(0, 1.78, 0);
+      const helmBrim = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.28, 0.04, 12), steelMat);
+      helmBrim.position.set(0, 1.78, 0);
+      const cuirass = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.58, 0.32), steelMat);
+      cuirass.position.set(0, 1.20, 0);
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.032, 2.35, 8), leatherMat);
+      pole.position.set(0.42, 1.18, 0.14);
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.38, 0.18), steelMat);
+      blade.position.set(0.42, 2.24, 0.20);
+      const spearTip = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.24, 4), steelMat);
+      spearTip.position.set(0.42, 2.46, 0.14);
+      body.add(helm, helmBrim, cuirass, pole, blade, spearTip);
+    } else if (def.id === 'city_merchant_elena') {
+      // Herbalist shoulder shawl & apothecary satchel
+      const shawl = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.38, 0.26, 10), accentMat);
+      shawl.position.y = 1.42;
+      const satchel = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.24, 0.22), leatherMat);
+      satchel.position.set(-0.26, 0.92, 0.12);
+      body.add(shawl, satchel);
     }
 
     parentRef(group);

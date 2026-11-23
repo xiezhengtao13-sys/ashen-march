@@ -52,3 +52,23 @@
 - **Phase D（RPG UI/UX 重构）**：新增 `IconRegistry` SVG 图标体系，全面重做极简探索 HUD（滑动罗盘带、精简状态条、4 槽快捷栏）、三栏背包、下三分之一电影化对话、分栏冒险日志、羊皮纸等高线舆图及系统菜单。
 - **Phase E（生态、天空、角色与地下城升级）**：实现 `VegetationBuilder`（`InstancedMesh` 多树种森林与地表灌木草簇）、`DayNightCycle` 自定义 GLSL 天空穹顶着色器、地形坡度岩石混合、NPC 多层中世纪服饰、骷髅肋骨/哥布林/Boss 重甲造型、动态切换的第一人称剑模以及古代墓穴肋拱石棺场景。
 - **Phase F（验证与 PR）**：`npm run typecheck` 通过，`npm test` 6 个套件共 16 项单元测试通过，`npm run build` 成功，`npm run test:e2e` Playwright 全流程验证通过（0 控制台/页面错误，SwiftShader 下提升至 22–60 FPS / 503 Draw Calls）。已保留 `main` 分支稳定版本，向 `main` 提交 Pull Request 等待审阅。
+
+## 2026-11-23 — Ashenhold (灰烬城) Phase 1：城门与门卫主街高密度样板区
+- **视觉重心战略调整**：借鉴 *Saltline* 对小范围高密度场景的表现策略，在保留原有开放平原、森林、哨塔、古代墓穴与全部任务/存档系统的前提下，新建独立高画质中世纪奇幻城市区域 **Ashenhold — 灰烬城** (`zone = 'ashenhold_city'`)，优先打磨约 40×60 米的 **Phase 1：城门与一条主街样板区**。
+- **高分辨率 PBR 纹理生成管线 (`scripts/city/texgen.c`, `scripts/city/generate_textures.py`)**：
+  - 使用 C99 多频 FBM/Voronoi 噪声与 Sobel 切线空间法线算法 + Python/Pillow 生成 44 张 `public/assets/city/textures/*.png` 纹理（涵盖玄武岩城墙石砌、风化灰岩、不规则鹅卵石路面、苔藓湿石、老旧橡木梁、抹灰粉墙、天然板岩瓦、赤陶屋瓦、锻铁、湿泥碎石，以及手绘皇家灰烬纹章旗帜、酒馆招牌与药铺招牌）。
+- **Blender 4.0 Python 原创 GLB 模型管线 (`scripts/city/generate_models.py`)**：
+  - 彻底摒弃运行时 `BoxGeometry` / `ConeGeometry` 简单堆叠，通过 Blender 4.0 Headless `bmesh` 脚本构建并导出 20 个 `.glb` 资产至 `public/assets/city/models/`（总计 65,451 顶点 / 100,906 三角面）。
+  - 所有建筑与道具均具备真实构件厚度、斜角削边 (`bmesh.ops.bevel`)、米制三平面 UV 与基于 `BVHTree` 半球光线投射烘焙的顶点环境光遮蔽 (`COLOR_0`)。
+  - 包含：南城门主楼 (`gatehouse.glb`，含拱道、铁闸门、开启的铆钉橡木大门、城垛与箭孔)、12 边形侧翼防御塔 (`bastion_tower.glb`)、带木制悬楼的城墙 (`curtain_wall.glb`)、南门卫戍营房 (`bldg_guardhouse.glb`，**可进入室内**，含壁炉燃木、铁艺吊灯与长桌)、铁锚药剂与织物行 (`bldg_apothecary.glb`，三层双悬挑木骨建筑 + 条纹布篷 + 户外药水柜台)、《余烬与酒壶》转角酒馆 (`bldg_tavern.glb`，**可进入室内**，含柱廊、凸窗、橡木吧台、酒桶架、内嵌燃木壁炉与铁吊灯)、铜炉与军需行会 (`bldg_guildhouse.glb`，弗拉芒阶梯山墙、拱门通道、二楼铁艺阳台与吊货滑轮)、封闭街巷侧墙与北端木拱桥及远景领主城堡天际线 (`skyline_distant.glb`)，以及 12 种精雕街道道具 (`prop_*.glb`)。
+- **城市场景引擎与地面着色器 (`src/world/city/*`, `src/data/cityPhase1Config.json`)**：
+  - `CityGroundBuilder` & `CityMaterialLibrary`：生成带道路中央拱起、两侧下沉排水沟、花岗岩路缘石与向北缓坡的精细街道网格，并通过 `onBeforeCompile` 实现四通道顶点混合（鹅卵石 + 路肩泥土 + 墙根青苔 + 雨后积水镜面天空/阳光反射）。
+  - `CityAssetLoader` & `CityPhase1Builder`：使用 `GLTFLoader` 加载建筑模型并绑定共享 PBR 材质库，将 162 个街道道具按材质自动提取合并为 `THREE.InstancedMesh` 批次；构建与门洞/室内匹配的 Rapier 静态碰撞体、6 盏暖色点光源、灯笼光晕精灵与壁炉烟囱炊烟粒子。
+  - **NPC、叙事交互与快速入口**：新增南门卫队长瓦伦 (`city_gate_captain`)、药商伊琳娜 (`city_apothecary_elina`，可对话与交易)、城门守卫 (`city_guard_east`)，以及《灰烬城防卫日志》《余烬酒馆账簿》《灰烬城治安布告》3 处可读交互物与返回溪谷村传送门；支持 `?zone=city` URL 参数、`window.__ASHEN_MARCH__.enterCity()`、系统菜单一键传送及溪谷村路牌传送。
+- **实测验证与真实浏览器遥测**：
+  - `npm run typecheck` 通过（0 错误）。
+  - `npm test` 7 个测试套件共 19 项单元测试全部通过（含 `tests/unit/city-phase1.test.ts` 对城门通行、卫戍营房室内与转角酒馆室内碰撞体的专项测试）。
+  - `npm run build` 生产构建通过。
+  - `npm run test:e2e` Playwright 端到端测试通过（覆盖原开放世界/地下城全流程 + 灰烬城 Phase 1 渲染、街道行走、走入酒馆室内与卫队长交互，0 控制台/页面错误）。
+  - 采集 6 张真实浏览器游戏截图 (`city_01_gate_approach.png` 至 `city_06_skyline_vista.png`)：1080p High 档视角下实测 **137 Draw Calls / 158,332 Triangles**（720p 全景视角 236 Draw Calls / 187,332 Triangles / 51 Textures；在无硬件 GPU 的云端 CPU SwiftShader 软件光栅化下帧耗时约 3.1s–5.0s，合批后的 137–236 Draw Calls 与 ~18.7 万三角面在桌面独立/集成硬件 WebGL2 GPU 上完全契合 1080p 60 FPS 预算）。
+

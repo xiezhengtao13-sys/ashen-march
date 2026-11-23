@@ -1,5 +1,5 @@
 import RAPIER from '@dimforge/rapier3d-compat';
-import type { Vec3 } from '../core/types';
+import type { Vec3, ZoneId } from '../core/types';
 
 export interface CharacterMoveResult {
   position: Vec3;
@@ -12,7 +12,24 @@ export interface RaycastResult {
   point: Vec3;
 }
 
+type PhysicsZoneKey = 'overworld' | 'ashenhold_city';
+
+interface ZonePhysicsContext {
+  world: RAPIER.World;
+  controller: RAPIER.KinematicCharacterController;
+  playerBody: RAPIER.RigidBody;
+  playerCollider: RAPIER.Collider;
+  verticalVelocity: number;
+  grounded: boolean;
+}
+
+function resolveZoneKey(zone: ZoneId = 'overworld'): PhysicsZoneKey {
+  return zone === 'ashenhold_city' ? 'ashenhold_city' : 'overworld';
+}
+
 export class PhysicsWorld {
+  private contexts = new Map<PhysicsZoneKey, ZonePhysicsContext>();
+  private activeKey: PhysicsZoneKey = 'overworld';
   private world!: RAPIER.World;
   private controller!: RAPIER.KinematicCharacterController;
   private playerBody!: RAPIER.RigidBody;
@@ -31,50 +48,98 @@ export class PhysicsWorld {
       this.initialized = true;
     }
 
-    this.world = new RAPIER.World({ x: 0.0, y: -22.0, z: 0.0 });
-    this.controller = this.world.createCharacterController(0.05);
-    this.controller.enableAutostep(0.55, 0.25, true);
-    this.controller.enableSnapToGround(0.45);
-    this.controller.setMaxSlopeClimbAngle((52 * Math.PI) / 180);
-    this.controller.setMinSlopeSlideAngle((58 * Math.PI) / 180);
-    this.controller.setApplyImpulsesToDynamicBodies(false);
+    this.dispose();
+    const ctx = this.createZoneContext(initialPlayerPos);
+    this.contexts.set('overworld', ctx);
+    this.bindContext('overworld', ctx);
+  }
+
+  private createZoneContext(initialPlayerPos: Vec3): ZonePhysicsContext {
+    const world = new RAPIER.World({ x: 0.0, y: -22.0, z: 0.0 });
+    const controller = world.createCharacterController(0.05);
+    controller.enableAutostep(0.55, 0.25, true);
+    controller.enableSnapToGround(0.45);
+    controller.setMaxSlopeClimbAngle((52 * Math.PI) / 180);
+    controller.setMinSlopeSlideAngle((58 * Math.PI) / 180);
+    controller.setApplyImpulsesToDynamicBodies(false);
 
     const bodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(
       initialPlayerPos.x,
       initialPlayerPos.y + this.playerRadius + this.playerHalfHeight,
       initialPlayerPos.z,
     );
-    this.playerBody = this.world.createRigidBody(bodyDesc);
-
+    const playerBody = world.createRigidBody(bodyDesc);
     const colliderDesc = RAPIER.ColliderDesc.capsule(this.playerHalfHeight, this.playerRadius);
-    this.playerCollider = this.world.createCollider(colliderDesc, this.playerBody);
-    this.verticalVelocity = 0;
-    this.grounded = false;
+    const playerCollider = world.createCollider(colliderDesc, playerBody);
+
+    return {
+      world,
+      controller,
+      playerBody,
+      playerCollider,
+      verticalVelocity: 0,
+      grounded: false,
+    };
   }
 
-  addTerrainTrimesh(vertices: Float32Array, indices: Uint32Array): RAPIER.Collider {
+  private getOrCreateContext(zone: ZoneId = 'overworld'): ZonePhysicsContext {
+    const key = resolveZoneKey(zone);
+    let ctx = this.contexts.get(key);
+    if (!ctx) {
+      ctx = this.createZoneContext({ x: 0, y: 1.5, z: 25.5 });
+      this.contexts.set(key, ctx);
+    }
+    return ctx;
+  }
+
+  private bindContext(key: PhysicsZoneKey, ctx: ZonePhysicsContext): void {
+    this.activeKey = key;
+    this.world = ctx.world;
+    this.controller = ctx.controller;
+    this.playerBody = ctx.playerBody;
+    this.playerCollider = ctx.playerCollider;
+    this.verticalVelocity = ctx.verticalVelocity;
+    this.grounded = ctx.grounded;
+  }
+
+  setActiveZone(zone: ZoneId): void {
+    const key = resolveZoneKey(zone);
+    if (key === this.activeKey) return;
+    const prev = this.contexts.get(this.activeKey);
+    if (prev) {
+      prev.verticalVelocity = this.verticalVelocity;
+      prev.grounded = this.grounded;
+    }
+    const next = this.getOrCreateContext(zone);
+    this.bindContext(key, next);
+  }
+
+  addTerrainTrimesh(vertices: Float32Array, indices: Uint32Array, zone: ZoneId = 'overworld'): RAPIER.Collider {
+    const ctx = this.getOrCreateContext(zone);
     const bodyDesc = RAPIER.RigidBodyDesc.fixed();
-    const body = this.world.createRigidBody(bodyDesc);
+    const body = ctx.world.createRigidBody(bodyDesc);
     const colDesc = RAPIER.ColliderDesc.trimesh(vertices, indices);
-    return this.world.createCollider(colDesc, body);
+    return ctx.world.createCollider(colDesc, body);
   }
 
-  addStaticBox(halfExtents: Vec3, center: Vec3, yaw = 0): RAPIER.Collider {
+  addStaticBox(halfExtents: Vec3, center: Vec3, yaw = 0, zone: ZoneId = 'overworld'): RAPIER.Collider {
+    const ctx = this.getOrCreateContext(zone);
     const bodyDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(center.x, center.y, center.z);
     if (yaw !== 0) {
       const half = yaw * 0.5;
       bodyDesc.setRotation({ x: 0, y: Math.sin(half), z: 0, w: Math.cos(half) });
     }
-    const body = this.world.createRigidBody(bodyDesc);
+    const body = ctx.world.createRigidBody(bodyDesc);
     const colDesc = RAPIER.ColliderDesc.cuboid(halfExtents.x, halfExtents.y, halfExtents.z);
-    return this.world.createCollider(colDesc, body);
+    return ctx.world.createCollider(colDesc, body);
   }
 
-  addStaticCylinder(halfHeight: number, radius: number, center: Vec3): RAPIER.Collider {
+  addStaticCylinder(halfHeight: number, radius: number, center: Vec3, zone: ZoneId = 'overworld'): RAPIER.Collider {
+    const ctx = this.getOrCreateContext(zone);
     const bodyDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(center.x, center.y, center.z);
-    const body = this.world.createRigidBody(bodyDesc);
+    const body = ctx.world.createRigidBody(bodyDesc);
     const colDesc = RAPIER.ColliderDesc.cylinder(halfHeight, radius);
-    return this.world.createCollider(colDesc, body);
+    return ctx.world.createCollider(colDesc, body);
   }
 
   teleportPlayer(feetPos: Vec3): void {
@@ -124,10 +189,12 @@ export class PhysicsWorld {
       z: cur.z + corrected.z,
     };
 
-    // Keep inside 512x512 world bounds when in overworld (y > -100)
-    if (nextPos.y > -100) {
+    if (this.activeKey === 'overworld' && nextPos.y > -100) {
       nextPos.x = Math.max(-248, Math.min(248, nextPos.x));
       nextPos.z = Math.max(-248, Math.min(248, nextPos.z));
+    } else if (this.activeKey === 'ashenhold_city') {
+      nextPos.x = Math.max(-24, Math.min(24, nextPos.x));
+      nextPos.z = Math.max(-28, Math.min(31, nextPos.z));
     }
 
     this.playerBody.setNextKinematicTranslation(nextPos);
@@ -172,8 +239,9 @@ export class PhysicsWorld {
   }
 
   dispose(): void {
-    if (this.world) {
-      this.world.free();
+    for (const ctx of this.contexts.values()) {
+      ctx.world.free();
     }
+    this.contexts.clear();
   }
 }

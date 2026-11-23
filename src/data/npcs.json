@@ -43,6 +43,48 @@
       "accentColor": "#8c6b48",
       "hasStaff": false,
       "dialogueId": "hunter_lyra_dialogue"
+    },
+    {
+      "id": "city_gate_captain",
+      "name": "守门队长马库斯",
+      "title": "灰烬城南门卫戍官",
+      "zone": "ashenhold_city",
+      "position": { "x": 2.9, "y": 0, "z": 18.8 },
+      "yaw": -0.35,
+      "robeColor": "#5c2323",
+      "accentColor": "#a8b2bd",
+      "hasStaff": true,
+      "dialogueId": "city_gate_captain_dialogue"
+    },
+    {
+      "id": "city_guard_sentinel",
+      "name": "城门卫兵凯尔",
+      "title": "灰烬城卫士",
+      "zone": "ashenhold_city",
+      "position": { "x": -2.6, "y": 0, "z": 9.8 },
+      "yaw": 0.42,
+      "robeColor": "#3e4652",
+      "accentColor": "#bfa065",
+      "hasStaff": true,
+      "dialogueId": "city_guard_sentinel_dialogue"
+    },
+    {
+      "id": "city_merchant_elena",
+      "name": "药商伊琳娜",
+      "title": "铁锚药铺掌柜",
+      "zone": "ashenhold_city",
+      "position": { "x": 4.2, "y": 0, "z": 2.6 },
+      "yaw": -1.52,
+      "robeColor": "#3c5446",
+      "accentColor": "#c9a359",
+      "hasStaff": false,
+      "shopInventory": [
+        "minor_health_potion",
+        "greater_health_potion",
+        "mana_potion",
+        "ashen_amulet"
+      ],
+      "dialogueId": "city_merchant_elena_dialogue"
     }
   ]
 }
