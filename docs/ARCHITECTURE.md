@@ -20,7 +20,7 @@ src/
 ├── core/        # EventBus、SeededRandom、统一 GameState 与全局类型定义
 ├── data/        # 静态 JSON 配置（世界、物品、敌人、NPC、对话、任务）
 ├── engine/      # Three.js 场景/WebGLRenderer、Rapier PhysicsWorld、ParticleSystem、AudioSystem
-├── world/       # 确定性地形生成器、植被/建筑构建、古代墓穴地下城、昼夜循环
+├── world/       # 确定性地形生成器、植被/建筑构建、WorldSpawner、古代墓穴地下城、昼夜循环
 ├── player/      # 第一人称角色控制器、视角锁定/拖拽、手持武器与施法动画
 ├── combat/      # 近战命中判定、火球弹体物理/碰撞、伤害结算与复活流程
 ├── ai/          # 敌人实体、关节动画剪辑与状态机 AI (IDLE/PATROL/DETECT/CHASE/ATTACK/HURT/DEAD)
@@ -29,7 +29,8 @@ src/
 ├── quests/      # 任务阶段流转、杀敌/采集监听与奖励发放
 ├── inventory/   # 背包堆叠、装备穿脱、属性聚合、物品使用与世界掉落
 ├── save/        # IndexedDB 读写封装与 Schema 版本迁移 (v1 -> v2)
-└── ui/          # HUD、模态窗口（对话/商店/背包/任务/地图/系统菜单）与自动化桥接
+├── ui/          # HUD、模态窗口（对话/商店/背包/任务/地图/系统菜单）与自动化桥接
+└── GameApp.ts   # 主游戏循环编排、区域切换与调试桥接 (`window.__ASHEN_MARCH__`)
 ```
 
 ## 3. 核心数据流与唯一 ID 规范

@@ -1,0 +1,181 @@
+import { expect, test } from '@playwright/test';
+
+interface Snapshot {
+  position: { x: number; y: number; z: number };
+  zone: string;
+  region: string;
+  stats: { hp: number; mp: number; gold: number; level: number };
+  quests: Record<string, { status: string; currentStageId: string | null }>;
+  activeModal: string | null;
+  activePrompt: string | null;
+}
+
+const ARTIFACT_DIR = '/Users/xiezhengtao/.gemini/antigravity/brain/18b17123-6ece-4197-8525-b4755d0739bf';
+
+test.describe('Ashen March End-to-End Browser Verification', () => {
+  test('renders 3D world, supports movement, NPC quests, UI panels, combat, crypt dungeon & IndexedDB save/load', async ({
+    page,
+  }) => {
+    const errors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        errors.push(`console.error: ${msg.text()}`);
+      }
+    });
+    page.on('pageerror', (err) => {
+      errors.push(`pageerror: ${err.message}`);
+    });
+
+    await page.goto('/');
+    await page.waitForFunction(() => Boolean((window as unknown as { __ASHEN_MARCH__?: unknown }).__ASHEN_MARCH__), {
+      timeout: 20_000,
+    });
+
+    // Wait a few frames so terrain & lighting render
+    await page.waitForTimeout(800);
+
+    // 1. Verify WebGL canvas and HUD
+    const canvas = page.locator('#game-canvas');
+    await expect(canvas).toBeVisible();
+    const box = await canvas.boundingBox();
+    expect(box?.width).toBeGreaterThan(800);
+    expect(box?.height).toBeGreaterThan(500);
+
+    await expect(page.getByTestId('hud-compass')).toContainText('溪谷村');
+    await page.screenshot({ path: `${ARTIFACT_DIR}/e2e_01_village_spawn.png` });
+
+    // 2. Verify keyboard WASD movement & terrain grounding
+    const beforeMove: Snapshot = await page.evaluate(() =>
+      (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+    );
+    await page.keyboard.down('KeyW');
+    await page.waitForTimeout(550);
+    await page.keyboard.up('KeyW');
+
+    const afterMove: Snapshot = await page.evaluate(() =>
+      (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+    );
+    expect(afterMove.position.z).toBeLessThan(beforeMove.position.z - 1.5);
+    expect(afterMove.position.y).toBeGreaterThan(3.5);
+    expect(afterMove.position.y).toBeLessThan(4.6);
+
+    // 3. Talk to Elder Aldrin via [E] & accept Main Quest
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(0, 4.1, 33.4);
+      api.setLook(0, -0.05);
+    });
+    await page.waitForTimeout(180);
+    await expect(page.getByTestId('hud-interact-prompt')).toContainText('村长奥尔德林');
+    await page.keyboard.press('KeyE');
+    await expect(page.getByTestId('modal-dialogue')).toBeVisible();
+    await page.screenshot({ path: `${ARTIFACT_DIR}/e2e_02_dialogue.png` });
+
+    await page.locator('.choice-btn').first().click();
+    await page.locator('.choice-btn').first().click(); // close accepted node
+    await expect(page.getByTestId('hud-quest-tracker')).toContainText('失落的守望者');
+
+    // 4. Open Inventory [I], Quest Log [J], World Map [M]
+    await page.keyboard.press('KeyI');
+    await expect(page.getByTestId('modal-inventory')).toBeVisible();
+    await page.keyboard.press('KeyI');
+
+    await page.keyboard.press('KeyJ');
+    await expect(page.getByTestId('modal-quests')).toBeVisible();
+    await expect(page.locator('#modal-panel')).toContainText('失落的守望者');
+    await page.keyboard.press('KeyJ');
+
+    await page.keyboard.press('KeyM');
+    await expect(page.getByTestId('modal-map')).toBeVisible();
+    await page.screenshot({ path: `${ARTIFACT_DIR}/e2e_03_world_map.png` });
+    await page.keyboard.press('KeyM');
+
+    // 4b. Open Merchant Garrick Shop and purchase a Minor Health Potion
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(-11.4, 4.1, 38);
+      api.setLook(Math.PI / 2, 0);
+    });
+    await page.waitForTimeout(180);
+    await page.keyboard.press('KeyE');
+    await expect(page.getByTestId('modal-dialogue')).toBeVisible();
+    await page.locator('.choice-btn').first().click(); // open shop
+    await expect(page.getByTestId('modal-shop')).toBeVisible();
+    const goldBeforeShop = (
+      await page.evaluate(() =>
+        (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+      )
+    ).stats.gold;
+    await page.locator('[data-buy-id="minor_health_potion"]').click();
+    const goldAfterShop = (
+      await page.evaluate(() =>
+        (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+      )
+    ).stats.gold;
+    expect(goldAfterShop).toBe(goldBeforeShop - 20);
+    await page.keyboard.press('Escape');
+
+    // 5. Cast Fireball & verify MP consumption
+    const mpBefore = (
+      await page.evaluate(() =>
+        (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+      )
+    ).stats.mp;
+    await page.mouse.click(640, 360, { button: 'right' });
+    await page.waitForTimeout(150);
+    const mpAfter = (
+      await page.evaluate(() =>
+        (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+      )
+    ).stats.mp;
+    expect(mpAfter).toBeLessThan(mpBefore);
+
+    // 6. Enter Ancient Crypt Dungeon via portal
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(0, 12.2, -171.8);
+      api.setLook(0, 0);
+    });
+    await page.waitForTimeout(200);
+    await expect(page.getByTestId('hud-interact-prompt')).toContainText('古代墓穴');
+    await page.keyboard.press('KeyE');
+    await page.waitForTimeout(300);
+
+    const cryptSnap: Snapshot = await page.evaluate(() =>
+      (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+    );
+    expect(cryptSnap.zone).toBe('ancient_crypt');
+    await expect(page.getByTestId('hud-compass')).toContainText('古代墓穴');
+    await page.screenshot({ path: `${ARTIFACT_DIR}/e2e_04_ancient_crypt.png` });
+
+    // 7. Save to IndexedDB slot_1, reload page, and restore slot_1
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('modal-menu')).toBeVisible();
+    await page.locator('[data-save-slot="slot_1"]').click();
+    await page.waitForTimeout(350);
+
+    await page.reload();
+    await page.waitForFunction(() => Boolean((window as unknown as { __ASHEN_MARCH__?: unknown }).__ASHEN_MARCH__), {
+      timeout: 20_000,
+    });
+
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('modal-menu')).toBeVisible();
+    await page.locator('[data-load-slot="slot_1"]').click();
+    await page.waitForTimeout(350);
+
+    const restoredSnap: Snapshot = await page.evaluate(() =>
+      (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+    );
+    expect(restoredSnap.zone).toBe('ancient_crypt');
+    expect(restoredSnap.quests.main_lost_watchers?.status).toBe('active');
+
+    expect(errors).toEqual([]);
+  });
+});

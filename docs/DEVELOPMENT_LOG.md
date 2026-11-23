@@ -31,4 +31,16 @@
 - 实现 `WorldSpawner` (`src/world/WorldSpawner.ts`)：统一生成配置宝箱与拾取物，落实 Boss 击败前置锁定逻辑（击败墓穴守卫·阿卡索尔前圣物箱不可开启）以及世界掉落与读档状态同步。
 - 实现 `SaveSystem` (`src/save/SaveSystem.ts`)：基于浏览器原生 IndexedDB 实现多槽位保存与读取，支持完整玩家/背包/任务/世界标记恢复，并内建 `v1 -> v2` Schema 迁移。
 - 测试验证：`npm run typecheck` 通过，`npm test` 14/14 通过（含 `fake-indexeddb` 端到端存档校验），`npm run build` 成功。
-- 下一步：进入 Stage 5（昼夜循环、粒子与程序化音效、完整 RPG UI、GameApp 整合与浏览器实测验收）。
+
+## 2026-11-23 — Stage 5: 视听表现、完整 UI、GameApp 整合与浏览器 E2E 验收
+- 实现 `DayNightCycle`（24 小时昼夜太阳/月亮光照与天空雾效、墓穴地下城独立暗雾切换）、`ParticleSystem`（近战火花、火球爆炸、升级光粒）及 `AudioSystem`（WebAudio 程序化音效与静音开关）。
+- 实现 `UIManager` 与 `GameApp`：统一 HUD（指南针/区域/时间、任务追踪、HP/MP/Stamina/XP 条、交互提示、提示吐司）及全部模态窗口（对话、商店、背包与属性、任务日志、2D 世界地图 Canvas、文献阅读、重伤复活、IndexedDB 存档系统菜单）。
+- 修复并优化：`index.html` 内置 SVG favicon 消除浏览器 `/favicon.ico` 404 控制台错误；提升地下城环境光照可见度。
+- 实测验证结果：
+  - `npm run typecheck` (`tsc --noEmit`) 通过（0 错误）。
+  - `npm test` (Vitest) 5 个测试套件共 14 项单元测试全部通过。
+  - `npm run build` (`vite build`) 构建成功。
+  - `npm run test:e2e` (Playwright + Chrome SwiftShader WebGL2) 端到端测试通过（1/1 通过，0 控制台错误、0 未捕获异常）：验证 3D 渲染、WASD 移动与贴地碰撞、与村长对话接取主线、商人购买药水、背包/任务/世界地图界面、火球术施放与耗蓝、进入古代墓穴地下城、以及 IndexedDB 存档后刷新页面读档恢复。
+- 待人工验收项：
+  - 真实桌面显示器上的 Pointer Lock 鼠标视角灵敏度与近战/火球战斗手感；
+  - 30–60 分钟完整探索节奏、主线双结局与双支线全流程游玩平衡性调优。

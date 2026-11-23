@@ -69,3 +69,11 @@ npm run test:e2e
 - [技术架构文档 (ARCHITECTURE)](docs/ARCHITECTURE.md)
 - [开发路线图 (ROADMAP)](docs/ROADMAP.md)
 - [开发日志 (DEVELOPMENT_LOG)](docs/DEVELOPMENT_LOG.md)
+
+## 当前验证状态
+
+- `npm run typecheck`: 通过 (`tsc --noEmit`)
+- `npm test`: 5 个测试文件共 14 项单元测试全部通过（含 Rapier 3D 物理碰撞与 `fake-indexeddb` 存档迁移）
+- `npm run build`: 生产包构建通过
+- `npm run test:e2e`: Playwright + Chrome WebGL2 端到端测试通过（0 控制台/页面错误）
+- **待人工实机体验验证**：真实桌面鼠标 Pointer Lock 视角手感与 30–60 分钟完整主支线游玩数值节奏。

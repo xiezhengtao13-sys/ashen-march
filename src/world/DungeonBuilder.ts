@@ -39,7 +39,7 @@ export function buildAncientCrypt(
   };
 
   // Ambient + subtle dungeon fill light inside crypt group
-  const cryptAmbient = new THREE.HemisphereLight(0x526b8c, 0x16181f, 0.45);
+  const cryptAmbient = new THREE.HemisphereLight(0x526b8c, 0x16181f, 0.85);
   parent.add(cryptAmbient);
 
   // 1. Main Dungeon Floor & Ceiling spanning entire crypt footprint
