@@ -5,8 +5,10 @@
 ## ▶ 一键在线游玩（浏览器直玩）
 
 [![立即在线游玩 - Ashen March](https://img.shields.io/badge/▶_立即在线游玩-Ashen_March_灰烬边境-d9a043?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/)
+[![一键试玩 - 灰烬城 Phase 2 (feature/ashenhold-phase2-market)](https://img.shields.io/badge/▶_一键试玩_灰烬城_Phase_2-中央市集与双环城区-c86228?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city)
 
-- **在线试玩地址**：https://xiezhengtao13-sys.github.io/ashen-march/
+- **主干稳定版在线试玩地址**：https://xiezhengtao13-sys.github.io/ashen-march/
+- **灰烬城 Phase 2 分支在线试玩入口 (`feature/ashenhold-phase2-market`)**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city
 - **零安装直玩**：由 GitHub Actions 自动构建并托管于 GitHub Pages，点击上方按钮即可在桌面浏览器（支持 WebGL2）中直接运行，存档自动保存于浏览器本地 IndexedDB。
 
 ## 核心特性
