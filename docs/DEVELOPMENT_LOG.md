@@ -44,3 +44,11 @@
 - 待人工验收项：
   - 真实桌面显示器上的 Pointer Lock 鼠标视角灵敏度与近战/火球战斗手感；
   - 30–60 分钟完整探索节奏、主线双结局与双支线全流程游玩平衡性调优。
+
+## 2026-11-23 — Visual Overhaul (`feature/visual-overhaul`): 全面视觉与 UI 重制
+- **Phase A（基线审查）**：采集 7 组 `main` 基线截图与软件渲染性能（2 FPS），编写 [VISUAL_AUDIT.md](VISUAL_AUDIT.md)。
+- **Phase B（PBR 材质库与画质档位）**：实现 `MaterialLibrary`（生成 Albedo + Sobel 切线法线 + Roughness 的平铺 PBR 纹理）及 `QualityManager`（Low / Medium / High 三档画质与实时 Draw Calls/Triangles/FPS 遥测）。
+- **Phase C（中世纪建筑重制）**：实现 `ArchitectureBuilder`，彻底替换溪谷村素色方块建筑，为村长议事厅、铁匠铺与露天锻炉、猎人林屋、村井、木轮货车、路牌街灯、河谷桥墩、废弃哨塔与墓穴哥特入口添加真实建筑结构与环境叙事细节。
+- **Phase D（RPG UI/UX 重构）**：新增 `IconRegistry` SVG 图标体系，全面重做极简探索 HUD（滑动罗盘带、精简状态条、4 槽快捷栏）、三栏背包、下三分之一电影化对话、分栏冒险日志、羊皮纸等高线舆图及系统菜单。
+- **Phase E（生态、天空、角色与地下城升级）**：实现 `VegetationBuilder`（`InstancedMesh` 多树种森林与地表灌木草簇）、`DayNightCycle` 自定义 GLSL 天空穹顶着色器、地形坡度岩石混合、NPC 多层中世纪服饰、骷髅肋骨/哥布林/Boss 重甲造型、动态切换的第一人称剑模以及古代墓穴肋拱石棺场景。
+- **Phase F（验证与 PR）**：`npm run typecheck` 通过，`npm test` 6 个套件共 16 项单元测试通过，`npm run build` 成功，`npm run test:e2e` Playwright 全流程验证通过（0 控制台/页面错误，SwiftShader 下提升至 22–60 FPS / 503 Draw Calls）。已保留 `main` 分支稳定版本，向 `main` 提交 Pull Request 等待审阅。

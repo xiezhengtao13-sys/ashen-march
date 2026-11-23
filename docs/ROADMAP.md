@@ -38,3 +38,11 @@
 - [x] 完善全部 RPG UI（HUD、对话、商店、背包、任务日志、2D 世界地图、系统菜单）
 - [x] 启动游戏并运行 Vitest + 生产构建 + Playwright 端到端浏览器验证
 - [x] 更新全部文档，记录实测结果与待人工验收项，提交并推送最终版本
+
+## Visual Overhaul (`feature/visual-overhaul`)：全面美术与 UI 重制
+- [x] Phase A：基线审查、截图对比采集与 `VISUAL_AUDIT.md`
+- [x] Phase B：程序化 PBR 材质库 (`MaterialLibrary`) 与 Low/Medium/High 三档画质系统 (`QualityManager`)
+- [x] Phase C：中世纪木桁架建筑群与村庄环境叙事重制 (`ArchitectureBuilder`)
+- [x] Phase D：极简探索 HUD、三栏背包、下三分之一电影化对话、分栏日志与羊皮纸地图 (`UIManager`, `IconRegistry`)
+- [x] Phase E：`InstancedMesh` 多树种森林生态 (`VegetationBuilder`)、GLSL 天空穹顶着色器、角色/敌人/武器/墓穴精细升级
+- [x] Phase F：回归测试、实测截图与性能对比、提交 Pull Request 至 `main`（待审阅合并）

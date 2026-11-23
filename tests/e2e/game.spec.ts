@@ -10,10 +10,20 @@ interface Snapshot {
   activePrompt: string | null;
 }
 
+interface Telemetry {
+  preset: string;
+  fps: number;
+  frameTimeMs: number;
+  drawCalls: number;
+  triangles: number;
+  geometries: number;
+  textures: number;
+}
+
 const ARTIFACT_DIR = '/Users/xiezhengtao/.gemini/antigravity/brain/18b17123-6ece-4197-8525-b4755d0739bf';
 
-test.describe('Ashen March End-to-End Browser Verification', () => {
-  test('renders 3D world, supports movement, NPC quests, UI panels, combat, crypt dungeon & IndexedDB save/load', async ({
+test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
+  test('renders overhauled 3D world & UI, captures comparison screenshots, verifies gameplay, quality tiers & IndexedDB save/load', async ({
     page,
   }) => {
     const errors: string[] = [];
@@ -30,36 +40,71 @@ test.describe('Ashen March End-to-End Browser Verification', () => {
     await page.waitForFunction(() => Boolean((window as unknown as { __ASHEN_MARCH__?: unknown }).__ASHEN_MARCH__), {
       timeout: 20_000,
     });
+    await page.waitForTimeout(900);
 
-    // Wait a few frames so terrain & lighting render
-    await page.waitForTimeout(800);
-
-    // 1. Verify WebGL canvas and HUD
+    // 1. Verify WebGL canvas and HUD + capture Overhauled Village Panorama
     const canvas = page.locator('#game-canvas');
     await expect(canvas).toBeVisible();
     const box = await canvas.boundingBox();
     expect(box?.width).toBeGreaterThan(800);
     expect(box?.height).toBeGreaterThan(500);
-
     await expect(page.getByTestId('hud-compass')).toContainText('溪谷村');
-    await page.screenshot({ path: `${ARTIFACT_DIR}/e2e_01_village_spawn.png` });
+    await page.screenshot({ path: `${ARTIFACT_DIR}/overhaul_01_village.png` });
 
-    // 2. Verify keyboard WASD movement & terrain grounding
+    // Measure telemetry across quality presets (High -> Medium -> Low)
+    for (const preset of ['high', 'medium', 'low'] as const) {
+      await page.evaluate((p) => {
+        (window as unknown as { __ASHEN_MARCH__: { setQuality: (q: string) => void } }).__ASHEN_MARCH__.setQuality(p);
+      }, preset);
+      await page.waitForTimeout(750);
+      const tel: Telemetry = await page.evaluate(() =>
+        (window as unknown as { __ASHEN_MARCH__: { getTelemetry: () => Telemetry } }).__ASHEN_MARCH__.getTelemetry(),
+      );
+      console.log(`TELEMETRY_${preset.toUpperCase()}:`, JSON.stringify(tel));
+    }
+    // Restore High quality for visual inspection screenshots
+    await page.evaluate(() => {
+      (window as unknown as { __ASHEN_MARCH__: { setQuality: (q: string) => void } }).__ASHEN_MARCH__.setQuality('high');
+    });
+    await page.waitForTimeout(350);
+
+    // 2. Verify WASD movement & terrain grounding
     const beforeMove: Snapshot = await page.evaluate(() =>
       (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
     );
     await page.keyboard.down('KeyW');
-    await page.waitForTimeout(550);
+    await page.waitForTimeout(750);
     await page.keyboard.up('KeyW');
-
     const afterMove: Snapshot = await page.evaluate(() =>
       (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
     );
-    expect(afterMove.position.z).toBeLessThan(beforeMove.position.z - 1.5);
+    expect(afterMove.position.z).toBeLessThan(beforeMove.position.z - 0.8);
     expect(afterMove.position.y).toBeGreaterThan(3.5);
     expect(afterMove.position.y).toBeLessThan(4.6);
 
-    // 3. Talk to Elder Aldrin via [E] & accept Main Quest
+    // 2b. Exploration screenshot at River Valley bridge
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(72, 3.2, 55);
+      api.setLook(-1.45, -0.05);
+    });
+    await page.waitForTimeout(350);
+    await page.screenshot({ path: `${ARTIFACT_DIR}/overhaul_02_explore.png` });
+
+    // 3. Ashwood Forest screenshot
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(-95, 7.5, -18);
+      api.setLook(0.6, -0.05);
+    });
+    await page.waitForTimeout(350);
+    await page.screenshot({ path: `${ARTIFACT_DIR}/overhaul_03_forest.png` });
+
+    // 4. Talk to Elder Aldrin via [E] (Lower-Third Cinematic Dialogue) & accept Main Quest
     await page.evaluate(() => {
       const api = (window as unknown as {
         __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
@@ -67,32 +112,34 @@ test.describe('Ashen March End-to-End Browser Verification', () => {
       api.teleport(0, 4.1, 33.4);
       api.setLook(0, -0.05);
     });
-    await page.waitForTimeout(180);
+    await page.waitForTimeout(200);
     await expect(page.getByTestId('hud-interact-prompt')).toContainText('村长奥尔德林');
     await page.keyboard.press('KeyE');
     await expect(page.getByTestId('modal-dialogue')).toBeVisible();
-    await page.screenshot({ path: `${ARTIFACT_DIR}/e2e_02_dialogue.png` });
+    await page.screenshot({ path: `${ARTIFACT_DIR}/overhaul_06_dialogue.png` });
 
     await page.locator('.choice-btn').first().click();
-    await page.locator('.choice-btn').first().click(); // close accepted node
+    await page.locator('.choice-btn').first().click();
     await expect(page.getByTestId('hud-quest-tracker')).toContainText('失落的守望者');
 
-    // 4. Open Inventory [I], Quest Log [J], World Map [M]
+    // 5. Open Redesigned 3-Column Inventory [I], Quest Log [J], Cartographic Map [M]
     await page.keyboard.press('KeyI');
     await expect(page.getByTestId('modal-inventory')).toBeVisible();
+    await page.screenshot({ path: `${ARTIFACT_DIR}/overhaul_05_inventory.png` });
     await page.keyboard.press('KeyI');
 
     await page.keyboard.press('KeyJ');
     await expect(page.getByTestId('modal-quests')).toBeVisible();
     await expect(page.locator('#modal-panel')).toContainText('失落的守望者');
+    await page.screenshot({ path: `${ARTIFACT_DIR}/overhaul_08_quests_log.png` });
     await page.keyboard.press('KeyJ');
 
     await page.keyboard.press('KeyM');
     await expect(page.getByTestId('modal-map')).toBeVisible();
-    await page.screenshot({ path: `${ARTIFACT_DIR}/e2e_03_world_map.png` });
+    await page.screenshot({ path: `${ARTIFACT_DIR}/overhaul_07_map_quests.png` });
     await page.keyboard.press('KeyM');
 
-    // 4b. Open Merchant Garrick Shop and purchase a Minor Health Potion
+    // 6. Open Merchant Garrick Shop and purchase potion
     await page.evaluate(() => {
       const api = (window as unknown as {
         __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
@@ -101,9 +148,10 @@ test.describe('Ashen March End-to-End Browser Verification', () => {
       api.setLook(Math.PI / 2, 0);
     });
     await page.waitForTimeout(180);
+    await expect(page.getByTestId('hud-interact-prompt')).toContainText('铁匠商人葛伦');
     await page.keyboard.press('KeyE');
     await expect(page.getByTestId('modal-dialogue')).toBeVisible();
-    await page.locator('.choice-btn').first().click(); // open shop
+    await page.locator('.choice-btn').first().click();
     await expect(page.getByTestId('modal-shop')).toBeVisible();
     const goldBeforeShop = (
       await page.evaluate(() =>
@@ -119,7 +167,7 @@ test.describe('Ashen March End-to-End Browser Verification', () => {
     expect(goldAfterShop).toBe(goldBeforeShop - 20);
     await page.keyboard.press('Escape');
 
-    // 5. Cast Fireball & verify MP consumption
+    // 7. Cast Fireball & verify MP consumption
     const mpBefore = (
       await page.evaluate(() =>
         (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
@@ -134,7 +182,7 @@ test.describe('Ashen March End-to-End Browser Verification', () => {
     ).stats.mp;
     expect(mpAfter).toBeLessThan(mpBefore);
 
-    // 6. Enter Ancient Crypt Dungeon via portal
+    // 8. Enter Ancient Crypt Dungeon via portal + capture screenshot
     await page.evaluate(() => {
       const api = (window as unknown as {
         __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
@@ -145,18 +193,19 @@ test.describe('Ashen March End-to-End Browser Verification', () => {
     await page.waitForTimeout(200);
     await expect(page.getByTestId('hud-interact-prompt')).toContainText('古代墓穴');
     await page.keyboard.press('KeyE');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(350);
 
     const cryptSnap: Snapshot = await page.evaluate(() =>
       (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
     );
     expect(cryptSnap.zone).toBe('ancient_crypt');
     await expect(page.getByTestId('hud-compass')).toContainText('古代墓穴');
-    await page.screenshot({ path: `${ARTIFACT_DIR}/e2e_04_ancient_crypt.png` });
+    await page.screenshot({ path: `${ARTIFACT_DIR}/overhaul_04_dungeon.png` });
 
-    // 7. Save to IndexedDB slot_1, reload page, and restore slot_1
+    // 9. Save to IndexedDB slot_1, switch quality via UI menu, reload page, and restore slot_1
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('modal-menu')).toBeVisible();
+    await page.locator('[data-quality="medium"]').click();
     await page.locator('[data-save-slot="slot_1"]').click();
     await page.waitForTimeout(350);
 

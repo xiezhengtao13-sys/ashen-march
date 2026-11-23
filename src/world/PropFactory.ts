@@ -36,33 +36,43 @@ export function createTorchBrazier(
   group.position.set(pos.x, pos.y, pos.z);
   group.scale.setScalar(scale);
 
-  const standMat = new THREE.MeshStandardMaterial({ color: 0x3b3d42, roughness: 0.7, metalness: 0.55 });
-  const bowlMat = new THREE.MeshStandardMaterial({ color: 0x26282e, roughness: 0.6, metalness: 0.7 });
-  const flameMat = new THREE.MeshStandardMaterial({
-    color: 0xffa640,
+  const ironMat = new THREE.MeshStandardMaterial({ color: 0x32353b, roughness: 0.55, metalness: 0.75 });
+  const emberMat = new THREE.MeshStandardMaterial({
+    color: 0x522112,
     emissive: new THREE.Color(color),
-    emissiveIntensity: 2.2,
-    roughness: 0.3,
+    emissiveIntensity: 0.85,
+    roughness: 0.9,
+  });
+  const flameMat = new THREE.MeshStandardMaterial({
+    color: 0xffb347,
+    emissive: new THREE.Color(color),
+    emissiveIntensity: 2.3,
+    roughness: 0.25,
+    transparent: true,
+    opacity: 0.92,
   });
 
-  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 1.35, 8), standMat);
-  post.position.y = 0.675;
+  // Plinth & fluted iron pedestal
+  const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.3, 0.2, 8), ironMat);
+  foot.position.y = 0.1;
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.16, 1.15, 8), ironMat);
+  post.position.y = 0.75;
   post.castShadow = true;
-  group.add(post);
-
-  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.22, 0.32, 8), bowlMat);
-  bowl.position.y = 1.42;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.04, 6, 12), ironMat);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 1.48;
+  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.18, 0.32, 8), ironMat);
+  bowl.position.y = 1.36;
   bowl.castShadow = true;
-  group.add(bowl);
-
-  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.58, 7), flameMat);
-  flame.position.y = 1.78;
-  group.add(flame);
+  const coals = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.5), emberMat);
+  coals.position.y = 1.44;
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.56, 7), flameMat);
+  flame.position.y = 1.76;
 
   const light = new THREE.PointLight(color, intensity, distance, 1.6);
   light.position.y = 2.05;
-  group.add(light);
 
+  group.add(foot, post, bowl, ring, coals, flame, light);
   flames.push({ light, mesh: flame, baseIntensity: intensity, phase });
   parent.add(group);
   return group;
@@ -84,43 +94,59 @@ export function createChestMesh(
   group.name = `Chest_${id}`;
 
   const woodMat = new THREE.MeshStandardMaterial({
-    color: isRare ? 0x3f2e4f : 0x5c3c24,
-    roughness: 0.85,
+    color: isRare ? 0x3b2a47 : 0x5c3c24,
+    roughness: 0.82,
   });
   const trimMat = new THREE.MeshStandardMaterial({
-    color: isRare ? 0xd9b166 : 0x7b828c,
-    roughness: 0.45,
-    metalness: 0.75,
+    color: isRare ? 0xc79e4f : 0x6f7680,
+    roughness: 0.38,
+    metalness: 0.82,
   });
 
-  const base = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.55, 0.72), woodMat);
-  base.position.y = 0.275;
+  // Main chest body
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1.12, 0.52, 0.72), woodMat);
+  base.position.y = 0.26;
   base.castShadow = true;
   base.receiveShadow = true;
   group.add(base);
 
-  const lid = new THREE.Mesh(new THREE.BoxGeometry(1.14, 0.24, 0.76), woodMat);
-  lid.position.set(0, 0.65, 0);
-  lid.castShadow = true;
-  lid.name = 'ChestLid';
-  group.add(lid);
+  // Domed barrel-vaulted lid pivot
+  const lidGroup = new THREE.Group();
+  lidGroup.position.set(0, 0.52, -0.34);
+  lidGroup.name = 'ChestLid';
 
-  const bandLeft = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.8, 0.78), trimMat);
-  bandLeft.position.set(-0.36, 0.4, 0);
-  group.add(bandLeft);
+  const lidBody = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.37, 0.37, 1.14, 12, 1, false, 0, Math.PI),
+    woodMat,
+  );
+  lidBody.rotation.z = Math.PI / 2;
+  lidBody.rotation.y = Math.PI / 2;
+  lidBody.position.set(0, 0, 0.34);
+  lidBody.castShadow = true;
+  lidGroup.add(lidBody);
 
-  const bandRight = bandLeft.clone();
-  bandRight.position.x = 0.36;
-  group.add(bandRight);
+  for (const bx of [-0.42, 0, 0.42]) {
+    const strap = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.54, 0.76), trimMat);
+    strap.position.set(bx, 0.27, 0);
+    group.add(strap);
 
-  const lock = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.2, 0.08), trimMat);
-  lock.position.set(0, 0.54, 0.38);
-  group.add(lock);
+    const lidStrap = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.385, 0.385, 0.08, 12, 1, false, 0, Math.PI),
+      trimMat,
+    );
+    lidStrap.rotation.z = Math.PI / 2;
+    lidStrap.rotation.y = Math.PI / 2;
+    lidStrap.position.set(bx, 0, 0.34);
+    lidGroup.add(lidStrap);
+  }
+
+  const clasp = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.22, 0.08), trimMat);
+  clasp.position.set(0, 0.46, 0.38);
+  group.add(clasp, lidGroup);
 
   const alreadyOpened = state.isChestOpened(id);
   if (alreadyOpened) {
-    lid.rotation.x = -0.75;
-    lid.position.set(0, 0.78, -0.22);
+    lidGroup.rotation.x = -0.88;
   }
 
   parent.add(group);
@@ -160,59 +186,63 @@ export function createPickupMesh(
   const color = new THREE.Color(colorHex);
 
   if (kind === 'herb') {
-    const stemMat = new THREE.MeshStandardMaterial({
-      color,
-      emissive: color,
-      emissiveIntensity: 0.25,
-      roughness: 0.7,
-    });
-    for (let i = 0; i < 4; i++) {
-      const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.52, 5), stemMat);
-      const angle = (i / 4) * Math.PI * 2;
-      leaf.position.set(Math.cos(angle) * 0.14, 0.25, Math.sin(angle) * 0.14);
-      leaf.rotation.z = Math.cos(angle) * 0.35;
-      leaf.rotation.x = Math.sin(angle) * 0.35;
-      group.add(leaf);
-    }
-  } else if (kind === 'journal') {
-    const bookMat = new THREE.MeshStandardMaterial({
-      color: 0x8f5b34,
-      emissive: new THREE.Color(0x6e4718),
-      emissiveIntensity: 0.35,
+    const leafMat = new THREE.MeshStandardMaterial({
+      color: 0x4f945a,
+      emissive: 0x204d28,
+      emissiveIntensity: 0.22,
       roughness: 0.65,
     });
-    const pageMat = new THREE.MeshStandardMaterial({ color: 0xead8b5, roughness: 0.85 });
-    const cover = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.08, 0.36), bookMat);
+    const budMat = new THREE.MeshStandardMaterial({
+      color: 0xe69f4c,
+      emissive: 0xb85a1c,
+      emissiveIntensity: 0.45,
+      roughness: 0.4,
+    });
+    for (let i = 0; i < 6; i++) {
+      const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.48, 5), leafMat);
+      const angle = (i / 6) * Math.PI * 2;
+      leaf.position.set(Math.cos(angle) * 0.14, 0.24, Math.sin(angle) * 0.14);
+      leaf.rotation.z = Math.cos(angle) * 0.45;
+      leaf.rotation.x = Math.sin(angle) * 0.45;
+      group.add(leaf);
+    }
+    const bud = new THREE.Mesh(new THREE.OctahedronGeometry(0.09, 0), budMat);
+    bud.position.y = 0.48;
+    group.add(bud);
+  } else if (kind === 'journal') {
+    const bookMat = new THREE.MeshStandardMaterial({
+      color: 0x6b3a24,
+      emissive: 0x3b1f0d,
+      emissiveIntensity: 0.25,
+      roughness: 0.6,
+    });
+    const pageMat = new THREE.MeshStandardMaterial({ color: 0xe8d8b5, roughness: 0.85 });
+    const brassMat = new THREE.MeshStandardMaterial({ color: 0xc9a359, metalness: 0.8, roughness: 0.35 });
+    const cover = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.1, 0.38), bookMat);
     cover.position.y = 0.06;
-    group.add(cover);
-    const pages = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.06, 0.32), pageMat);
-    pages.position.y = 0.09;
-    group.add(pages);
+    const pages = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.07, 0.34), pageMat);
+    pages.position.y = 0.07;
+    const clasp = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.11, 0.05), brassMat);
+    clasp.position.set(0, 0.07, 0.19);
+    group.add(cover, pages, clasp);
   } else {
-    const pouchMat = new THREE.MeshStandardMaterial({
+    const leatherMat = new THREE.MeshStandardMaterial({
       color,
       emissive: color,
-      emissiveIntensity: 0.35,
-      roughness: 0.55,
+      emissiveIntensity: 0.16,
+      roughness: 0.72,
     });
-    const bag = new THREE.Mesh(new THREE.DodecahedronGeometry(0.24, 0), pouchMat);
-    bag.position.y = 0.26;
-    group.add(bag);
+    const tieMat = new THREE.MeshStandardMaterial({ color: 0xc9a359, metalness: 0.7, roughness: 0.4 });
+    const bag = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), leatherMat);
+    bag.scale.set(1, 0.88, 1);
+    bag.position.y = 0.2;
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.08, 0.14, 8), leatherMat);
+    neck.position.y = 0.38;
+    const cord = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.02, 6, 10), tieMat);
+    cord.rotation.x = Math.PI / 2;
+    cord.position.y = 0.34;
+    group.add(bag, neck, cord);
   }
-
-  // Subtle beacon ring so pickups are clearly discoverable in grass
-  const ring = new THREE.Mesh(
-    new THREE.RingGeometry(0.28, 0.36, 16),
-    new THREE.MeshBasicMaterial({
-      color,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.65,
-    }),
-  );
-  ring.rotation.x = -Math.PI / 2;
-  ring.position.y = 0.04;
-  group.add(ring);
 
   parent.add(group);
 

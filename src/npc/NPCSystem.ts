@@ -84,105 +84,156 @@ export class NPCSystem {
     group.rotation.y = def.yaw;
     group.name = `NPC_${def.id}`;
 
+    const body = new THREE.Group();
+    body.name = 'NPCBody';
+    group.add(body);
+
     const robeMat = new THREE.MeshStandardMaterial({ color: def.robeColor, roughness: 0.85 });
-    const accentMat = new THREE.MeshStandardMaterial({ color: def.accentColor, roughness: 0.55 });
-    const skinMat = new THREE.MeshStandardMaterial({ color: 0xdfb995, roughness: 0.75 });
+    const accentMat = new THREE.MeshStandardMaterial({ color: def.accentColor, roughness: 0.58 });
+    const leatherMat = new THREE.MeshStandardMaterial({ color: 0x452d1b, roughness: 0.8 });
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xd9af8a, roughness: 0.72 });
     const hairMat = new THREE.MeshStandardMaterial({
-      color: def.id === 'elder_aldrin' ? 0xdcdcdc : def.id === 'hunter_lyra' ? 0x4b2f1c : 0x3b3532,
-      roughness: 0.9,
+      color: def.id === 'elder_aldrin' ? 0xd8d8d6 : def.id === 'hunter_lyra' ? 0x4a2c18 : 0x352e2a,
+      roughness: 0.88,
     });
+    const steelMat = new THREE.MeshStandardMaterial({ color: 0x8d96a1, metalness: 0.8, roughness: 0.35 });
 
-    // Lower robe / legs
-    const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.38, 0.85, 8), robeMat);
-    skirt.position.y = 0.425;
-    skirt.castShadow = true;
-    group.add(skirt);
+    // Boots & Legs
+    for (const sx of [-0.13, 0.13]) {
+      const boot = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.24, 0.24), leatherMat);
+      boot.position.set(sx, 0.12, 0.03);
+      boot.castShadow = true;
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.56, 8), leatherMat);
+      leg.position.set(sx, 0.5, 0);
+      body.add(boot, leg);
+    }
 
-    // Torso
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.72, 0.34), robeMat);
+    // Tunic / Lower Coat
+    if (def.id === 'elder_aldrin') {
+      const robeSkirt = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.36, 0.78, 10), robeMat);
+      robeSkirt.position.y = 0.48;
+      robeSkirt.castShadow = true;
+      body.add(robeSkirt);
+    } else {
+      const coat = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.3, 0.42, 10), robeMat);
+      coat.position.y = 0.74;
+      coat.castShadow = true;
+      body.add(coat);
+    }
+
+    // Layered Torso, Leather Belt & Shoulder Mantle
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.62, 0.28), robeMat);
     torso.position.y = 1.18;
     torso.castShadow = true;
-    group.add(torso);
-
-    // Sash / Mantle
-    const mantle = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.22, 0.38), accentMat);
+    const belt = new THREE.Mesh(new THREE.BoxGeometry(0.53, 0.1, 0.31), leatherMat);
+    belt.position.y = 0.92;
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.11, 0.04), accentMat);
+    buckle.position.set(0, 0.92, 0.16);
+    const mantle = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.37, 0.22, 10), accentMat);
     mantle.position.y = 1.44;
-    group.add(mantle);
+    body.add(torso, belt, buckle, mantle);
 
-    // Head
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 10), skinMat);
-    head.position.y = 1.78;
-    head.castShadow = true;
-    group.add(head);
-
-    // Hair / Hood
-    const crown = new THREE.Mesh(new THREE.SphereGeometry(0.235, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.58), hairMat);
-    crown.position.y = 1.81;
-    group.add(crown);
-
-    if (def.id === 'elder_aldrin') {
-      // Elder white beard
-      const beard = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.34, 6), hairMat);
-      beard.position.set(0, 1.56, 0.14);
-      beard.rotation.x = Math.PI;
-      group.add(beard);
-    }
-
-    // Arms
-    const armGeo = new THREE.BoxGeometry(0.16, 0.56, 0.16);
-    const armL = new THREE.Mesh(armGeo, robeMat);
-    armL.position.set(-0.37, 1.18, 0);
-    const armR = new THREE.Mesh(armGeo, robeMat);
-    armR.position.set(0.37, 1.18, 0);
-    group.add(armL, armR);
-
-    if (def.hasStaff) {
-      const staff = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.035, 0.04, 1.95, 6),
-        new THREE.MeshStandardMaterial({ color: 0x5c3c24, roughness: 0.8 }),
-      );
-      staff.position.set(0.45, 0.98, 0.15);
-      const gem = new THREE.Mesh(
-        new THREE.OctahedronGeometry(0.1, 0),
-        new THREE.MeshStandardMaterial({ color: 0xf2cf88, emissive: 0xd99b26, emissiveIntensity: 1.2 }),
-      );
-      gem.position.set(0.45, 2.0, 0.15);
-      group.add(staff, gem);
-    } else if (def.id === 'merchant_garrick') {
-      // Blacksmith hammer in hand
-      const handle = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.03, 0.03, 0.55, 6),
-        new THREE.MeshStandardMaterial({ color: 0x4e321e }),
-      );
-      handle.position.set(0.39, 1.0, 0.25);
-      handle.rotation.x = Math.PI / 3;
-      const hammerHead = new THREE.Mesh(
-        new THREE.BoxGeometry(0.16, 0.16, 0.26),
-        new THREE.MeshStandardMaterial({ color: 0x7c858f, metalness: 0.8 }),
-      );
-      hammerHead.position.set(0.39, 1.14, 0.45);
-      group.add(handle, hammerHead);
-    }
-
-    // Subtle golden floating marker above NPC
-    const marker = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.11, 0),
-      new THREE.MeshBasicMaterial({ color: 0xf2cf88 }),
+    // Flowing Back Cloak
+    const cloak = new THREE.Mesh(
+      new THREE.BoxGeometry(0.46, 0.95, 0.06),
+      def.id === 'hunter_lyra' ? robeMat : accentMat,
     );
-    marker.position.y = 2.38;
-    marker.name = 'NPCMarker';
-    group.add(marker);
+    cloak.position.set(0, 1.0, -0.17);
+    cloak.rotation.x = 0.08;
+    cloak.castShadow = true;
+    body.add(cloak);
 
+    // Neck, Head, Nose, Eyes & Hair
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.14, 8), skinMat);
+    neck.position.y = 1.54;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.19, 12, 10), skinMat);
+    head.scale.set(0.92, 1.05, 0.98);
+    head.position.y = 1.72;
+    head.castShadow = true;
+    const hair = new THREE.Mesh(
+      new THREE.SphereGeometry(0.205, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.6),
+      hairMat,
+    );
+    hair.position.y = 1.75;
+    hair.rotation.x = -0.12;
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x26211c });
+    const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.025, 0.03), eyeMat);
+    eyeL.position.set(-0.065, 1.74, 0.185);
+    const eyeR = eyeL.clone();
+    eyeR.position.x = 0.065;
+    body.add(neck, head, hair, eyeL, eyeR);
+
+    // Arms & Hands
+    for (const side of [-1, 1]) {
+      const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 8), accentMat);
+      shoulder.position.set(side * 0.31, 1.44, 0);
+      const upperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.075, 0.44, 8), robeMat);
+      upperArm.position.set(side * 0.34, 1.2, 0);
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), skinMat);
+      hand.position.set(side * 0.34, 0.94, 0.03);
+      body.add(shoulder, upperArm, hand);
+    }
+
+    // Distinct Role Features
+    if (def.id === 'elder_aldrin') {
+      const beard = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.32, 0.12), hairMat);
+      beard.position.set(0, 1.48, 0.12);
+      beard.rotation.x = -0.1;
+      const beardTip = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 0.1), hairMat);
+      beardTip.position.set(0, 1.32, 0.13);
+      const mustache = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.04, 0.06), hairMat);
+      mustache.position.set(0, 1.63, 0.175);
+
+      // Ornate Lantern Staff
+      const staff = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 1.98, 8), leatherMat);
+      staff.position.set(0.42, 0.99, 0.14);
+      const crook = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.025, 6, 12, Math.PI * 1.4), accentMat);
+      crook.position.set(0.42, 2.04, 0.14);
+      const gem = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.08, 0),
+        new THREE.MeshStandardMaterial({ color: 0xffe4a0, emissive: 0xd99b26, emissiveIntensity: 1.4 }),
+      );
+      gem.position.set(0.42, 2.02, 0.14);
+      body.add(beard, beardTip, mustache, staff, crook, gem);
+    } else if (def.id === 'merchant_garrick') {
+      // Leather blacksmith apron + forged hammer
+      const apron = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.72, 0.06), leatherMat);
+      apron.position.set(0, 0.88, 0.17);
+      const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.56, 6), leatherMat);
+      handle.position.set(0.36, 0.96, 0.24);
+      handle.rotation.x = Math.PI / 3;
+      const hammerHead = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.26), steelMat);
+      hammerHead.position.set(0.36, 1.12, 0.44);
+      body.add(apron, handle, hammerHead);
+    } else if (def.id === 'hunter_lyra') {
+      // Ranger Hood, Quiver & Longbow slung on back
+      const hood = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.34, 8), robeMat);
+      hood.position.set(0, 1.88, -0.04);
+      hood.rotation.x = -0.35;
+      const quiver = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.55, 8), leatherMat);
+      quiver.position.set(-0.15, 1.24, -0.22);
+      quiver.rotation.z = -0.3;
+      const bow = new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.026, 6, 14, Math.PI * 1.15), leatherMat);
+      bow.position.set(0.05, 1.22, -0.24);
+      bow.rotation.z = -Math.PI / 3;
+      body.add(hood, quiver, bow);
+    }
+
+    parentRef(group);
     return group;
   }
 
   update(elapsed: number): void {
     for (const npc of this.instances) {
-      const marker = npc.group.getObjectByName('NPCMarker');
-      if (marker) {
-        marker.rotation.y = elapsed * 1.4 + npc.phase;
-        marker.position.y = 2.38 + Math.sin(elapsed * 2.2 + npc.phase) * 0.06;
+      const body = npc.group.getObjectByName('NPCBody');
+      if (body) {
+        body.position.y = Math.sin(elapsed * 1.9 + npc.phase) * 0.015;
+        body.rotation.y = Math.sin(elapsed * 0.7 + npc.phase) * 0.04;
       }
     }
   }
+}
+
+function parentRef(_group: THREE.Group): void {
+  // Placeholder hook kept minimal; NPC prompt shows cleanly when approached
 }
