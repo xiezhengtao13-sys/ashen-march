@@ -3,15 +3,24 @@
     "elder_aldrin_dialogue": {
       "entryNodes": [
         {
-          "condition": { "questStageEquals": { "questId": "main_lost_watchers", "stageId": "return_to_elder" } },
+          "condition": {
+            "questStageEquals": {
+              "questId": "main_lost_watchers",
+              "stageId": "return_to_elder"
+            }
+          },
           "nodeId": "elder_finale"
         },
         {
-          "condition": { "questCompleted": "main_lost_watchers" },
+          "condition": {
+            "questCompleted": "main_lost_watchers"
+          },
           "nodeId": "elder_post_quest"
         },
         {
-          "condition": { "questActive": "main_lost_watchers" },
+          "condition": {
+            "questActive": "main_lost_watchers"
+          },
           "nodeId": "elder_reminder"
         },
         {
@@ -25,7 +34,10 @@
           "choices": [
             {
               "text": "我愿意去调查废弃哨塔，查明真相。",
-              "action": { "type": "startQuest", "questId": "main_lost_watchers" },
+              "action": {
+                "type": "startQuest",
+                "questId": "main_lost_watchers"
+              },
               "nextNodeId": "elder_accepted"
             },
             {
@@ -44,7 +56,10 @@
           "choices": [
             {
               "text": "明白了，我去调查废弃哨塔。（接取主线《失落的守望者》）",
-              "action": { "type": "startQuest", "questId": "main_lost_watchers" },
+              "action": {
+                "type": "startQuest",
+                "questId": "main_lost_watchers"
+              },
               "nextNodeId": "elder_accepted"
             },
             {
@@ -56,12 +71,22 @@
         "elder_accepted": {
           "speaker": "村长奥尔德林",
           "text": "愿星辰指引你的脚步。先前往东侧高地的废弃哨塔看看吧，如果当年留守的守望者留下了记录，线索一定还在塔内。",
-          "choices": [{ "text": "我立刻动身。", "nextNodeId": null }]
+          "choices": [
+            {
+              "text": "我立刻动身。",
+              "nextNodeId": null
+            }
+          ]
         },
         "elder_reminder": {
           "speaker": "村长奥尔德林",
           "text": "哨塔上的火焰仍未熄灭，北山的雾气也越来越浓。请尽早找回守望者的圣物与真相。",
-          "choices": [{ "text": "我会尽快完成调查。", "nextNodeId": null }]
+          "choices": [
+            {
+              "text": "我会尽快完成调查。",
+              "nextNodeId": null
+            }
+          ]
         },
         "elder_finale": {
           "speaker": "村长奥尔德林",
@@ -69,7 +94,12 @@
           "choices": [
             {
               "text": "【交还圣物】重塑边境结界，守护溪谷村（+300 XP，+250 金币，永久+5防御/+25生命上限）",
-              "condition": { "hasItem": { "itemId": "watchers_relic", "quantity": 1 } },
+              "condition": {
+                "hasItem": {
+                  "itemId": "watchers_relic",
+                  "quantity": 1
+                }
+              },
               "action": {
                 "type": "completeMainChoice",
                 "questId": "main_lost_watchers",
@@ -94,24 +124,44 @@
         "elder_ending_guardian": {
           "speaker": "村长奥尔德林",
           "text": "圣光重新笼罩了灰烬边境！你无私的抉择拯救了整片谷地。溪谷村将永远铭记守护者的恩情，愿这份祝福永远庇佑着你。",
-          "choices": [{ "text": "这是我应尽之责。", "nextNodeId": null }]
+          "choices": [
+            {
+              "text": "这是我应尽之责。",
+              "nextNodeId": null
+            }
+          ]
         },
         "elder_ending_renegade": {
           "speaker": "村长奥尔德林",
           "text": "……看来你选择自己背负这份沉重的力量。我无法强求，只盼你切勿被圣物中的余烬吞噬心智，善用它吧。",
-          "choices": [{ "text": "我自有分寸。", "nextNodeId": null }]
+          "choices": [
+            {
+              "text": "我自有分寸。",
+              "nextNodeId": null
+            }
+          ]
         },
         "elder_post_quest": {
           "speaker": "村长奥尔德林",
           "text": "边境的危机暂时平息，多亏了你的果断行动。但自由探索才刚刚开始，灰烬边境仍有秘密等待发掘。",
-          "choices": [{ "text": "后会有期，长老。", "nextNodeId": null }]
+          "choices": [
+            {
+              "text": "后会有期，长老。",
+              "nextNodeId": null
+            }
+          ]
         }
       }
     },
     "merchant_garrick_dialogue": {
       "entryNodes": [
         {
-          "condition": { "questStageEquals": { "questId": "side_frontier_herbs", "stageId": "deliver_garrick" } },
+          "condition": {
+            "questStageEquals": {
+              "questId": "side_frontier_herbs",
+              "stageId": "deliver_garrick"
+            }
+          },
           "nodeId": "garrick_deliver"
         },
         {
@@ -125,17 +175,24 @@
           "choices": [
             {
               "text": "让我看看你的货摊。（打开商店）",
-              "action": { "type": "openShop", "npcId": "merchant_garrick" },
+              "action": {
+                "type": "openShop",
+                "npcId": "merchant_garrick"
+              },
               "nextNodeId": null
             },
             {
               "text": "村里现在急缺什么补给吗？（查看支线任务）",
-              "condition": { "questNotStarted": "side_frontier_herbs" },
+              "condition": {
+                "questNotStarted": "side_frontier_herbs"
+              },
               "nextNodeId": "garrick_quest_offer"
             },
             {
               "text": "灰烬草我还在继续收集。",
-              "condition": { "questActive": "side_frontier_herbs" },
+              "condition": {
+                "questActive": "side_frontier_herbs"
+              },
               "nextNodeId": null
             },
             {
@@ -150,12 +207,18 @@
           "choices": [
             {
               "text": "包在我身上。（接取《边境物资筹备》）",
-              "action": { "type": "startQuest", "questId": "side_frontier_herbs" },
+              "action": {
+                "type": "startQuest",
+                "questId": "side_frontier_herbs"
+              },
               "nextNodeId": null
             },
             {
               "text": "先让我看看商店商品。",
-              "action": { "type": "openShop", "npcId": "merchant_garrick" },
+              "action": {
+                "type": "openShop",
+                "npcId": "merchant_garrick"
+              },
               "nextNodeId": null
             }
           ]
@@ -177,7 +240,10 @@
             },
             {
               "text": "顺便看看商店。",
-              "action": { "type": "openShop", "npcId": "merchant_garrick" },
+              "action": {
+                "type": "openShop",
+                "npcId": "merchant_garrick"
+              },
               "nextNodeId": null
             }
           ]
@@ -187,15 +253,24 @@
     "hunter_lyra_dialogue": {
       "entryNodes": [
         {
-          "condition": { "questStageEquals": { "questId": "side_goblin_menace", "stageId": "report_lyra" } },
+          "condition": {
+            "questStageEquals": {
+              "questId": "side_goblin_menace",
+              "stageId": "report_lyra"
+            }
+          },
           "nodeId": "lyra_complete"
         },
         {
-          "condition": { "questCompleted": "side_goblin_menace" },
+          "condition": {
+            "questCompleted": "side_goblin_menace"
+          },
           "nodeId": "lyra_after"
         },
         {
-          "condition": { "questActive": "side_goblin_menace" },
+          "condition": {
+            "questActive": "side_goblin_menace"
+          },
           "nodeId": "lyra_progress"
         },
         {
@@ -209,7 +284,10 @@
           "choices": [
             {
               "text": "需要我去清理它们吗？（接取《灰木林的威胁》）",
-              "action": { "type": "startQuest", "questId": "side_goblin_menace" },
+              "action": {
+                "type": "startQuest",
+                "questId": "side_goblin_menace"
+              },
               "nextNodeId": "lyra_accepted"
             },
             {
@@ -228,7 +306,10 @@
           "choices": [
             {
               "text": "我去帮你消灭 3 名灰木哥布林。（接取任务）",
-              "action": { "type": "startQuest", "questId": "side_goblin_menace" },
+              "action": {
+                "type": "startQuest",
+                "questId": "side_goblin_menace"
+              },
               "nextNodeId": "lyra_accepted"
             },
             {
@@ -240,12 +321,22 @@
         "lyra_accepted": {
           "speaker": "猎人莱拉",
           "text": "太好了！向西走进入灰木森林，解决掉 3 个哥布林掠夺者后回来找我，我把备用的猎人短剑和赏金一起给你。",
-          "choices": [{ "text": "交给我吧。", "nextNodeId": null }]
+          "choices": [
+            {
+              "text": "交给我吧。",
+              "nextNodeId": null
+            }
+          ]
         },
         "lyra_progress": {
           "speaker": "猎人莱拉",
           "text": "灰木森林就在村庄正西面。小心哥布林的围攻，解决 3 个就回来复命。",
-          "choices": [{ "text": "正在处理。", "nextNodeId": null }]
+          "choices": [
+            {
+              "text": "正在处理。",
+              "nextNodeId": null
+            }
+          ]
         },
         "lyra_complete": {
           "speaker": "猎人莱拉",
@@ -265,40 +356,73 @@
         "lyra_after": {
           "speaker": "猎人莱拉",
           "text": "自从你清剿了营地，灰木林边缘安静多了。不过北面古代墓穴传出的寒气仍让人不安。",
-          "choices": [{ "text": "我会小心应对的。", "nextNodeId": null }]
+          "choices": [
+            {
+              "text": "我会小心应对的。",
+              "nextNodeId": null
+            }
+          ]
         }
       }
     },
     "city_gate_captain_dialogue": {
-      "entryNodes": [{ "nodeId": "captain_greeting" }],
+      "entryNodes": [
+        {
+          "nodeId": "captain_greeting"
+        }
+      ],
       "nodes": {
         "captain_greeting": {
           "speaker": "守门队长马库斯",
-          "text": "站住，旅人——啊，看你的装束是从溪谷村北上而来的吧。欢迎来到【灰烬城 (Ashenhold)】南门。吊闸已升，门卫大道对商旅与冒险者开放，只是城内深处市集正在修整扩建，请按路牌指引通行。",
+          "text": "欢迎来到【灰烬城 (Ashenhold)】南门！如今穿过门卫主街北端的集市石拱门，即可直抵【中央市集广场】，也可分头探访西侧【铁匠工坊区】与东侧【织坊居民高地】。北巅的领主内堡仍在整修戒严，目前开放至城堡瓮城前庭。",
           "choices": [
-            { "text": "这座城市现在有哪些地方可以参观？", "nextNodeId": "captain_tour" },
-            { "text": "多谢放行，我先四处看看。", "nextNodeId": null }
+            {
+              "text": "这座城市现在有哪些地方可以参观？",
+              "nextNodeId": "captain_tour"
+            },
+            {
+              "text": "多谢放行，我先四处看看。",
+              "nextNodeId": null
+            }
           ]
         },
         "captain_tour": {
           "speaker": "守门队长马库斯",
           "text": "穿过城门拱道，左手边第一栋便是我们的【南门卫兵营房】，门常开着，桌上还有最新的防务日志；斜对面是挂着条纹遮阳篷的【铁锚药铺与裁缝坊】，往前走便是城里最暖和的【余烬与酒杯旅店】，炉火整天都旺着。",
-          "choices": [{ "text": "听起来很热闹，我去街上逛逛。", "nextNodeId": null }]
+          "choices": [
+            {
+              "text": "听起来很热闹，我去街上逛逛。",
+              "nextNodeId": null
+            }
+          ]
         }
       }
     },
     "city_guard_sentinel_dialogue": {
-      "entryNodes": [{ "nodeId": "sentinel_greeting" }],
+      "entryNodes": [
+        {
+          "nodeId": "sentinel_greeting"
+        }
+      ],
       "nodes": {
         "sentinel_greeting": {
           "speaker": "城门卫兵凯尔",
           "text": "早安，旅者。刚落过一阵晨露，门卫大道石板缝里还有些积水，留神脚下。抬头往前看，远处高地上那座尖塔就是领主城堡的哨楼轮廓了。",
-          "choices": [{ "text": "辛苦执勤了。", "nextNodeId": null }]
+          "choices": [
+            {
+              "text": "辛苦执勤了。",
+              "nextNodeId": null
+            }
+          ]
         }
       }
     },
     "city_merchant_elena_dialogue": {
-      "entryNodes": [{ "nodeId": "elena_greeting" }],
+      "entryNodes": [
+        {
+          "nodeId": "elena_greeting"
+        }
+      ],
       "nodes": {
         "elena_greeting": {
           "speaker": "药商伊琳娜",
@@ -306,10 +430,163 @@
           "choices": [
             {
               "text": "看看店里的商品（打开商店）",
-              "action": { "type": "openShop", "npcId": "city_merchant_elena" },
+              "action": {
+                "type": "openShop",
+                "npcId": "city_merchant_elena"
+              },
               "nextNodeId": null
             },
-            { "text": "我只是随便看看橱窗。", "nextNodeId": null }
+            {
+              "text": "我只是随便看看橱窗。",
+              "nextNodeId": null
+            }
+          ]
+        }
+      }
+    },
+    "city_baker_marta_dialogue": {
+      "entryNodes": [
+        {
+          "nodeId": "marta_hi"
+        }
+      ],
+      "nodes": {
+        "marta_hi": {
+          "speaker": "烘焙娘玛尔塔",
+          "text": "刚出炉的黑麦面包和蜜糖酥饼！往西穿过【铁匠坊巷】，或者顺着东头石阶爬上【织坊高地】，处处都能闻到我家炉火的香气呢。",
+          "choices": [
+            {
+              "text": "买些热腾腾的干粮（打开面包摊）",
+              "action": {
+                "type": "openShop",
+                "npcId": "city_baker_marta"
+              },
+              "nextNodeId": null
+            },
+            {
+              "text": "市集里最近生意如何？",
+              "nextNodeId": "marta_rumor"
+            }
+          ]
+        },
+        "marta_rumor": {
+          "speaker": "烘焙娘玛尔塔",
+          "text": "这十来座货摊打早起就热闹得很：裁缝、陶匠、书吏、香料马车全都到齐了。真要去买称手的兵刃，不妨向西走到铁匠大师布伦南的露天锻炉那边瞧瞧！",
+          "choices": [
+            {
+              "text": "谢谢指引！",
+              "nextNodeId": null
+            }
+          ]
+        }
+      }
+    },
+    "city_merchant_thorne_dialogue": {
+      "entryNodes": [
+        {
+          "nodeId": "thorne_hi"
+        }
+      ],
+      "nodes": {
+        "thorne_hi": {
+          "speaker": "商会总管索恩",
+          "text": "旅人，站在凤凰铁砧喷泉旁便能望见整座【灰烬城】的命脉了：西街是工匠锻铁与制桶行当，东坡高地则是染织人家与旅人巷陌，两条环道都能绕回南门主街。",
+          "choices": [
+            {
+              "text": "查看商会精选货品（打开商会行店）",
+              "action": {
+                "type": "openShop",
+                "npcId": "city_merchant_thorne"
+              },
+              "nextNodeId": null
+            },
+            {
+              "text": "北面高阶通往哪里？",
+              "nextNodeId": "thorne_north"
+            }
+          ]
+        },
+        "thorne_north": {
+          "speaker": "商会总管索恩",
+          "text": "沿着大圣堂钟楼与石匠拱廊之间的王道石阶一路向北，便是【领主城堡瓮城前庭】。内堡大厅目前尚属下一阶段的【Phase 3】闭门整备区域，不过站在前庭高处已能俯瞰全城天际线。",
+          "choices": [
+            {
+              "text": "我上去走走看。",
+              "nextNodeId": null
+            }
+          ]
+        }
+      }
+    },
+    "city_smith_brennan_dialogue": {
+      "entryNodes": [
+        {
+          "nodeId": "brennan_hi"
+        }
+      ],
+      "nodes": {
+        "brennan_hi": {
+          "speaker": "铁匠大师布伦南",
+          "text": "炉火正旺，少靠近火口些！沿着工坊街往南经过制桶行与制革巷，穿过铜角门廊就能抄回余烬酒馆北门。行会新打造了一批阔剑与板甲，要看货色吗？",
+          "choices": [
+            {
+              "text": "看看工坊锻造的兵刃护具（打开铁匠店）",
+              "action": {
+                "type": "openShop",
+                "npcId": "city_smith_brennan"
+              },
+              "nextNodeId": null
+            },
+            {
+              "text": "暂时不用，继续逛街。",
+              "nextNodeId": null
+            }
+          ]
+        }
+      }
+    },
+    "city_weaver_claire_dialogue": {
+      "entryNodes": [
+        {
+          "nodeId": "claire_hi"
+        }
+      ],
+      "nodes": {
+        "claire_hi": {
+          "speaker": "织坊女匠克莱尔",
+          "text": "站在东高地石阶这儿，整个中央市集的彩棚、水泉和钟楼顶一览无余。往南穿过提灯坡巷和行会拱洞，还能直接绕回到药铺旁边哩！",
+          "choices": [
+            {
+              "text": "挑选高地织锦行货品（打开织坊店）",
+              "action": {
+                "type": "openShop",
+                "npcId": "city_weaver_claire"
+              },
+              "nextNodeId": null
+            },
+            {
+              "text": "这里的风景确实很好。",
+              "nextNodeId": null
+            }
+          ]
+        }
+      }
+    },
+    "city_citadel_warden_dialogue": {
+      "entryNodes": [
+        {
+          "nodeId": "warden_hi"
+        }
+      ],
+      "nodes": {
+        "warden_hi": {
+          "speaker": "内堡卫队长加雷斯",
+          "text": "止步，旅人。前方即是【灰烬领主城堡】的铁闸瓮城。领主大厅与内堡庭院正在为下一阶段【Phase 3】筹备整修，当前闸门落锁封禁，请先自由游历下方的市集与东西两大城区。",
+          "choices": [
+            {
+              "text": "明白了，辛苦巡守。",
+              "nextNodeId": null
+            }
           ]
         }
       }

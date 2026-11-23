@@ -36,9 +36,16 @@ page.on('console', (m) => {
 });
 page.on('pageerror', (e) => errors.push(e.message));
 
+const t0 = Date.now();
 const initZone = shots[0]?.zone ?? 'city';
 await page.goto(`http://127.0.0.1:${port}/?zone=${initZone}`);
-await page.waitForFunction(() => Boolean(window.__ASHEN_MARCH__), { timeout: 90000 });
+try {
+  await page.waitForFunction(() => Boolean(window.__ASHEN_MARCH__), null, { timeout: 120000 });
+} catch (err) {
+  console.error('LOAD TIMEOUT after', Date.now() - t0, 'ms; ERRORS:', JSON.stringify(errors));
+  throw err;
+}
+console.log('BOOT_MS', Date.now() - t0);
 await page.waitForTimeout(800);
 
 const raf = (n) =>
@@ -61,9 +68,17 @@ for (const s of shots) {
     api.teleport(...s.pos);
     api.setLook(s.yaw, s.pitch);
   }, s);
+  if (s.pressKey) {
+    await page.keyboard.press(s.pressKey);
+    await page.waitForTimeout(200);
+  }
   await raf(3);
   await page.waitForTimeout(200);
-  await page.screenshot({ path: `${outDir}/${s.name}.png` });
+  await page.screenshot({ path: `${outDir}/${s.name}.png`, timeout: 90000 });
+  if (s.pressKey) {
+    await page.keyboard.press(s.pressKey);
+    await page.waitForTimeout(100);
+  }
   const tel = await page.evaluate(() => window.__ASHEN_MARCH__.getTelemetry?.());
   console.log('shot', s.name, tel ? JSON.stringify(tel) : '');
 }

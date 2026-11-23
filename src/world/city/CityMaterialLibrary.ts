@@ -52,6 +52,7 @@ export function injectIndirectAO(shader: { fragmentShader: string }, directMix =
 export const ALBEDO_GAIN: Record<string, number> = {
   stone_ashlar: 1.5,
   stone_trim: 1.4,
+  brick_medieval: 1.35,
   timber_oak: 2.1,
   planks_oak: 1.65,
   roof_slate: 1.9,
@@ -61,6 +62,7 @@ export const ALBEDO_GAIN: Record<string, number> = {
   plaster_cream: 1.0,
   plaster_ochre: 1.05,
   plaster_sage: 1.1,
+  plaster_terracotta: 1.05,
 };
 
 const METAL_ENV_MATERIALS = new Set(['iron_forged', 'brass_aged', 'window_leaded']);
@@ -117,11 +119,20 @@ export class CityMaterialLibrary {
     // Architectural & Prop PBR Materials (shared across all GLB buildings & instanced props)
     this.registerBase('stone_ashlar', loadPBR('stone_ashlar', { roughness: 0.92, metalness: 0.03, normalScale: 1.15 }));
     this.registerBase('stone_trim', loadPBR('stone_trim', { roughness: 0.86, metalness: 0.05, normalScale: 1.1 }));
+    this.registerBase('brick_medieval', loadPBR('brick_medieval', { roughness: 0.9, metalness: 0.02, normalScale: 1.15 }));
     this.registerBase('timber_oak', loadPBR('timber_oak', { roughness: 0.84, metalness: 0.02, normalScale: 1.1 }));
     this.registerBase('planks_oak', loadPBR('planks_oak', { roughness: 0.82, metalness: 0.02, normalScale: 1.0 }));
     this.registerBase('plaster_cream', loadPBR('plaster_cream', { roughness: 0.94, metalness: 0.0, normalScale: 0.75 }));
     this.registerBase('plaster_ochre', loadPBR('plaster_ochre', { roughness: 0.94, metalness: 0.0, normalScale: 0.75 }));
     this.registerBase('plaster_sage', loadPBR('plaster_sage', { roughness: 0.94, metalness: 0.0, normalScale: 0.75 }));
+    this.registerBase(
+      'plaster_terracotta',
+      (() => {
+        const mat = loadPBR('plaster_cream', { roughness: 0.94, metalness: 0.0, normalScale: 0.75 });
+        mat.color.setHex(0xc9896b);
+        return mat;
+      })(),
+    );
     this.registerBase('roof_slate', loadPBR('roof_slate', { roughness: 0.78, metalness: 0.06, normalScale: 1.25 }));
     this.registerBase('roof_clay', loadPBR('roof_clay', { roughness: 0.82, metalness: 0.04, normalScale: 1.25 }));
     this.registerBase('iron_forged', loadPBR('iron_forged', { roughness: 0.56, metalness: 0.88, normalScale: 1.0 }));
@@ -151,6 +162,15 @@ export class CityMaterialLibrary {
       }),
     );
     this.registerBase(
+      'ember_forge',
+      new THREE.MeshStandardMaterial({
+        color: 0xff5a18,
+        emissive: new THREE.Color(0xff4208),
+        emissiveIntensity: 2.1,
+        roughness: 0.5,
+      }),
+    );
+    this.registerBase(
       'banner_ashenhold',
       new THREE.MeshStandardMaterial({
         map: loadTex('banner_ashenhold.png', true),
@@ -158,30 +178,55 @@ export class CityMaterialLibrary {
         metalness: 0.02,
       }),
     );
-    this.registerBase(
-      'awning_striped',
-      new THREE.MeshStandardMaterial({
-        map: loadTex('awning_striped.png', true),
-        roughness: 0.9,
-        metalness: 0.0,
-      }),
-    );
-    this.registerBase(
-      'sign_tavern',
-      new THREE.MeshStandardMaterial({
-        map: loadTex('sign_tavern.png', true),
-        roughness: 0.76,
-        metalness: 0.04,
-      }),
-    );
-    this.registerBase(
-      'sign_apothecary',
-      new THREE.MeshStandardMaterial({
-        map: loadTex('sign_apothecary.png', true),
-        roughness: 0.76,
-        metalness: 0.04,
-      }),
-    );
+    for (const [matKey, fileName] of [
+      ['awning_striped', 'awning_striped.png'],
+      ['awning_navy', 'awning_navy.png'],
+      ['awning_emerald', 'awning_emerald.png'],
+      ['awning_ochre', 'awning_ochre.png'],
+      ['awning_plum', 'awning_plum.png'],
+    ] as const) {
+      this.registerBase(
+        matKey,
+        new THREE.MeshStandardMaterial({
+          map: loadTex(fileName, true),
+          roughness: 0.9,
+          metalness: 0.0,
+        }),
+      );
+    }
+    for (const [matKey, hex] of [
+      ['cloth_crimson', 0x8a3228],
+      ['cloth_navy', 0x2d4a74],
+      ['cloth_emerald', 0x3b6944],
+      ['cloth_ochre', 0xb38436],
+      ['cloth_linen', 0xd6cab2],
+    ] as const) {
+      this.registerBase(
+        matKey,
+        new THREE.MeshStandardMaterial({
+          map: loadTex('plaster_cream_albedo.png', true, 2),
+          color: hex,
+          roughness: 0.92,
+          metalness: 0.0,
+        }),
+      );
+    }
+    for (const [matKey, fileName] of [
+      ['sign_tavern', 'sign_tavern.png'],
+      ['sign_apothecary', 'sign_apothecary.png'],
+      ['sign_bakery', 'sign_bakery.png'],
+      ['sign_smithy', 'sign_smithy.png'],
+      ['sign_market', 'sign_market.png'],
+    ] as const) {
+      this.registerBase(
+        matKey,
+        new THREE.MeshStandardMaterial({
+          map: loadTex(fileName, true),
+          roughness: 0.76,
+          metalness: 0.04,
+        }),
+      );
+    }
     this.registerBase(
       'fabric_sack',
       new THREE.MeshStandardMaterial({

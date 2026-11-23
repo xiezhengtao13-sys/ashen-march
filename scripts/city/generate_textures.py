@@ -16,6 +16,7 @@ TEXGEN_SRC = Path(__file__).resolve().parent / "texgen.c"
 TEXTURE_SPECS = [
     ("stone_ashlar", 512),
     ("stone_trim", 512),
+    ("brick_medieval", 512),
     ("cobble_street", 1024),
     ("dirt_gravel", 512),
     ("timber_oak", 512),
@@ -121,6 +122,67 @@ def generate_banners_and_signs(out_dir: Path) -> None:
             c = (max(0, min(255, 118 + shade)), max(0, min(255, 96 + shade)), max(0, min(255, 68 + shade // 2)))
             gd.polygon([(x + 16, y + 2), (x + 30, y + 16), (x + 16, y + 30), (x + 2, y + 16)], fill=c, outline=(28, 28, 30))
     gw.save(out_dir / "window_leaded.png", optimize=True)
+
+    # 6. Additional Market Striped & Dyed Awning Fabrics
+    def make_awning(filename: str, base_rgb: tuple[int, int, int], stripe_rgb: tuple[int, int, int]) -> None:
+        img = Image.new("RGB", (256, 256), base_rgb)
+        draw = ImageDraw.Draw(img)
+        for sx in range(0, 256, 64):
+            draw.rectangle([sx, 0, sx + 31, 255], fill=stripe_rgb)
+        img = add_fabric_weave(img)
+        img.save(out_dir / filename, optimize=True)
+
+    make_awning("awning_navy.png",    (206, 194, 168), (44, 68, 108))
+    make_awning("awning_emerald.png", (204, 194, 164), (54, 96, 62))
+    make_awning("awning_ochre.png",   (212, 198, 168), (176, 128, 46))
+    make_awning("awning_plum.png",    (206, 190, 164), (108, 48, 72))
+
+    # 7. Additional Painted Wooden Market Shop Signs
+    def make_shop_sign(filename: str, border_rgb: tuple[int, int, int], draw_motif) -> None:
+        bg = Image.open(out_dir / "planks_oak_albedo.png").resize((256, 256)).copy()
+        dr = ImageDraw.Draw(bg)
+        dr.rectangle([10, 10, 245, 245], outline=border_rgb, width=6)
+        dr.rectangle([20, 20, 235, 235], outline=(58, 40, 22), width=3)
+        draw_motif(dr)
+        bg = bg.filter(ImageFilter.SMOOTH_MORE)
+        bg.save(out_dir / filename, optimize=True)
+
+    make_shop_sign(
+        "sign_bakery.png",
+        (214, 168, 86),
+        lambda dr: (
+            dr.ellipse([66, 98, 190, 168], fill=(196, 134, 62), outline=(72, 42, 18), width=4),
+            dr.line([(92, 106), (112, 152)], fill=(236, 196, 122), width=6),
+            dr.line([(128, 102), (146, 152)], fill=(236, 196, 122), width=6),
+            dr.line([(160, 108), (174, 148)], fill=(236, 196, 122), width=6),
+        ),
+    )
+    make_shop_sign(
+        "sign_smithy.png",
+        (178, 136, 78),
+        lambda dr: (
+            dr.polygon([(66, 124), (192, 124), (168, 154), (88, 154)], fill=(78, 84, 94), outline=(30, 32, 36), width=3),
+            dr.rectangle([102, 154, 154, 188], fill=(66, 70, 78)),
+            dr.polygon([(80, 188), (176, 188), (186, 204), (70, 204)], fill=(78, 84, 94)),
+            dr.rectangle([120, 62, 136, 118], fill=(116, 78, 44)),
+            dr.rectangle([96, 54, 160, 78], fill=(112, 118, 128), outline=(36, 38, 42), width=3),
+        ),
+    )
+    make_shop_sign(
+        "sign_market.png",
+        (206, 172, 92),
+        lambda dr: (
+            dr.line([(128, 66), (128, 196)], fill=(192, 156, 76), width=8),
+            dr.line([(72, 94), (184, 94)], fill=(192, 156, 76), width=7),
+            dr.polygon([(56, 152), (88, 152), (72, 174)], fill=(192, 156, 76)),
+            dr.polygon([(168, 152), (200, 152), (184, 174)], fill=(192, 156, 76)),
+            dr.line([(72, 94), (58, 152)], fill=(166, 134, 66), width=3),
+            dr.line([(72, 94), (86, 152)], fill=(166, 134, 66), width=3),
+            dr.line([(184, 94), (170, 152)], fill=(166, 134, 66), width=3),
+            dr.line([(184, 94), (198, 152)], fill=(166, 134, 66), width=3),
+        ),
+    )
+
 
 
 def main() -> None:

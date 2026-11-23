@@ -1,5 +1,6 @@
 import type { GameState } from '../core/GameState';
 import type { EquipSlot, ItemCategory } from '../core/types';
+import cityLayout from '../data/cityLayout.json';
 import worldConfig from '../data/worldConfig.json';
 import type { ActiveDialogueView, DialogueSystem } from '../dialogue/DialogueSystem';
 import type { PerformanceTelemetry, QualityPreset } from '../engine/QualityManager';
@@ -7,6 +8,7 @@ import type { InventorySystem } from '../inventory/InventorySystem';
 import type { NPCSystem } from '../npc/NPCSystem';
 import type { QuestSystem } from '../quests/QuestSystem';
 import type { SaveSlotMeta } from '../save/SaveSystem';
+import { CITY_PLAZA_PADS, CITY_ROAD_SEGMENTS } from '../world/city/CityRoadNetwork';
 import { DayNightCycle } from '../world/DayNightCycle';
 import { getRegionDisplayName, getRiverCenterX } from '../world/TerrainGenerator';
 import {
@@ -848,6 +850,11 @@ export class UIManager {
   }
 
   private renderMap(): void {
+    if (this.state.player.currentZone === 'ashenhold_city') {
+      this.renderAshenholdCityMap();
+      return;
+    }
+
     this.modalPanelEl.innerHTML = `
       <div class="modal-header" data-testid="modal-map">
         <h2>灰烬边境舆图 · 512 × 512 米</h2>
@@ -982,17 +989,185 @@ export class UIManager {
       ctx.fill();
       ctx.stroke();
       ctx.restore();
-    } else if (this.state.player.currentZone === 'ashenhold_city') {
-      ctx.fillStyle = '#3b2412';
-      ctx.font = 'bold 13px serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('★ 当前位于独立城市场景：灰烬城 (Ashenhold · Phase 1)', size / 2, size - 22);
     } else {
       ctx.fillStyle = '#3b2412';
       ctx.font = 'bold 13px serif';
       ctx.textAlign = 'center';
       ctx.fillText('★ 当前正探索地下城：古代墓穴', size / 2, size - 22);
     }
+  }
+
+  private renderAshenholdCityMap(): void {
+    this.modalPanelEl.innerHTML = `
+      <div class="modal-header" data-testid="modal-map">
+        <h2>灰烬城舆图 · Ashenhold (约 200 × 240 米规划)</h2>
+        <button class="btn" id="btn-close-modal">关闭 [M]</button>
+      </div>
+      <canvas id="world-map-canvas" width="520" height="520"></canvas>
+      <div class="item-desc" style="text-align:center; line-height:1.5;">
+        实线灰路：可通行主街与双环巷道 · 虚线红框：实际可探索城墙边界 · 斜影深区：Phase 3 城堡内堡 / 墙外装饰远景
+      </div>
+    `;
+    this.modalPanelEl.querySelector('#btn-close-modal')?.addEventListener('click', () => this.closeModal());
+
+    const canvas = this.modalPanelEl.querySelector('#world-map-canvas') as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const size = 520;
+    // Map world x in [-105, 105] (210m) and z in [-212, +42] (254m)
+    const toMap = (wx: number, wz: number): [number, number] => [
+      ((wx + 105) / 210) * size,
+      ((wz + 212) / 254) * size,
+    ];
+    const scaleM = size / 254;
+
+    const grad = ctx.createRadialGradient(size / 2, size / 2, 40, size / 2, size / 2, size * 0.72);
+    grad.addColorStop(0, '#dfd1b3');
+    grad.addColorStop(1, '#b8a47e');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+
+    // Decorative outer countryside shading (outside walls)
+    ctx.fillStyle = 'rgba(72, 84, 58, 0.16)';
+    ctx.fillRect(0, 0, size, size);
+
+    // Explorable city wall polygon fill
+    const [exL, exT] = toMap(-71, -173);
+    const [exR, exB] = toMap(71, 14);
+    const [apL, apT] = toMap(-16, 14);
+    const [apR, apB] = toMap(16, 32);
+    ctx.fillStyle = '#d8caa9';
+    ctx.fillRect(exL, exT, exR - exL, exB - exT);
+    ctx.fillRect(apL, apT, apR - apL, apB - apT);
+
+    // Plaza pads
+    for (const pad of CITY_PLAZA_PADS) {
+      const [px0, pz0] = toMap(pad.cx - pad.halfX, pad.cz - pad.halfZ);
+      const [px1, pz1] = toMap(pad.cx + pad.halfX, pad.cz + pad.halfZ);
+      ctx.fillStyle = pad.id === 'castle_keep_plateau' ? 'rgba(92, 82, 74, 0.42)' : '#c7b899';
+      ctx.fillRect(px0, pz0, px1 - px0, pz1 - pz0);
+    }
+
+    // Phase-1 gate corridor + Main street
+    ctx.strokeStyle = '#9c8b70';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 7.6 * scaleM * (size / 210);
+    ctx.beginPath();
+    const [m1x, m1z] = toMap(0, 32);
+    const [m2x, m2z] = toMap(0, -14);
+    const [m3x, m3z] = toMap(2.5, -26);
+    ctx.moveTo(m1x, m1z);
+    ctx.lineTo(m2x, m2z);
+    ctx.lineTo(m3x, m3z);
+    ctx.stroke();
+
+    // All walkable road segments
+    for (const seg of CITY_ROAD_SEGMENTS) {
+      const [ax, az] = toMap(seg.a.x, seg.a.z);
+      const [bx, bz] = toMap(seg.b.x, seg.b.z);
+      ctx.lineWidth = Math.max(4, seg.a.halfWidth * 2 * (size / 210));
+      ctx.strokeStyle = seg.route === 'alley' ? '#a89678' : '#b8a686';
+      ctx.beginPath();
+      ctx.moveTo(ax, az);
+      ctx.lineTo(bx, bz);
+      ctx.stroke();
+
+      // Highlight center walkable path
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = seg.route === 'castle' ? '#7a4424' : '#574630';
+      ctx.setLineDash(seg.route === 'alley' ? [4, 3] : []);
+      ctx.beginPath();
+      ctx.moveTo(ax, az);
+      ctx.lineTo(bx, bz);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Buildings, Stalls, Walls & Closed/Decorative structures from cityLayout
+    for (const a of cityLayout.architecture as Array<{ id: string; model: string; position: { x: number; z: number }; tier?: string }>) {
+      const [bx, bz] = toMap(a.position.x, a.position.z);
+      if (a.model.startsWith('stall_')) {
+        ctx.fillStyle = '#b55131';
+        ctx.fillRect(bx - 4, bz - 4, 8, 8);
+      } else if (a.model.startsWith('landmark_market_fountain')) {
+        ctx.fillStyle = '#3f768c';
+        ctx.beginPath();
+        ctx.arc(bx, bz, 6, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (a.tier === 'decorative') {
+        ctx.fillStyle = 'rgba(110, 102, 92, 0.45)';
+        ctx.fillRect(bx - 6, bz - 5, 12, 10);
+      } else if (a.tier === 'landmark_closed') {
+        ctx.fillStyle = '#4c4642';
+        ctx.strokeStyle = '#241e1c';
+        ctx.lineWidth = 1.5;
+        const rw = a.model === 'castle_citadel_keep.glb' ? 32 : 16;
+        const rh = a.model === 'castle_citadel_keep.glb' ? 20 : 10;
+        ctx.fillRect(bx - rw / 2, bz - rh / 2, rw, rh);
+        ctx.strokeRect(bx - rw / 2, bz - rh / 2, rw, rh);
+      } else if (!a.model.includes('wall') && !a.model.includes('courtyard')) {
+        ctx.fillStyle = '#6f5c49';
+        ctx.fillRect(bx - 7, bz - 6, 14, 12);
+      }
+    }
+
+    // Explicit Red-Gold Dashed Explorable Boundary
+    ctx.save();
+    ctx.strokeStyle = '#9c2d23';
+    ctx.lineWidth = 2.0;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(exL, exT);
+    ctx.lineTo(exR, exT);
+    ctx.lineTo(exR, exB);
+    ctx.lineTo(apR, exB);
+    ctx.lineTo(apR, apB);
+    ctx.lineTo(apL, apB);
+    ctx.lineTo(apL, exB);
+    ctx.lineTo(exL, exB);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+
+    // Labels
+    ctx.fillStyle = '#2b1d12';
+    ctx.font = 'bold 12px serif';
+    ctx.textAlign = 'center';
+    const labels: Array<[number, number, string]> = [
+      [4, -74, '中央市集广场 (10商摊 · 喷泉)'],
+      [-52, -52, '铁匠工坊区 (环道A)'],
+      [53, -46, '织坊居民高地 (环道B)'],
+      [0, -4, '南门主街'],
+      [0, 23, '南城门'],
+      [4, -158, '城堡前庭'],
+      [4, -191, '领主内堡 [Phase 3 未开放]'],
+      [-90, -80, '墙外远景装饰'],
+      [90, -80, '墙外远景装饰'],
+    ];
+    for (const [lx, lz, text] of labels) {
+      const [tx, ty] = toMap(lx, lz);
+      ctx.fillText(text, tx, ty - 8);
+    }
+
+    // Player live marker
+    const [px, py] = toMap(this.state.player.position.x, this.state.player.position.z);
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(-this.state.player.yaw);
+    ctx.fillStyle = '#a32626';
+    ctx.strokeStyle = '#fff3d6';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(0, -10);
+    ctx.lineTo(7, 8);
+    ctx.lineTo(0, 4);
+    ctx.lineTo(-7, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
   }
 
   private renderLore(): void {
@@ -1072,7 +1247,7 @@ export class UIManager {
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button class="btn btn-primary" id="btn-travel-city" data-testid="btn-travel-city">${
-              this.state.player.currentZone === 'ashenhold_city' ? '返回 溪谷村 (Overworld)' : '前往 灰烬城 (Ashenhold Phase 1)'
+              this.state.player.currentZone === 'ashenhold_city' ? '返回 溪谷村 (Overworld)' : '前往 灰烬城 (中央市集 · 双环城区)'
             }</button>
             <button class="btn" id="btn-toggle-mute">切换音效静音</button>
           </div>

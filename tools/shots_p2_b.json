@@ -1,0 +1,8 @@
+[
+ {"name":"p2_artisan_smithy_1300","time":13,"pos":[-26.0,2.9,-71.5],"yaw":1.38,"pitch":0.02},
+ {"name":"p2_residential_overlook_1300","time":13,"pos":[47.5,4.45,-68.0],"yaw":1.42,"pitch":-0.08},
+ {"name":"p2_guild_alley_1300","time":13,"pos":[25.0,1.95,-8.6],"yaw":1.52,"pitch":0.02},
+ {"name":"p2_castle_forecourt_1300","time":13,"pos":[4.0,10.1,-148.0],"yaw":0.0,"pitch":0.14},
+ {"name":"p2_city_map_modal","time":13,"pos":[4.0,2.8,-66.0],"yaw":0.0,"pitch":0.0,"pressKey":"KeyM"},
+ {"name":"p2_market_1080p","time":13,"width":1920,"height":1080,"pos":[4.0,2.8,-51.0],"yaw":0.05,"pitch":0.02}
+]

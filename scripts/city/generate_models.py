@@ -23,11 +23,13 @@ OUT_DIR = ROOT / "public" / "assets" / "city" / "models"
 MATERIAL_SPECS = {
     "stone_ashlar":   ((0.48, 0.46, 0.42, 1.0), 0.85, 0.04, 2.2),
     "stone_trim":     ((0.36, 0.36, 0.37, 1.0), 0.80, 0.06, 2.0),
+    "brick_medieval": ((0.52, 0.30, 0.24, 1.0), 0.84, 0.02, 2.0),
     "timber_oak":     ((0.24, 0.16, 0.10, 1.0), 0.82, 0.02, 1.6),
     "planks_oak":     ((0.38, 0.25, 0.15, 1.0), 0.80, 0.02, 1.6),
     "plaster_cream":  ((0.76, 0.70, 0.60, 1.0), 0.90, 0.00, 2.2),
     "plaster_ochre":  ((0.72, 0.58, 0.38, 1.0), 0.90, 0.00, 2.2),
     "plaster_sage":   ((0.55, 0.59, 0.50, 1.0), 0.90, 0.00, 2.2),
+    "plaster_terracotta": ((0.68, 0.48, 0.38, 1.0), 0.90, 0.00, 2.2),
     "roof_slate":     ((0.24, 0.27, 0.31, 1.0), 0.74, 0.05, 1.8),
     "roof_clay":      ((0.49, 0.24, 0.17, 1.0), 0.78, 0.03, 1.8),
     "iron_forged":    ((0.22, 0.23, 0.26, 1.0), 0.44, 0.86, 1.0),
@@ -35,12 +37,25 @@ MATERIAL_SPECS = {
     "window_leaded":  ((0.46, 0.38, 0.26, 1.0), 0.22, 0.10, 1.0),
     "banner_ashenhold": ((0.50, 0.12, 0.12, 1.0), 0.88, 0.00, 1.0),
     "awning_striped": ((0.65, 0.30, 0.22, 1.0), 0.88, 0.00, 1.0),
+    "awning_navy":    ((0.26, 0.36, 0.54, 1.0), 0.88, 0.00, 1.0),
+    "awning_emerald": ((0.28, 0.46, 0.32, 1.0), 0.88, 0.00, 1.0),
+    "awning_ochre":   ((0.70, 0.52, 0.24, 1.0), 0.88, 0.00, 1.0),
+    "awning_plum":    ((0.48, 0.26, 0.36, 1.0), 0.88, 0.00, 1.0),
+    "cloth_crimson":  ((0.54, 0.20, 0.16, 1.0), 0.90, 0.00, 1.2),
+    "cloth_navy":     ((0.20, 0.30, 0.46, 1.0), 0.90, 0.00, 1.2),
+    "cloth_emerald":  ((0.24, 0.42, 0.28, 1.0), 0.90, 0.00, 1.2),
+    "cloth_ochre":    ((0.68, 0.50, 0.22, 1.0), 0.90, 0.00, 1.2),
+    "cloth_linen":    ((0.78, 0.72, 0.62, 1.0), 0.90, 0.00, 1.2),
     "sign_tavern":    ((0.45, 0.32, 0.18, 1.0), 0.72, 0.04, 1.0),
     "sign_apothecary": ((0.42, 0.34, 0.22, 1.0), 0.72, 0.04, 1.0),
+    "sign_bakery":    ((0.52, 0.36, 0.20, 1.0), 0.72, 0.04, 1.0),
+    "sign_smithy":    ((0.38, 0.34, 0.28, 1.0), 0.72, 0.04, 1.0),
+    "sign_market":    ((0.46, 0.36, 0.22, 1.0), 0.72, 0.04, 1.0),
     "fabric_sack":    ((0.52, 0.43, 0.30, 1.0), 0.92, 0.00, 1.2),
     "ceramic_clay":   ((0.58, 0.34, 0.22, 1.0), 0.55, 0.04, 1.0),
     "foliage_leaf":   ((0.22, 0.36, 0.18, 1.0), 0.82, 0.00, 1.2),
     "glow_warm":      ((1.00, 0.76, 0.42, 1.0), 0.35, 0.00, 1.0),
+    "ember_forge":    ((1.00, 0.35, 0.08, 1.0), 0.45, 0.00, 1.0),
 }
 
 MAT_CACHE = {}
@@ -78,7 +93,7 @@ class MeshBuilder:
         self.mat_names: list[str] = []
         self.mat_map: dict[str, int] = {}
         self.uv_layer = self.bm.loops.layers.uv.new("UVMap")
-        self.custom_uv_faces: set[int] = set()
+        self.custom_uv_layer = self.bm.faces.layers.int.new("custom_uv")
 
     def mat_idx(self, mat_name: str) -> int:
         if mat_name not in self.mat_map:
@@ -142,7 +157,7 @@ class MeshBuilder:
         if mark_custom_uv:
             for f in faces_set:
                 if f.is_valid:
-                    self.custom_uv_faces.add(id(f))
+                    f[self.custom_uv_layer] = 1
         return [f for f in faces_set if f.is_valid]
 
     def add_planar_quad(
@@ -161,7 +176,7 @@ class MeshBuilder:
         uvs = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)]
         for loop, uv in zip(f.loops, uvs):
             loop[self.uv_layer].uv = uv
-        self.custom_uv_faces.add(id(f))
+        f[self.custom_uv_layer] = 1
         if double_sided:
             vs2 = [self.bm.verts.new(p) for p in (p3, p2, p1, p0)]
             f2 = self.bm.faces.new(vs2)
@@ -169,7 +184,7 @@ class MeshBuilder:
             uvs2 = [(0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
             for loop, uv in zip(f2.loops, uvs2):
                 loop[self.uv_layer].uv = uv
-            self.custom_uv_faces.add(id(f2))
+            f2[self.custom_uv_layer] = 1
 
     def add_cylinder(
         self,
@@ -606,7 +621,7 @@ class MeshBuilder:
 
         # Apply World-Metric Triplanar UVs for faces without explicit planar UVs
         for f in self.bm.faces:
-            if id(f) in self.custom_uv_faces:
+            if f[self.custom_uv_layer] == 1:
                 continue
             mat_name = self.mat_names[f.material_index]
             uv_scale = MATERIAL_SPECS.get(mat_name, (None, 0.8, 0, 2.0))[3]
@@ -614,7 +629,7 @@ class MeshBuilder:
             ax, ay, az = abs(n.x), abs(n.y), abs(n.z)
             for loop in f.loops:
                 co = loop.vert.co
-                if mat_name == "awning_striped":
+                if mat_name.startswith("awning_"):
                     u, v = co.y / 1.15, co.x / 1.15
                 elif az >= ax and az >= ay:
                     u, v = co.x / uv_scale, co.y / uv_scale

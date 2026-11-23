@@ -53,7 +53,7 @@ export class GameApp {
   private readonly clock = new THREE.Clock();
   private overworldUpdate: (elapsed: number, dt?: number) => void = () => {};
   private cryptUpdate: (elapsed: number) => void = () => {};
-  private cityUpdate: (elapsed: number, dt: number, timeOfDay?: number) => void = () => {};
+  private cityUpdate: (elapsed: number, dt: number, timeOfDay?: number, playerPos?: { x: number; y: number; z: number }) => void = () => {};
   private cityDispose: () => void = () => {};
   private cityEnvMap: THREE.Texture | null = null;
   private vegetation: VegetationController | null = null;
@@ -258,7 +258,7 @@ export class GameApp {
 
     this.ui.pushToast(
       this.state.player.currentZone === 'ashenhold_city'
-        ? '已抵达【灰烬城 · Ashenhold】南城门（Phase 1 样板区），按 [E] 与守门队长交谈。'
+        ? '已抵达【灰烬城 · Ashenhold】：南门、中央市集、铁匠工坊区与织坊高地已开放。'
         : '欢迎来到灰烬边境！按 [E] 与溪谷村长老对话，或在村口路牌前往【灰烬城】。',
       'quest',
     );
@@ -433,8 +433,8 @@ export class GameApp {
         this.state.markLocationDiscovered(region, getRegionDisplayName(region));
       }
     } else if (this.state.player.currentZone === 'ashenhold_city') {
-      this.cityUpdate(elapsed, dt, this.state.world.timeOfDay);
-      const region = getCityRegionAt(this.state.player.position.z);
+      this.cityUpdate(elapsed, dt, this.state.world.timeOfDay, this.state.player.position);
+      const region = getCityRegionAt(this.state.player.position.x, this.state.player.position.z);
       if (region !== this.state.player.currentRegion) {
         this.state.player.currentRegion = region;
         this.state.markLocationDiscovered(region, getRegionDisplayName(region));
