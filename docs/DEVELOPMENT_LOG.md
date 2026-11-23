@@ -19,4 +19,10 @@
 - 实现 `EnemySystem` (`src/ai/EnemyAI.ts`)：构建灰木哥布林、骷髅战士与 Boss 墓穴守卫的多关节 3D 模型和 `AnimationMixer` 动作剪辑，完整实现 `IDLE -> PATROL -> DETECT -> CHASE -> ATTACK -> HURT -> DEAD` 7 状态机及战利品掉落。
 - 实现 `CombatSystem`：单手剑近战范围+前向锥角判定、火球术弹体飞行与环境/敌人碰撞结算、法力自然恢复以及玩家死亡后于溪谷村复活机制。
 - 测试验证：`npm run typecheck` 通过，`npm test` 8/8 通过，`npm run build` 成功。
-- 下一步：进入 Stage 3（NPC 放置、条件对话、数据驱动任务系统与商人交易）。
+
+## 2026-11-23 — Stage 3: NPC、条件对话、任务系统与商店
+- 实现 `NPCSystem`：配置驱动放置村长奥尔德林（法杖）、铁匠商人葛伦（锻锤）、猎人莱拉（斥候装束）专属 3D 模型及静态碰撞与交互注册。
+- 实现 `QuestSystem`：事件自动推进主线《失落的守望者》三阶段及双结局（交还圣物/保留圣物），以及《灰木林的威胁》《边境物资筹备》两条完整支线与奖励发放。
+- 实现 `DialogueSystem`：支持基于任务阶段、物品持有、剧情标记的条件分支与动作执行（接取任务、交付完成、打开商店）。
+- 测试验证：`npm run typecheck` 通过，`npm test` 11/11 通过，`npm run build` 成功。
+- 下一步：进入 Stage 4（古代墓穴独立地下城与 IndexedDB 版本化存档系统）。
