@@ -20,7 +20,9 @@ import { applySavePayloadToState, SaveSystem } from './save/SaveSystem';
 import { UIManager } from './ui/UIManager';
 import { buildCityEnvironmentMap } from './world/city/CityEnvironment';
 import { CITY_TONE, OVERWORLD_TONE } from './world/city/CityLighting';
+import type { CityMaterialLibrary, MaterialDebugMode } from './world/city/CityMaterialLibrary';
 import { buildAshenholdCity, getCityRegionAt } from './world/city/CityPhase1Builder';
+import { CityPostFX, type CityPostFXOptions } from './world/city/CityPostFX';
 import { DayNightCycle } from './world/DayNightCycle';
 import { buildAncientCrypt } from './world/DungeonBuilder';
 import { InteractableRegistry } from './world/InteractableRegistry';
@@ -55,6 +57,8 @@ export class GameApp {
   private cryptUpdate: (elapsed: number) => void = () => {};
   private cityUpdate: (elapsed: number, dt: number, timeOfDay?: number, playerPos?: { x: number; y: number; z: number }) => void = () => {};
   private cityDispose: () => void = () => {};
+  private cityMaterials: CityMaterialLibrary | null = null;
+  private readonly cityPostFx = new CityPostFX();
   private cityEnvMap: THREE.Texture | null = null;
   private vegetation: VegetationController | null = null;
   private activeInteractable: ReturnType<InteractableRegistry['findBestInteractable']> = null;
@@ -346,6 +350,7 @@ export class GameApp {
           metalEnvMap: (this.cityEnvMap ??= buildCityEnvironmentMap(this.engine.renderer)),
         },
       ).then((cityBuilt) => {
+        this.cityMaterials = cityBuilt.materials;
         this.cityUpdate = cityBuilt.update;
         this.cityDispose = cityBuilt.dispose;
       });
@@ -463,8 +468,17 @@ export class GameApp {
     this.ui.setInteractPrompt(this.activeInteractable?.label ?? null);
     this.ui.refreshHUD();
 
-    this.engine.render();
+    if (this.state.player.currentZone === 'ashenhold_city' && this.cityPostFx.options.enabled) {
+      this.cityPostFx.render(this.engine.renderer, this.engine.scene, this.engine.camera, elapsed);
+    } else {
+      this.engine.render();
+    }
   };
+
+  setDebugMode(mode: MaterialDebugMode): void {
+    this.cityMaterials?.setDebugMode(mode);
+    this.cityPostFx.options.enabled = mode === 'final';
+  }
 
   private exposeDebugBridge(): void {
     (window as unknown as Record<string, unknown>).__ASHEN_MARCH__ = {
@@ -513,6 +527,10 @@ export class GameApp {
         this.state.world.timeOfDay = h;
         this.dayNight.update(0, this.state, this.quality.getConfig().fogMultiplier);
       },
+      setDebugMode: (mode: MaterialDebugMode) => this.setDebugMode(mode),
+      setPostFX: (opts: Partial<CityPostFXOptions>) => {
+        Object.assign(this.cityPostFx.options, opts);
+      },
       interact: (id?: string) => {
         if (id) {
           this.registry.get(id)?.onInteract();
@@ -535,6 +553,7 @@ export class GameApp {
   dispose(): void {
     cancelAnimationFrame(this.rafId);
     this.player.dispose();
+    this.cityPostFx.dispose();
     this.cityDispose();
     this.cityEnvMap?.dispose();
     this.physics.dispose();

@@ -275,6 +275,14 @@ export async function buildAshenholdCity(
     parent.add(lowerWater, upperWater);
   }
 
+  const undercroftArch = resolvedArch.find((a) => a.model === 'sv_hero_undercroft.glb');
+  if (undercroftArch) {
+    const drainWater = new THREE.Mesh(new THREE.PlaneGeometry(0.98, 20.4), materials.waterTroughMaterial);
+    drainWater.rotation.x = -Math.PI / 2;
+    drainWater.position.set(undercroftArch.worldPos.x, undercroftArch.worldPos.y - 0.14, undercroftArch.worldPos.z + 1.5);
+    parent.add(drainWater);
+  }
+
   // 5. Auto-Instance Repeated Walls/Horizon, Distance-Cull Interior Packs (<28m), & Merge District Shells
   const cullTargets: Array<{ group: THREE.Group; x: number; z: number; maxDistSq: number }> = [];
   if (!options.skipAssetFetch && typeof fetch !== 'undefined') {
@@ -283,6 +291,8 @@ export async function buildAshenholdCity(
       'city_retaining_wall.glb',
       'hillside_terrace_wall_16m.glb',
       'outer_decorative_horizon.glb',
+      'sv_hero_buttress_wall_12m.glb',
+      'sv_hero_crag_outcrop.glb',
     ]);
 
     const instancedArch = new Map<string, PropInstanceTransform[]>();
@@ -400,16 +410,27 @@ export async function buildAshenholdCity(
   }
 
   // 6. Selective Local Warm Point Lights (<= 6 GPU light budget) & Soft Lantern Glow Sprites
-  const lightRefs: Array<{ light: THREE.PointLight; base: number; phase: number }> = [];
+  const lightRefs: Array<{ light: THREE.PointLight; base: number; phase: number; alwaysOn: boolean }> = [];
   const glowTex = createRadialGlowTexture();
   const glowSprites: THREE.Sprite[] = [];
 
   for (let i = 0; i < cityLayout.lights.length; i++) {
-    const lCfg = cityLayout.lights[i];
+    const lCfg = cityLayout.lights[i] as {
+      position: Vec3;
+      color: string;
+      intensity: number;
+      distance: number;
+      alwaysOn?: boolean;
+    };
     const light = new THREE.PointLight(lCfg.color, lCfg.intensity, lCfg.distance, 1.55);
     light.position.set(lCfg.position.x, lCfg.position.y, lCfg.position.z);
     parent.add(light);
-    lightRefs.push({ light, base: lCfg.intensity, phase: i * 1.37 });
+    lightRefs.push({
+      light,
+      base: lCfg.intensity,
+      phase: i * 1.37,
+      alwaysOn: Boolean(lCfg.alwaysOn) || lCfg.position.y < 0.0,
+    });
   }
 
   if (glowTex) {
@@ -565,7 +586,8 @@ export async function buildAshenholdCity(
       }
       for (const lr of lightRefs) {
         const flicker = Math.sin(elapsed * 7.8 + lr.phase) * 0.12 + Math.sin(elapsed * 13.1 + lr.phase) * 0.06;
-        lr.light.intensity = Math.max(0, (lr.base + flicker) * lightScale);
+        const scale = lr.alwaysOn ? THREE.MathUtils.lerp(1.05, 1.35, nightBlend) : lightScale;
+        lr.light.intensity = Math.max(0, (lr.base + flicker) * scale);
       }
 
       if (playerPos) {

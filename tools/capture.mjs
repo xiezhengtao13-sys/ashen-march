@@ -65,6 +65,8 @@ for (const s of shots) {
   await page.evaluate((s) => {
     const api = window.__ASHEN_MARCH__;
     if (s.time !== undefined) api.setTimeOfDay(s.time);
+    api.setDebugMode?.(s.debugMode ?? 'final');
+    if (s.postFx) api.setPostFX?.(s.postFx);
     api.teleport(...s.pos);
     api.setLook(s.yaw, s.pitch);
   }, s);

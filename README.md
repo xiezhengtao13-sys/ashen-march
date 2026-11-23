@@ -5,19 +5,19 @@
 ## ▶ 一键在线游玩（浏览器直玩）
 
 [![立即在线游玩 - Ashen March](https://img.shields.io/badge/▶_立即在线游玩-Ashen_March_灰烬边境-d9a043?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/)
-[![一键试玩 - 灰烬城山城重设计 Phase 2 样板区](https://img.shields.io/badge/▶_一键试玩_灰烬城山城重设计-Phase_2_依山样板区-b54524?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city)
-[![直达灰烬城旧版 Phase 2 - 分支预览](https://img.shields.io/badge/▶_灰烬城旧版_Phase_2-平坦市集对比-7c4d30?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city)
+[![一键试玩 - 灰烬城 Visual Fidelity V3 史东薇尔式山城](https://img.shields.io/badge/▶_一键试玩_灰烬城_V3-史东薇尔式四层山堡-8f2d1f?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-art-direction-v3/?zone=city)
+[![一键试玩 - 灰烬城山城重设计 Phase 2 基线](https://img.shields.io/badge/▶_灰烬城基线-Phase_2_依山样板区-b54524?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city)
 
 - **开放世界试玩入口（溪谷村出生点）**：https://xiezhengtao13-sys.github.io/ashen-march/
-- **最新入口 — 灰烬城·紧凑型依山立体主城重设计 (`feature/ashenhold-hillside-redesign` · Phase 2 样板区)**：
-  - **一键在线试玩（0m 城门 S 形贸易街 → 双层旅店二楼阳台 → 市集廊桥 → 紧凑市集与药铺室内 → +7.5m 北墙双折大石阶观景台）**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city
-  - **旧版平坦城市对比预览**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city
-  - **游戏内互传入口**：可在任意模式按 `Esc` 打开系统菜单点击 **「前往灰烬城」**，或在溪谷村口路牌直接传送往返；城内按 `[M]` 可打开五重台地山城舆图。
+- **最新入口 — 灰烬城 Visual Fidelity V3 (`feature/ashenhold-art-direction-v3` · 史东薇尔式四层立体山堡)**：
+  - **一键在线试玩（`-4m` 黑石拱顶排水暗渠 → `0m` 南城门与曲折石巷 → 透光双层酒馆 → `+3.5m` 哥特拱廊市集 → `+7.5/+9.5m` 北堡垒、西城墙与跨街石桥 → `+19.5m` 悬崖瞭望塔顶，全程零传送步行贯通）**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-art-direction-v3/?zone=city
+  - **上一阶段山城基线对比预览**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city
+  - **调试与诊断接口**：打开浏览器控制台可调用 `window.__ASHEN_MARCH__.setDebugMode('albedo' | 'normal' | 'roughness' | 'no_ao' | 'no_post' | 'final')` 与 `setPostFX({ enabled, fxaa, sharpen, grain })` 实时检查材质与后处理。
 - **零安装直玩**：由 GitHub Actions 自动构建并托管于 GitHub Pages，点击上方按钮即可在桌面浏览器（支持 WebGL2）中直接运行，存档自动保存于浏览器本地 IndexedDB。
 
 ## 核心特性
 
-- **200×240 米中世纪城市探索区（Ashenhold — 灰烬城 Phase 2）**：独立城市场景 (`src/world/city/` + [城市总规划](docs/ASHENHOLD_MASTER_PLAN.md))，配备 SH 球谐天空探针与物理分级光照 (`NeutralToneMapping`)、10 座品类各异的市集商摊、双层凤凰铁砧石质喷泉、圣伊格尼斯钟楼圣堂、石匠拱廊、东西双探索环道（西线【铁匠工坊区】含露天锻炉与制桶坊；东线【织坊居民高地】含高差石阶观景台与提灯古巷）、王道阶梯与闭门戒严的领主城堡前庭 (`Phase 3`)；运行时采用分块地形、重复墙体实例化与按区材质合批 (`mergeGeometries`) 优化性能。
+- **灰烬城 Visual Fidelity V3（Grounded Gothic Mountain Citadel）**：基于 `scripts/city/texgen_v3.c` 无黑描边 Packed ORM PBR 贴图、`CityMaterialLibrary.ts` 世界空间宏观风化/雨痕/青苔/湿润着色器、`CityPostFX.ts` 线性 HDR Neutral ToneMapping + FXAA + 对比度自适应锐化，以及 `scripts/city/stormveil_kit.py` 逐块 3D 凹凸砌石与阶梯扶壁构建的四层无传送立体山堡（详情见 [ART_DIRECTION_V3.md](docs/ART_DIRECTION_V3.md)）。
 - **第一人称 3D 自由探索**：真实 Rapier 3D 物理碰撞、重力、斜坡行走与可进入建筑/地下城。
 - **五个特色区域（512 × 512 米固定种子世界，完整保留）**：
   - **溪谷村 (Ravendale Village)**：玩家出生点、可进入的村长长屋、铁匠铺、猎人小屋与水井广场。

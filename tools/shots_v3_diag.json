@@ -1,0 +1,8 @@
+[
+ {"name":"diag_albedo","time":13,"debugMode":"albedo","pos":[0.0,3.95,-49.2],"yaw":0.0,"pitch":0.04},
+ {"name":"diag_normal","time":13,"debugMode":"normal","pos":[0.0,3.95,-49.2],"yaw":0.0,"pitch":0.04},
+ {"name":"diag_roughness","time":13,"debugMode":"roughness","pos":[0.0,3.95,-49.2],"yaw":0.0,"pitch":0.04},
+ {"name":"diag_no_ao","time":13,"debugMode":"no_ao","pos":[0.0,3.95,-49.2],"yaw":0.0,"pitch":0.04},
+ {"name":"diag_no_post","time":13,"debugMode":"no_post","pos":[0.0,3.95,-49.2],"yaw":0.0,"pitch":0.04},
+ {"name":"diag_final","time":13,"debugMode":"final","pos":[0.0,3.95,-49.2],"yaw":0.0,"pitch":0.04}
+]

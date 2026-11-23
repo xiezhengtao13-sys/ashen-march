@@ -1,0 +1,5 @@
+[
+ {"name":"v3_undercroft_minus4m","time":13,"pos":[-12.5,-3.65,-11.0],"yaw":0.0,"pitch":0.04},
+ {"name":"v3_bridge_plus9m","time":13,"pos":[-2.0,9.85,-14.5],"yaw":1.55,"pitch":-0.18},
+ {"name":"v3_summit_plus19m","time":13,"pos":[2.0,19.85,-63.2],"yaw":3.1416,"pitch":-0.34}
+]

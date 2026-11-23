@@ -1,0 +1,8 @@
+[
+ {"name":"camA_gate_up","time":13,"pos":[0.0,0.45,18.4],"yaw":0.0,"pitch":0.24},
+ {"name":"camB_alley_up","time":13,"pos":[0.2,1.35,-5.5],"yaw":0.06,"pitch":0.28},
+ {"name":"camC_market_wall","time":13,"pos":[0.0,3.85,-20.5],"yaw":0.0,"pitch":0.14},
+ {"name":"camD_rampart_down","time":13,"pos":[0.0,7.85,-53.5],"yaw":3.1416,"pitch":-0.22},
+ {"name":"camE_interior_daylight","time":13,"pos":[8.4,1.88,-3.5],"yaw":1.52,"pitch":-0.02},
+ {"name":"camF_stone_1m_closeup","time":13,"pos":[0.0,3.95,-49.2],"yaw":0.0,"pitch":0.04}
+]

@@ -91,12 +91,12 @@
     {
       "id": "city_merchant_elena",
       "name": "药商伊琳娜",
-      "title": "铁锚药剂堂掌柜（室内）",
+      "title": "西拱廊药剂师",
       "zone": "ashenhold_city",
       "position": {
-        "x": -16.5,
-        "y": 3.55,
-        "z": -28.0
+        "x": -13.4,
+        "y": 3.52,
+        "z": -31.5
       },
       "yaw": -1.57,
       "robeColor": "#3c5446",
@@ -156,14 +156,14 @@
     {
       "id": "city_smith_brennan",
       "name": "铁匠大师布伦南",
-      "title": "西翼工匠区锻造坊主",
+      "title": "北堡垒平台锻造长",
       "zone": "ashenhold_city",
       "position": {
-        "x": -13.6,
+        "x": -7.2,
         "y": 7.52,
-        "z": -56.5
+        "z": -53.8
       },
-      "yaw": -1.57,
+      "yaw": 3.05,
       "robeColor": "#54342b",
       "accentColor": "#9ca6b3",
       "hasStaff": false,
@@ -177,14 +177,14 @@
     {
       "id": "city_weaver_claire",
       "name": "织坊女匠克莱尔",
-      "title": "东翼高地锦缎行掌柜",
+      "title": "北堡垒高地锦缎匠",
       "zone": "ashenhold_city",
       "position": {
-        "x": 13.6,
+        "x": 7.2,
         "y": 7.52,
-        "z": -56.5
+        "z": -53.8
       },
-      "yaw": 1.57,
+      "yaw": 3.14,
       "robeColor": "#456348",
       "accentColor": "#dfd0a6",
       "hasStaff": false,
@@ -198,14 +198,14 @@
     {
       "id": "city_citadel_warden",
       "name": "内堡卫队长加雷斯",
-      "title": "高地圣堂与城堡守官",
+      "title": "悬崖瞭望塔顶守官（+19.5m）",
       "zone": "ashenhold_city",
       "position": {
-        "x": 2.4,
-        "y": 7.52,
-        "z": -59.8
+        "x": -2.5,
+        "y": 19.52,
+        "z": -64.5
       },
-      "yaw": 3.05,
+      "yaw": 3.14,
       "robeColor": "#592121",
       "accentColor": "#d4af64",
       "hasStaff": true,

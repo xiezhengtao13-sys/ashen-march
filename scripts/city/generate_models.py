@@ -21,6 +21,12 @@ OUT_DIR = ROOT / "public" / "assets" / "city" / "models"
 # Material definitions matching CityMaterialLibrary keys in TypeScript.
 # Base colors act as readable fallbacks; CityAssetLoader replaces by material name.
 MATERIAL_SPECS = {
+    "limestone_weathered": ((0.56, 0.53, 0.48, 1.0), 0.84, 0.02, 2.6),
+    "citadel_masonry":     ((0.49, 0.47, 0.44, 1.0), 0.86, 0.02, 2.4),
+    "damp_slate_stone":    ((0.36, 0.37, 0.38, 1.0), 0.72, 0.04, 2.2),
+    "aged_oak_timber":     ((0.26, 0.18, 0.12, 1.0), 0.80, 0.02, 1.8),
+    "broken_flagstone":    ((0.46, 0.44, 0.41, 1.0), 0.82, 0.02, 2.6),
+    "mountain_crag_rock":  ((0.38, 0.36, 0.34, 1.0), 0.90, 0.02, 3.2),
     "stone_ashlar":   ((0.48, 0.46, 0.42, 1.0), 0.85, 0.04, 2.2),
     "stone_trim":     ((0.36, 0.36, 0.37, 1.0), 0.80, 0.06, 2.0),
     "brick_medieval": ((0.52, 0.30, 0.24, 1.0), 0.84, 0.02, 2.0),

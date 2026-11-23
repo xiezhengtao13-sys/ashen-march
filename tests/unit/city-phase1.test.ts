@@ -71,26 +71,27 @@ describe('Ashenhold Compact Hillside — Tier 0 Gatehouse, S-Curved Trade Street
     }
     expect(pos.z).toBeLessThan(9.5);
 
-    // 2. Solid Gatehouse pier at x = -3.7 blocks movement toward z = 14
+    // 2. Solid Gatehouse pier at x = -3.7 blocks movement toward z = 12.2
     physics.teleportPlayer({ x: -3.7, y: 0.3, z: 19.0 });
     for (let i = 0; i < 40; i++) {
       pos = physics.movePlayer({ x: 0, y: 0, z: -0.15 }, false, 1 / 60).position;
     }
-    expect(pos.z).toBeGreaterThan(17.1);
+    expect(pos.z).toBeGreaterThan(15.4);
 
-    // 3. Walk inside A1 Guardhouse open arched doorway (x = -3.2 -> < -6.2 at z = 5.5)
-    physics.teleportPlayer({ x: -3.2, y: 0.85, z: 5.5 });
-    for (let i = 0; i < 50; i++) {
+    // 3. Walk inside V3 Gothic Tavern open arched West doorway (x = 3.8 -> > 7.6 at z = -3.2)
+    physics.teleportPlayer({ x: 3.8, y: 1.85, z: -3.2 });
+    for (let i = 0; i < 55; i++) {
+      pos = physics.movePlayer({ x: 0.1, y: 0, z: 0 }, false, 1 / 60).position;
+    }
+    expect(pos.x).toBeGreaterThan(7.6);
+
+    // 4. Descend South Undercroft Gothic Culvert Portal (x = -3.2 -> < -10.5 at z = -7.0, y < -3.0)
+    physics.teleportPlayer({ x: -3.2, y: 1.55, z: -7.0 });
+    for (let i = 0; i < 110; i++) {
       pos = physics.movePlayer({ x: -0.1, y: 0, z: 0 }, false, 1 / 60).position;
     }
-    expect(pos.x).toBeLessThan(-6.2);
-
-    // 4. Walk inside B1 Caravan Warehouse flung-open barn doors (x = -4.2 -> < -7.5 at z = -4.5)
-    physics.teleportPlayer({ x: -4.2, y: 1.78, z: -4.5 });
-    for (let i = 0; i < 50; i++) {
-      pos = physics.movePlayer({ x: -0.1, y: 0, z: 0 }, false, 1 / 60).position;
-    }
-    expect(pos.x).toBeLessThan(-7.5);
+    expect(pos.x).toBeLessThan(-10.5);
+    expect(pos.y).toBeLessThan(-3.0);
 
     // 5. Portal exit callback works
     registry.get('portal:city_exit')?.onInteract();

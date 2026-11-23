@@ -83,4 +83,12 @@
 - [ ] **Redesign Phase 4：高地圣堂与城堡区（A7 圣伊格尼斯圣堂/公会大厅与钟楼观景廊 + B12 抄本室 + 王道阶梯与 A8 城堡瓮城前厅）**
 - [ ] **Redesign Phase 5：全功能 RPG 整合、双模式等高线舆图与最终发布验证**
 
+## Ashenhold — Visual Fidelity V3 (`feature/ashenhold-art-direction-v3`)：史东薇尔式山城美术与四层立体关卡重制
+- [x] **Stage A**：源码审计 `saltline-fable-5.2` 真实渲染机制（区分验证事实与原创迁移）、固定 6 机位 A–F 基线采集、编写 [ART_DIRECTION_V3.md](ART_DIRECTION_V3.md)
+- [x] **Stage B**：重写 6 套无黑描边 Packed ORM PBR 山城材质 (`scripts/city/texgen_v3.c`, `generate_textures_v3.py`)；升级 `CityMaterialLibrary.ts`（世界空间双频宏观风化、竖直雨痕、顶面青苔、墙脚/暗渠湿润、近距微粒、6 档实时诊断模式）；新增线性 HDR Khronos Neutral ToneMapping + FXAA + 对比度自适应锐化 + 抖动单 Pass 后处理 (`CityPostFX.ts`)；编写 `scripts/city/stormveil_kit.py` 导出 12 个逐块 3D 凹凸砌石、阶梯扶壁、尖拱与残破垛口 Hero GLB
+- [x] **Stage C**：重建四层零传送全步行贯通立体样板区（`-4.0m` 黑石拱顶排水暗渠 → `0.0m` 南门与曲街 → `+1.7/+5.2m` 透光双层酒馆 → `+3.5m` 哥特拱廊市集 → `+7.5m` 北堡垒观景台 → `+9.5m` 西城墙步道与跨街哥特石桥 → `+19.5m` 悬崖外梯直达北瞭望塔顶）
+- [x] **Stage D & E**：全套 6 机位 Before vs After 截图、6 档材质/后处理诊断图、3 张四层立体机位图、Vitest 9/9（含全路径零传送 4 层物理连通测试）与 Playwright E2E 零传送实机验收
+- [x] **Stage F**：同步文档与独立 PR 发布（不覆盖 `feature/ashenhold-hillside-redesign`，不合并 `main`）
+
+
 
