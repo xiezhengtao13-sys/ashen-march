@@ -5,10 +5,12 @@
 ## ▶ 一键在线游玩（浏览器直玩）
 
 [![立即在线游玩 - Ashen March](https://img.shields.io/badge/▶_立即在线游玩-Ashen_March_灰烬边境-d9a043?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/)
-[![一键试玩 - 灰烬城 Phase 2 (feature/ashenhold-phase2-market)](https://img.shields.io/badge/▶_一键试玩_灰烬城_Phase_2-中央市集与双环城区-c86228?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city)
+[![一键试玩 - 灰烬城山城重设计 Phase 2 样板区](https://img.shields.io/badge/▶_一键试玩_灰烬城山城重设计-Phase_2_依山样板区-b54524?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city)
+[![一键试玩 - 灰烬城旧版 Phase 2 (平坦市集对比)](https://img.shields.io/badge/▶_灰烬城旧版_Phase_2-平坦市集对比-7c4d30?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city)
 
 - **主干稳定版在线试玩地址**：https://xiezhengtao13-sys.github.io/ashen-march/
-- **灰烬城 Phase 2 分支在线试玩入口 (`feature/ashenhold-phase2-market`)**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city
+- **最新：灰烬城·紧凑型依山立体主城重设计 (`feature/ashenhold-hillside-redesign` · Phase 2 样板区)**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city
+- **旧版对比：灰烬城 Phase 2 (`feature/ashenhold-phase2-market`)**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city
 - **零安装直玩**：由 GitHub Actions 自动构建并托管于 GitHub Pages，点击上方按钮即可在桌面浏览器（支持 WebGL2）中直接运行，存档自动保存于浏览器本地 IndexedDB。
 
 ## 核心特性
