@@ -1,29 +1,83 @@
 import * as THREE from 'three';
 import type { GameState } from '../core/GameState';
 
+const SKY_VERTEX_SHADER = /* glsl */ `
+varying vec3 vWorldDir;
+void main() {
+  vec4 wp = modelMatrix * vec4(position, 1.0);
+  vWorldDir = normalize(position);
+  gl_Position = projectionMatrix * viewMatrix * wp;
+}
+`;
+
+const SKY_FRAGMENT_SHADER = /* glsl */ `
+uniform vec3 uZenithColor;
+uniform vec3 uHorizonColor;
+uniform vec3 uSunDir;
+uniform vec3 uSunColor;
+uniform float uStarAlpha;
+varying vec3 vWorldDir;
+
+float hash31(vec3 p) {
+  p = fract(p * 0.1031);
+  p += dot(p, p.yzx + 33.33);
+  return fract((p.x + p.y) * p.z);
+}
+
+void main() {
+  vec3 d = normalize(vWorldDir);
+  float h = clamp(d.y, 0.0, 1.0);
+  vec3 col = mix(uHorizonColor, uZenithColor, pow(h, 0.52));
+
+  float sunAmt = max(dot(d, normalize(uSunDir)), 0.0);
+  col += uSunColor * pow(sunAmt, 12.0) * 0.42;
+  col += uSunColor * smoothstep(0.997, 0.9994, sunAmt) * 1.4;
+
+  if (uStarAlpha > 0.01 && h > 0.06) {
+    float s = hash31(floor(d * 260.0));
+    if (s > 0.9965) {
+      col += vec3(0.85, 0.9, 1.0) * uStarAlpha * smoothstep(0.06, 0.3, h);
+    }
+  }
+
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
 export class DayNightCycle {
   private readonly scene: THREE.Scene;
-  private readonly sunLight: THREE.DirectionalLight;
-  private readonly hemiLight: THREE.HemisphereLight;
+  readonly sunLight: THREE.DirectionalLight;
+  readonly hemiLight: THREE.HemisphereLight;
+  private readonly skyMesh: THREE.Mesh;
+  private readonly skyUniforms: {
+    uZenithColor: { value: THREE.Color };
+    uHorizonColor: { value: THREE.Color };
+    uSunDir: { value: THREE.Vector3 };
+    uSunColor: { value: THREE.Color };
+    uStarAlpha: { value: number };
+  };
 
-  private readonly daySky = new THREE.Color(0x8bb0d1);
-  private readonly sunsetSky = new THREE.Color(0xc97b54);
-  private readonly nightSky = new THREE.Color(0x131a2c);
-  private readonly cryptBg = new THREE.Color(0x0a0c12);
-  private readonly tmpSky = new THREE.Color();
+  private readonly dayZenith = new THREE.Color(0x4f759c);
+  private readonly dayHorizon = new THREE.Color(0xa6bdd1);
+  private readonly sunsetZenith = new THREE.Color(0x3a3b5c);
+  private readonly sunsetHorizon = new THREE.Color(0xd18254);
+  private readonly nightZenith = new THREE.Color(0x0b111f);
+  private readonly nightHorizon = new THREE.Color(0x1b263d);
+  private readonly cryptBg = new THREE.Color(0x0b0d14);
 
-  // 24 game hours in ~12 real minutes
   private readonly hoursPerSecond = 24 / 720;
 
   constructor(scene: THREE.Scene) {
     this.scene = scene;
 
-    this.hemiLight = new THREE.HemisphereLight(0xdbe8f5, 0x3b3528, 0.75);
+    this.hemiLight = new THREE.HemisphereLight(0xdbe8f5, 0x3b3528, 0.72);
     this.scene.add(this.hemiLight);
 
-    this.sunLight = new THREE.DirectionalLight(0xfff1d6, 1.35);
+    this.sunLight = new THREE.DirectionalLight(0xfff1d6, 1.45);
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.set(2048, 2048);
+    this.sunLight.shadow.bias = -0.0005;
+    this.sunLight.shadow.normalBias = 0.025;
     this.sunLight.shadow.camera.near = 10;
     this.sunLight.shadow.camera.far = 360;
     const d = 140;
@@ -32,57 +86,96 @@ export class DayNightCycle {
     this.sunLight.shadow.camera.top = d;
     this.sunLight.shadow.camera.bottom = -d;
     this.scene.add(this.sunLight);
+
+    this.skyUniforms = {
+      uZenithColor: { value: this.dayZenith.clone() },
+      uHorizonColor: { value: this.dayHorizon.clone() },
+      uSunDir: { value: new THREE.Vector3(0.4, 0.7, 0.3).normalize() },
+      uSunColor: { value: new THREE.Color(0xffe6b8) },
+      uStarAlpha: { value: 0 },
+    };
+
+    const skyMat = new THREE.ShaderMaterial({
+      vertexShader: SKY_VERTEX_SHADER,
+      fragmentShader: SKY_FRAGMENT_SHADER,
+      uniforms: this.skyUniforms,
+      side: THREE.BackSide,
+      depthWrite: false,
+      fog: false,
+    });
+    this.skyMesh = new THREE.Mesh(new THREE.SphereGeometry(480, 24, 16), skyMat);
+    this.skyMesh.name = 'SkyDome';
+    this.scene.add(this.skyMesh);
   }
 
-  update(dt: number, state: GameState): void {
+  update(dt: number, state: GameState, fogMultiplier = 1.0): void {
     if (!state.isPaused) {
       state.world.timeOfDay = (state.world.timeOfDay + dt * this.hoursPerSecond) % 24;
     }
 
+    this.skyMesh.position.set(state.player.position.x, state.player.position.y, state.player.position.z);
+
     if (state.player.currentZone === 'ancient_crypt') {
+      this.skyMesh.visible = false;
       this.scene.background = this.cryptBg;
       if (this.scene.fog instanceof THREE.FogExp2) {
         this.scene.fog.color.copy(this.cryptBg);
-        this.scene.fog.density = 0.018;
+        this.scene.fog.density = 0.017 * fogMultiplier;
       }
       this.sunLight.intensity = 0.05;
       this.hemiLight.intensity = 0.45;
       return;
     }
 
+    this.skyMesh.visible = true;
     const t = state.world.timeOfDay;
-    // Solar elevation angle: 6h=0, 12h=PI/2, 18h=PI, 24h=-PI/2
     const solarAngle = ((t - 6) / 24) * Math.PI * 2;
     const sunY = Math.sin(solarAngle);
     const sunX = Math.cos(solarAngle);
 
-    this.sunLight.position.set(sunX * 140, Math.max(15, sunY * 140), 55);
+    this.sunLight.position.set(sunX * 140, Math.max(18, sunY * 140), 55);
+    this.skyUniforms.uSunDir.value.set(sunX, sunY, 0.38).normalize();
 
     if (sunY > 0.22) {
-      // Clear daylight
-      this.tmpSky.copy(this.daySky);
-      this.sunLight.color.setHex(0xfff1d6);
-      this.sunLight.intensity = 0.7 + sunY * 0.85;
-      this.hemiLight.intensity = 0.5 + sunY * 0.35;
+      this.skyUniforms.uZenithColor.value.copy(this.dayZenith);
+      this.skyUniforms.uHorizonColor.value.copy(this.dayHorizon);
+      this.skyUniforms.uSunColor.value.setHex(0xffe8bf);
+      this.skyUniforms.uStarAlpha.value = 0;
+
+      this.sunLight.color.setHex(0xfff0d4);
+      this.sunLight.intensity = 0.78 + sunY * 0.85;
+      this.hemiLight.color.setHex(0xd3e4f5);
+      this.hemiLight.groundColor.setHex(0x473e30);
+      this.hemiLight.intensity = 0.48 + sunY * 0.32;
     } else if (sunY > -0.15) {
-      // Dawn or Dusk
       const k = (sunY + 0.15) / 0.37;
-      this.tmpSky.copy(this.nightSky).lerp(this.sunsetSky, Math.sin(k * Math.PI * 0.85)).lerp(this.daySky, Math.max(0, k - 0.5) * 1.4);
+      const warmBlend = Math.sin(k * Math.PI * 0.88);
+      this.skyUniforms.uZenithColor.value.copy(this.nightZenith).lerp(this.sunsetZenith, warmBlend).lerp(this.dayZenith, Math.max(0, k - 0.55) * 1.6);
+      this.skyUniforms.uHorizonColor.value.copy(this.nightHorizon).lerp(this.sunsetHorizon, warmBlend).lerp(this.dayHorizon, Math.max(0, k - 0.55) * 1.6);
+      this.skyUniforms.uSunColor.value.setHex(0xff8c47);
+      this.skyUniforms.uStarAlpha.value = Math.max(0, 1 - k * 2.2) * 0.6;
+
       this.sunLight.color.setHex(0xff9b5e);
-      this.sunLight.intensity = 0.25 + Math.max(0, k) * 0.55;
-      this.hemiLight.intensity = 0.3 + Math.max(0, k) * 0.25;
+      this.sunLight.intensity = 0.32 + Math.max(0, k) * 0.62;
+      this.hemiLight.color.setHex(0xd19a7e);
+      this.hemiLight.intensity = 0.34 + Math.max(0, k) * 0.22;
     } else {
-      // Moonlit night
-      this.tmpSky.copy(this.nightSky);
+      this.skyUniforms.uZenithColor.value.copy(this.nightZenith);
+      this.skyUniforms.uHorizonColor.value.copy(this.nightHorizon);
+      this.skyUniforms.uSunColor.value.setHex(0x8db2eb);
+      this.skyUniforms.uStarAlpha.value = 0.92;
+
       this.sunLight.color.setHex(0x7ca6e8);
-      this.sunLight.intensity = 0.32;
-      this.hemiLight.intensity = 0.28;
+      this.sunLight.intensity = 0.36;
+      this.hemiLight.color.setHex(0x4a638c);
+      this.hemiLight.groundColor.setHex(0x181c26);
+      this.hemiLight.intensity = 0.32;
     }
 
-    this.scene.background = this.tmpSky.clone();
+    this.scene.background = this.skyUniforms.uHorizonColor.value.clone();
     if (this.scene.fog instanceof THREE.FogExp2) {
-      this.scene.fog.color.copy(this.tmpSky);
-      this.scene.fog.density = 0.0058;
+      this.scene.fog.color.copy(this.skyUniforms.uHorizonColor.value);
+      this.scene.fog.density = 0.0044 * fogMultiplier;
     }
   }
 

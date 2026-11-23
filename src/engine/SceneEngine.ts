@@ -10,13 +10,13 @@ export class SceneEngine {
   constructor(canvas: HTMLCanvasElement) {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x88a8c7);
-    this.scene.fog = new THREE.FogExp2(0x88a8c7, 0.0065);
+    this.scene.fog = new THREE.FogExp2(0x88a8c7, 0.0046);
 
     this.camera = new THREE.PerspectiveCamera(
-      70,
+      68,
       window.innerWidth / Math.max(1, window.innerHeight),
-      0.1,
-      480,
+      0.12,
+      500,
     );
     this.scene.add(this.camera);
 
@@ -26,11 +26,12 @@ export class SceneEngine {
       powerPreference: 'high-performance',
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMappingExposure = 1.08;
 
     this.overworldGroup = new THREE.Group();
     this.overworldGroup.name = 'OverworldGroup';

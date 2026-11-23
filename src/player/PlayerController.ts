@@ -7,6 +7,7 @@ export interface PlayerInputCallbacks {
   onInteract: () => void;
   onMeleeAttack: () => void;
   onCastSpell: () => void;
+  onQuickPotion?: (kind: 'health' | 'mana') => void;
   onToggleUI: (panel: 'inventory' | 'quests' | 'map' | 'menu') => void;
   isModalOpen: () => boolean;
 }
@@ -29,6 +30,9 @@ export class PlayerController {
   // First-person ViewModel + AnimationMixer
   private readonly viewModelRoot = new THREE.Group();
   private readonly swordPivot = new THREE.Group();
+  private readonly bladeMat: THREE.MeshStandardMaterial;
+  private readonly guardMat: THREE.MeshStandardMaterial;
+  private readonly bladeMesh: THREE.Mesh;
   private readonly spellOrb: THREE.Mesh;
   private readonly mixer: THREE.AnimationMixer;
   private readonly swingAction: THREE.AnimationAction;
@@ -50,46 +54,60 @@ export class PlayerController {
 
     this.camera.rotation.order = 'YXZ';
 
-    // Build First-Person Held Sword + Magic Hand ViewModel
+    // Sculpted First-Person Held Sword + Magic Focus ViewModel
     this.viewModelRoot.position.set(0.36, -0.32, -0.55);
     this.swordPivot.name = 'SwordPivot';
 
     const hilt = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.02, 0.022, 0.2, 8),
-      new THREE.MeshStandardMaterial({ color: 0x5c3c24, roughness: 0.8 }),
+      new THREE.CylinderGeometry(0.018, 0.022, 0.18, 10),
+      new THREE.MeshStandardMaterial({ color: 0x452b18, roughness: 0.85 }),
     );
-    const guard = new THREE.Mesh(
-      new THREE.BoxGeometry(0.18, 0.03, 0.04),
-      new THREE.MeshStandardMaterial({ color: 0xd9b166, metalness: 0.75, roughness: 0.35 }),
-    );
-    guard.position.y = 0.11;
-    const blade = new THREE.Mesh(
-      new THREE.BoxGeometry(0.045, 0.62, 0.015),
-      new THREE.MeshStandardMaterial({ color: 0xc2ccd6, metalness: 0.85, roughness: 0.25 }),
-    );
-    blade.position.y = 0.43;
+    this.guardMat = new THREE.MeshStandardMaterial({ color: 0xb8944f, metalness: 0.85, roughness: 0.32 });
+    const pommel = new THREE.Mesh(new THREE.OctahedronGeometry(0.028, 0), this.guardMat);
+    pommel.position.y = -0.1;
 
-    this.swordPivot.add(hilt, guard, blade);
+    const guard = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.028, 0.042), this.guardMat);
+    guard.position.y = 0.1;
+
+    this.bladeMat = new THREE.MeshStandardMaterial({
+      color: 0xc2ccd6,
+      metalness: 0.88,
+      roughness: 0.24,
+    });
+    this.bladeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.57, 0.014), this.bladeMat);
+    this.bladeMesh.position.y = 0.385;
+
+    const fuller = new THREE.Mesh(
+      new THREE.BoxGeometry(0.012, 0.44, 0.017),
+      new THREE.MeshStandardMaterial({ color: 0x67707a, metalness: 0.8, roughness: 0.4 }),
+    );
+    fuller.position.y = 0.35;
+
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.0297, 0.11, 4), this.bladeMat);
+    tip.rotation.y = Math.PI / 4;
+    tip.scale.set(1.0, 1.0, 0.33);
+    tip.position.y = 0.725;
+
+    this.swordPivot.add(pommel, hilt, guard, this.bladeMesh, fuller, tip);
     this.swordPivot.rotation.set(-0.35, -0.25, 0.18);
     this.viewModelRoot.add(this.swordPivot);
 
-    // Left-hand glowing Fireball focus orb
+    // Left-hand glowing Fireball focus sigil
     this.spellOrb = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(0.065, 1),
+      new THREE.IcosahedronGeometry(0.055, 1),
       new THREE.MeshStandardMaterial({
-        color: 0xff7b29,
+        color: 0xff8c38,
         emissive: 0xff4500,
-        emissiveIntensity: 1.8,
+        emissiveIntensity: 1.7,
         roughness: 0.2,
       }),
     );
     this.spellOrb.name = 'SpellOrb';
-    this.spellOrb.position.set(-0.68, -0.05, -0.02);
+    this.spellOrb.position.set(-0.68, -0.06, -0.02);
     this.viewModelRoot.add(this.spellOrb);
 
     this.camera.add(this.viewModelRoot);
 
-    // AnimationMixer clips for ViewModel
     this.mixer = new THREE.AnimationMixer(this.viewModelRoot);
 
     const idleClip = new THREE.AnimationClip('viewmodel_idle', 2.0, [
@@ -116,7 +134,7 @@ export class PlayerController {
       new THREE.VectorKeyframeTrack(
         'SpellOrb.position',
         [0, 0.14, 0.35],
-        [-0.68, -0.05, -0.02, -0.45, 0.05, -0.28, -0.68, -0.05, -0.02],
+        [-0.68, -0.06, -0.02, -0.45, 0.05, -0.28, -0.68, -0.06, -0.02],
       ),
     ]);
     this.castAction = this.mixer.clipAction(castClip);
@@ -124,6 +142,27 @@ export class PlayerController {
 
     this.bindEvents();
     this.syncCameraFromState();
+    this.setEquippedWeapon(this.state.equipped.weapon);
+  }
+
+  setEquippedWeapon(weaponId: string | null): void {
+    this.swordPivot.visible = weaponId !== null;
+    if (weaponId === 'watchers_runeblade') {
+      this.bladeMat.color.setHex(0xa8e0f5);
+      this.bladeMat.emissive.setHex(0x286f8f);
+      this.bladeMat.emissiveIntensity = 0.55;
+      this.guardMat.color.setHex(0x7ec8e3);
+    } else if (weaponId === 'hunters_saber') {
+      this.bladeMat.color.setHex(0xd4dce3);
+      this.bladeMat.emissive.setHex(0x000000);
+      this.bladeMat.emissiveIntensity = 0;
+      this.guardMat.color.setHex(0x8e959e);
+    } else {
+      this.bladeMat.color.setHex(0xb8c2cc);
+      this.bladeMat.emissive.setHex(0x000000);
+      this.bladeMat.emissiveIntensity = 0;
+      this.guardMat.color.setHex(0xb8944f);
+    }
   }
 
   private buildSwingQuaternions(): number[] {
@@ -189,6 +228,10 @@ export class PlayerController {
       this.jumpQueued = true;
     } else if (e.code === 'KeyE') {
       this.callbacks.onInteract();
+    } else if (e.code === 'Digit3') {
+      this.callbacks.onQuickPotion?.('health');
+    } else if (e.code === 'Digit4') {
+      this.callbacks.onQuickPotion?.('mana');
     }
   };
 
@@ -199,7 +242,6 @@ export class PlayerController {
   private onMouseDown = (e: MouseEvent): void => {
     if (this.callbacks.isModalOpen() || this.state.isDead) return;
 
-    // Request pointer lock on canvas interaction if not yet locked
     if (!this.pointerLocked && e.button === 0 && typeof this.canvas.requestPointerLock === 'function') {
       try {
         const res = this.canvas.requestPointerLock() as unknown;
@@ -207,7 +249,7 @@ export class PlayerController {
           (res as Promise<void>).catch(() => {});
         }
       } catch {
-        // Ignore in headless/sandbox environments that restrict pointer lock
+        // Ignore in headless/sandbox environments
       }
     }
 
@@ -319,7 +361,6 @@ export class PlayerController {
     const baseSpeed = isSprinting ? 9.2 : 5.6;
     const yaw = this.state.player.yaw;
 
-    // Forward vector in XZ plane from yaw (yaw=0 looks toward -Z)
     const fwdX = -Math.sin(yaw);
     const fwdZ = -Math.cos(yaw);
     const rightX = Math.cos(yaw);
@@ -339,7 +380,6 @@ export class PlayerController {
     const result = this.physics.movePlayer({ x: moveX, y: 0, z: moveZ }, jumpNow, dt);
     this.state.player.position = result.position;
 
-    // Subtle camera walk bob
     let bobOffset = 0;
     if (len > 0.001 && result.grounded) {
       this.walkBobTimer += dt * (isSprinting ? 13 : 9);

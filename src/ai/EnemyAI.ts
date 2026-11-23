@@ -117,9 +117,10 @@ export class EnemySystem {
     rootGroup.name = `Enemy_${id}`;
 
     const bodyMaterials: THREE.MeshStandardMaterial[] = [];
-    const mainMat = new THREE.MeshStandardMaterial({ color: archetype.bodyColor, roughness: 0.78 });
-    const accentMat = new THREE.MeshStandardMaterial({ color: archetype.accentColor, roughness: 0.65 });
-    const weaponMat = new THREE.MeshStandardMaterial({ color: 0x9aa4b0, metalness: 0.75, roughness: 0.35 });
+    const mainMat = new THREE.MeshStandardMaterial({ color: archetype.bodyColor, roughness: 0.72 });
+    const accentMat = new THREE.MeshStandardMaterial({ color: archetype.accentColor, roughness: 0.62 });
+    const leatherMat = new THREE.MeshStandardMaterial({ color: 0x452f1e, roughness: 0.85 });
+    const weaponMat = new THREE.MeshStandardMaterial({ color: 0x8f99a6, metalness: 0.82, roughness: 0.32 });
     bodyMaterials.push(mainMat, accentMat);
 
     const rig = new THREE.Group();
@@ -127,101 +128,191 @@ export class EnemySystem {
     rig.scale.setScalar(archetype.scale);
     rootGroup.add(rig);
 
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.85, 0.38), accentMat);
-    torso.position.y = 1.1;
-    torso.castShadow = true;
-    rig.add(torso);
-
-    const head = new THREE.Mesh(
-      archetype.id === 'skeleton_warrior'
-        ? new THREE.DodecahedronGeometry(0.24, 0)
-        : new THREE.BoxGeometry(0.42, 0.42, 0.42),
-      mainMat,
-    );
-    head.position.y = 1.78;
-    head.castShadow = true;
-    rig.add(head);
-
-    // Eyes glow
     const eyeColor = archetype.isBoss ? 0x53e3ff : archetype.id === 'skeleton_warrior' ? 0xff453a : 0xffd60a;
     const eyeMat = new THREE.MeshBasicMaterial({ color: eyeColor });
-    const leftEye = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.05, 0.05), eyeMat);
-    leftEye.position.set(-0.09, 1.81, 0.21);
-    const rightEye = leftEye.clone();
-    rightEye.position.x = 0.09;
-    rig.add(leftEye, rightEye);
 
-    if (archetype.id === 'goblin_raider') {
-      // Pointed Goblin ears
-      const earGeo = new THREE.ConeGeometry(0.08, 0.28, 4);
-      const earL = new THREE.Mesh(earGeo, mainMat);
-      earL.position.set(-0.28, 1.82, 0);
-      earL.rotation.z = 1.1;
-      const earR = new THREE.Mesh(earGeo, mainMat);
-      earR.position.set(0.28, 1.82, 0);
-      earR.rotation.z = -1.1;
-      rig.add(earL, earR);
-    } else if (archetype.isBoss) {
-      // Boss horned crown
-      const hornGeo = new THREE.ConeGeometry(0.08, 0.42, 5);
-      const hornL = new THREE.Mesh(hornGeo, accentMat);
-      hornL.position.set(-0.2, 2.1, 0);
-      hornL.rotation.z = 0.35;
-      const hornR = new THREE.Mesh(hornGeo, accentMat);
-      hornR.position.set(0.2, 2.1, 0);
-      hornR.rotation.z = -0.35;
-      rig.add(hornL, hornR);
-    }
-
-    const legGeo = new THREE.BoxGeometry(0.22, 0.68, 0.24);
-    const leftLeg = new THREE.Mesh(legGeo, mainMat);
+    const leftLeg = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.11, 0.09, 0.68, 8),
+      archetype.id === 'skeleton_warrior' ? mainMat : leatherMat,
+    );
     leftLeg.name = 'LeftLeg';
-    leftLeg.position.set(-0.18, 0.34, 0);
+    leftLeg.position.set(-0.17, 0.34, 0);
     leftLeg.castShadow = true;
-    const rightLeg = new THREE.Mesh(legGeo, mainMat);
+
+    const rightLeg = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.11, 0.09, 0.68, 8),
+      archetype.id === 'skeleton_warrior' ? mainMat : leatherMat,
+    );
     rightLeg.name = 'RightLeg';
-    rightLeg.position.set(0.18, 0.34, 0);
+    rightLeg.position.set(0.17, 0.34, 0);
     rightLeg.castShadow = true;
     rig.add(leftLeg, rightLeg);
 
     const rightArm = new THREE.Group();
     rightArm.name = 'RightArm';
-    rightArm.position.set(0.45, 1.42, 0);
-    const armMesh = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.62, 0.2), mainMat);
-    armMesh.position.y = -0.24;
-    const blade = new THREE.Mesh(
-      new THREE.BoxGeometry(0.08, archetype.isBoss ? 1.15 : 0.72, 0.04),
-      weaponMat,
-    );
-    blade.position.set(0, -0.5, 0.35);
-    blade.rotation.x = Math.PI / 2.2;
-    rightArm.add(armMesh, blade);
-    rig.add(rightArm);
+    rightArm.position.set(0.42, 1.38, 0);
 
-    const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.62, 0.2), mainMat);
+    const leftArm = new THREE.Group();
     leftArm.name = 'LeftArm';
-    leftArm.position.set(-0.45, 1.18, 0);
-    rig.add(leftArm);
+    leftArm.position.set(-0.42, 1.38, 0);
+
+    if (archetype.id === 'goblin_raider') {
+      // Hunched muscular torso + strapped leather armor
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.72, 0.34), accentMat);
+      torso.position.y = 1.04;
+      torso.rotation.x = 0.15;
+      torso.castShadow = true;
+      const harness = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.14, 0.36), leatherMat);
+      harness.position.y = 0.85;
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8), mainMat);
+      head.scale.set(1.05, 0.95, 1.1);
+      head.position.set(0, 1.62, 0.08);
+      head.castShadow = true;
+      const nose = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.18, 5), mainMat);
+      nose.rotation.x = Math.PI / 2;
+      nose.position.set(0, 1.6, 0.28);
+      const earGeo = new THREE.ConeGeometry(0.08, 0.34, 5);
+      const earL = new THREE.Mesh(earGeo, mainMat);
+      earL.position.set(-0.28, 1.68, 0.04);
+      earL.rotation.z = 1.15;
+      const earR = new THREE.Mesh(earGeo, mainMat);
+      earR.position.set(0.28, 1.68, 0.04);
+      earR.rotation.z = -1.15;
+      const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, 0.04), eyeMat);
+      eyeL.position.set(-0.09, 1.66, 0.27);
+      const eyeR = eyeL.clone();
+      eyeR.position.x = 0.09;
+      rig.add(torso, harness, head, nose, earL, earR, eyeL, eyeR);
+
+      // Cleaver & wooden buckler
+      const rArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.075, 0.56, 7), mainMat);
+      rArmMesh.position.y = -0.24;
+      const cleaver = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.56, 0.03), weaponMat);
+      cleaver.position.set(0, -0.45, 0.28);
+      cleaver.rotation.x = Math.PI / 2.2;
+      rightArm.add(rArmMesh, cleaver);
+
+      const lArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.075, 0.56, 7), mainMat);
+      lArmMesh.position.y = -0.24;
+      const buckler = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.06, 10), leatherMat);
+      buckler.rotation.z = Math.PI / 2;
+      buckler.position.set(-0.12, -0.32, 0.14);
+      leftArm.add(lArmMesh, buckler);
+    } else if (archetype.id === 'skeleton_warrior') {
+      // Anatomical spine, ribcage, pelvis & skull
+      const pelvis = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.18, 0.24), mainMat);
+      pelvis.position.y = 0.72;
+      const spine = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.72, 6), mainMat);
+      spine.position.y = 1.1;
+      rig.add(pelvis, spine);
+
+      for (const ry of [1.0, 1.14, 1.28, 1.4]) {
+        const rib = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.032, 5, 10), mainMat);
+        rib.rotation.x = Math.PI / 2;
+        rib.scale.set(1.2, 0.72, 1);
+        rib.position.y = ry;
+        rig.add(rib);
+      }
+
+      const skull = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 10), mainMat);
+      skull.position.y = 1.72;
+      skull.castShadow = true;
+      const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.12, 0.2), mainMat);
+      jaw.position.set(0, 1.56, 0.06);
+      const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.05, 0.05), eyeMat);
+      eyeL.position.set(-0.07, 1.74, 0.17);
+      const eyeR = eyeL.clone();
+      eyeR.position.x = 0.07;
+      rig.add(skull, jaw, eyeL, eyeR);
+
+      const rBone = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.58, 6), mainMat);
+      rBone.position.y = -0.24;
+      const sword = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.84, 0.03), weaponMat);
+      sword.position.set(0, -0.5, 0.36);
+      sword.rotation.x = Math.PI / 2.2;
+      rightArm.add(rBone, sword);
+
+      const lBone = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.58, 6), mainMat);
+      lBone.position.y = -0.24;
+      const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.05, 12), accentMat);
+      shield.rotation.z = Math.PI / 2;
+      shield.position.set(-0.14, -0.32, 0.12);
+      leftArm.add(lBone, shield);
+    } else {
+      // Crypt Guardian Boss: Heavy Plate Armor, Shoulder Pauldrons, Cape, Horned Helm & Runic Greatsword
+      const cuirass = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.88, 0.42), mainMat);
+      cuirass.position.y = 1.14;
+      cuirass.castShadow = true;
+      const runeCore = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.13, 0),
+        new THREE.MeshStandardMaterial({ color: 0x6ce5ff, emissive: 0x2ca8e0, emissiveIntensity: 1.6 }),
+      );
+      runeCore.position.set(0, 1.24, 0.22);
+      const cape = new THREE.Mesh(new THREE.BoxGeometry(0.68, 1.25, 0.06), new THREE.MeshStandardMaterial({ color: 0x1e2430 }));
+      cape.position.set(0, 0.96, -0.24);
+      cape.rotation.x = 0.1;
+      const helm = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.25, 0.44, 10), mainMat);
+      helm.position.y = 1.82;
+      const crest = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.28, 0.38), accentMat);
+      crest.position.y = 2.08;
+      const hornGeo = new THREE.ConeGeometry(0.07, 0.44, 6);
+      const hornL = new THREE.Mesh(hornGeo, accentMat);
+      hornL.position.set(-0.22, 2.06, 0);
+      hornL.rotation.z = 0.4;
+      const hornR = new THREE.Mesh(hornGeo, accentMat);
+      hornR.position.set(0.22, 2.06, 0);
+      hornR.rotation.z = -0.4;
+      const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.04, 0.05), eyeMat);
+      eyeL.position.set(-0.09, 1.84, 0.22);
+      const eyeR = eyeL.clone();
+      eyeR.position.x = 0.09;
+      rig.add(cuirass, runeCore, cape, helm, crest, hornL, hornR, eyeL, eyeR);
+
+      const pauldronR = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), mainMat);
+      const rPlateArm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.64, 0.22), mainMat);
+      rPlateArm.position.y = -0.26;
+      const runeblade = new THREE.Mesh(
+        new THREE.BoxGeometry(0.1, 1.28, 0.04),
+        new THREE.MeshStandardMaterial({
+          color: 0xb0d8f0,
+          emissive: 0x2c8bb8,
+          emissiveIntensity: 0.65,
+          metalness: 0.85,
+          roughness: 0.25,
+        }),
+      );
+      runeblade.position.set(0, -0.54, 0.48);
+      runeblade.rotation.x = Math.PI / 2.2;
+      rightArm.add(pauldronR, rPlateArm, runeblade);
+
+      const pauldronL = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), mainMat);
+      const lPlateArm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.64, 0.22), mainMat);
+      lPlateArm.position.y = -0.26;
+      const towerShield = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.92, 0.52), mainMat);
+      towerShield.position.set(-0.14, -0.32, 0.14);
+      leftArm.add(pauldronL, lPlateArm, towerShield);
+    }
+
+    rig.add(rightArm, leftArm);
 
     // Floating HP bar above head
     const hpBg = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.0, 0.12),
-      new THREE.MeshBasicMaterial({ color: 0x16161a, side: THREE.DoubleSide }),
+      new THREE.PlaneGeometry(1.0, 0.11),
+      new THREE.MeshBasicMaterial({ color: 0x121318, side: THREE.DoubleSide }),
     );
-    hpBg.position.set(0, 2.35 * archetype.scale, 0);
+    hpBg.position.set(0, 2.38 * archetype.scale, 0);
     rootGroup.add(hpBg);
 
     const hpBarFill = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.94, 0.08),
-      new THREE.MeshBasicMaterial({ color: archetype.isBoss ? 0xd964ff : 0xd63b3b, side: THREE.DoubleSide }),
+      new THREE.PlaneGeometry(0.94, 0.07),
+      new THREE.MeshBasicMaterial({ color: archetype.isBoss ? 0xb55ce6 : 0xb83535, side: THREE.DoubleSide }),
     );
-    hpBarFill.position.set(0, 2.35 * archetype.scale, 0.01);
+    hpBarFill.position.set(0, 2.38 * archetype.scale, 0.01);
     rootGroup.add(hpBarFill);
 
-    // Alert "!" diamond shown briefly in DETECT state
     const alertIndicator = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.14, 0),
-      new THREE.MeshBasicMaterial({ color: 0xffcc00 }),
+      new THREE.OctahedronGeometry(0.12, 0),
+      new THREE.MeshBasicMaterial({ color: 0xebc254 }),
     );
     alertIndicator.position.set(0, 2.75 * archetype.scale, 0);
     alertIndicator.visible = false;
@@ -233,13 +324,21 @@ export class EnemySystem {
     const mixer = new THREE.AnimationMixer(rig);
     const idleAction = mixer.clipAction(
       new THREE.AnimationClip('idle', 1.6, [
-        new THREE.VectorKeyframeTrack('Rig.position', [0, 0.8, 1.6], [0, 0, 0, 0, 0.04, 0, 0, 0, 0]),
+        new THREE.VectorKeyframeTrack('Rig.position', [0, 0.8, 1.6], [0, 0, 0, 0, 0.035, 0, 0, 0, 0]),
       ]),
     );
     const walkAction = mixer.clipAction(
       new THREE.AnimationClip('walk', 0.6, [
-        new THREE.VectorKeyframeTrack('LeftLeg.position', [0, 0.15, 0.3, 0.45, 0.6], [-0.18, 0.34, 0, -0.18, 0.42, 0.16, -0.18, 0.34, 0, -0.18, 0.34, -0.14, -0.18, 0.34, 0]),
-        new THREE.VectorKeyframeTrack('RightLeg.position', [0, 0.15, 0.3, 0.45, 0.6], [0.18, 0.34, 0, 0.18, 0.34, -0.14, 0.18, 0.34, 0, 0.18, 0.42, 0.16, 0.18, 0.34, 0]),
+        new THREE.VectorKeyframeTrack(
+          'LeftLeg.position',
+          [0, 0.15, 0.3, 0.45, 0.6],
+          [-0.17, 0.34, 0, -0.17, 0.42, 0.16, -0.17, 0.34, 0, -0.17, 0.34, -0.14, -0.17, 0.34, 0],
+        ),
+        new THREE.VectorKeyframeTrack(
+          'RightLeg.position',
+          [0, 0.15, 0.3, 0.45, 0.6],
+          [0.17, 0.34, 0, 0.17, 0.34, -0.14, 0.17, 0.34, 0, 0.17, 0.42, 0.16, 0.17, 0.34, 0],
+        ),
       ]),
     );
 
@@ -442,7 +541,6 @@ export class EnemySystem {
 
       enemy.mixer.update(dt);
 
-      // Hurt emissive flash decay
       if (enemy.hurtFlashTimer > 0) {
         enemy.hurtFlashTimer -= dt;
         if (enemy.hurtFlashTimer <= 0) {
@@ -462,7 +560,6 @@ export class EnemySystem {
         continue;
       }
 
-      // Billboard HP bar toward player
       enemy.hpBarFill.parent?.children.forEach((child) => {
         if (child === enemy.hpBarFill || (child instanceof THREE.Mesh && child.geometry instanceof THREE.PlaneGeometry)) {
           child.lookAt(playerPos.x, playerPos.y + 1.65, playerPos.z);
@@ -582,7 +679,6 @@ export class EnemySystem {
     let nextX = enemy.position.x + nx * step;
     let nextZ = enemy.position.z + nz * step;
 
-    // Keep dungeon enemies inside stone corridor/sanctum bounds
     if (enemy.zone === 'ancient_crypt') {
       nextX = Math.max(-16.5, Math.min(16.5, nextX));
       nextZ = Math.max(-76, Math.min(-4, nextZ));

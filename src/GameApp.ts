@@ -6,8 +6,10 @@ import type { Vec3, ZoneId } from './core/types';
 import worldConfig from './data/worldConfig.json';
 import { DialogueSystem } from './dialogue/DialogueSystem';
 import { AudioSystem } from './engine/AudioSystem';
+import { MaterialLibrary } from './engine/MaterialLibrary';
 import { ParticleSystem } from './engine/ParticleSystem';
 import { PhysicsWorld } from './engine/PhysicsWorld';
+import { QualityManager, type QualityPreset } from './engine/QualityManager';
 import { SceneEngine } from './engine/SceneEngine';
 import { InventorySystem } from './inventory/InventorySystem';
 import { NPCSystem } from './npc/NPCSystem';
@@ -21,10 +23,13 @@ import { InteractableRegistry } from './world/InteractableRegistry';
 import { getRegionAt, getRegionDisplayName, getTerrainHeight } from './world/TerrainGenerator';
 import { buildOverworld } from './world/WorldBuilder';
 import { WorldSpawner } from './world/WorldSpawner';
+import type { VegetationController } from './world/VegetationBuilder';
 
 export class GameApp {
   readonly state = new GameState();
   readonly engine: SceneEngine;
+  readonly materials = new MaterialLibrary();
+  readonly quality = new QualityManager();
   readonly physics = new PhysicsWorld();
   readonly dayNight: DayNightCycle;
   readonly particles: ParticleSystem;
@@ -42,8 +47,9 @@ export class GameApp {
   readonly ui: UIManager;
 
   private readonly clock = new THREE.Clock();
-  private overworldUpdate: (elapsed: number) => void = () => {};
+  private overworldUpdate: (elapsed: number, dt?: number) => void = () => {};
   private cryptUpdate: (elapsed: number) => void = () => {};
+  private vegetation: VegetationController | null = null;
   private activeInteractable: ReturnType<InteractableRegistry['findBestInteractable']> = null;
   private rafId = 0;
 
@@ -118,6 +124,11 @@ export class GameApp {
       listSaveSlots: () => this.saveSystem.listSlots(),
       onToggleMute: () => this.audio.toggleMute(),
       onReleasePointerLock: () => this.player.releasePointerLock(),
+      onEquipmentChanged: () => this.player.setEquippedWeapon(this.state.equipped.weapon),
+      onQuickPotion: (kind) => this.useQuickPotion(kind),
+      onSetQuality: (preset) => this.setQualityPreset(preset),
+      getQualityPreset: () => this.quality.getPreset(),
+      getTelemetry: () => this.quality.getTelemetry(this.engine.renderer),
     });
 
     this.player = new PlayerController(this.engine.camera, this.physics, this.state, canvas, {
@@ -130,6 +141,7 @@ export class GameApp {
       onCastSpell: () => {
         this.combat.castFireball(this.physics.getPlayerEyePosition(), this.player.getLookDirection());
       },
+      onQuickPotion: (kind) => this.useQuickPotion(kind),
       onToggleUI: (panel) => {
         if (panel === 'menu' && this.ui.isModalOpen()) {
           this.ui.closeModal();
@@ -177,8 +189,10 @@ export class GameApp {
         onEnterCrypt: () => this.enterCrypt(),
         onLoreRead: (title, body) => this.ui.openLore(title, body),
       },
+      this.materials,
     );
     this.overworldUpdate = overworldBuilt.update;
+    this.vegetation = overworldBuilt.vegetation;
 
     const cryptBuilt = buildAncientCrypt(
       this.engine.cryptGroup,
@@ -187,6 +201,7 @@ export class GameApp {
       {
         onExitCrypt: () => this.exitCrypt(),
       },
+      this.materials,
     );
     this.cryptUpdate = cryptBuilt.update;
 
@@ -204,11 +219,42 @@ export class GameApp {
     this.applyZoneVisibility(this.state.player.currentZone);
     this.physics.teleportPlayer(this.state.player.position);
     this.player.syncCameraFromState();
-    this.dayNight.update(0, this.state);
+    this.setQualityPreset('high');
+    this.dayNight.update(0, this.state, this.quality.getConfig().fogMultiplier);
 
     this.ui.pushToast('欢迎来到灰烬边境！按 [E] 与溪谷村长老对话开启冒险。', 'quest');
     this.exposeDebugBridge();
     this.loop();
+  }
+
+  setQualityPreset(preset: QualityPreset): void {
+    this.quality.applyPreset(
+      preset,
+      this.engine.renderer,
+      this.engine.camera,
+      this.dayNight.sunLight,
+      (density) => this.vegetation?.setDensity(density),
+    );
+  }
+
+  useQuickPotion(kind: 'health' | 'mana'): void {
+    if (this.state.isDead || this.ui.isModalOpen()) return;
+    if (kind === 'health') {
+      if (this.inventory.hasItem('minor_health_potion', 1)) {
+        this.inventory.useItem('minor_health_potion');
+      } else if (this.inventory.hasItem('greater_health_potion', 1)) {
+        this.inventory.useItem('greater_health_potion');
+      } else {
+        this.ui.pushToast('背包中没有治疗药水', 'warning');
+      }
+    } else {
+      if (this.inventory.hasItem('mana_potion', 1)) {
+        this.inventory.useItem('mana_potion');
+      } else {
+        this.ui.pushToast('背包中没有法力药水', 'warning');
+      }
+    }
+    this.ui.refreshHUD();
   }
 
   private applyZoneVisibility(zone: ZoneId): void {
@@ -257,6 +303,7 @@ export class GameApp {
     this.player.syncCameraFromState();
     this.spawner.syncFromState();
     this.enemies.applySavedDefeatedIds();
+    this.player.setEquippedWeapon(this.state.equipped.weapon);
     this.ui.refreshHUD();
     this.ui.pushToast(`已读取存档：${slotId}`, 'quest');
     return true;
@@ -266,12 +313,13 @@ export class GameApp {
     this.rafId = requestAnimationFrame(this.loop);
     const dt = Math.min(this.clock.getDelta(), 0.05);
     const elapsed = this.clock.elapsedTime;
+    this.quality.recordFrame(dt);
 
     this.player.update(dt);
-    this.dayNight.update(dt, this.state);
+    this.dayNight.update(dt, this.state, this.quality.getConfig().fogMultiplier);
 
     if (this.state.player.currentZone === 'overworld') {
-      this.overworldUpdate(elapsed);
+      this.overworldUpdate(elapsed, dt);
       const region = getRegionAt(this.state.player.position.x, this.state.player.position.z);
       if (region !== this.state.player.currentRegion) {
         this.state.player.currentRegion = region;
@@ -329,8 +377,22 @@ export class GameApp {
           this.physics.teleportPlayer({ x, y, z });
           this.player.syncCameraFromState();
         }
+        this.activeInteractable = this.registry.findBestInteractable(
+          this.physics.getPlayerEyePosition(),
+          this.player.getLookDirection(),
+          this.state.player.currentZone,
+        );
+        this.ui.setInteractPrompt(this.activeInteractable?.label ?? null);
       },
-      setLook: (yaw: number, pitch: number) => this.player.setLook(yaw, pitch),
+      setLook: (yaw: number, pitch: number) => {
+        this.player.setLook(yaw, pitch);
+        this.activeInteractable = this.registry.findBestInteractable(
+          this.physics.getPlayerEyePosition(),
+          this.player.getLookDirection(),
+          this.state.player.currentZone,
+        );
+        this.ui.setInteractPrompt(this.activeInteractable?.label ?? null);
+      },
       interact: (id?: string) => {
         if (id) {
           this.registry.get(id)?.onInteract();
@@ -345,6 +407,8 @@ export class GameApp {
       save: (slotId: string) =>
         this.saveSystem.saveSlot(slotId, this.state, getRegionDisplayName(this.state.player.currentRegion)),
       load: (slotId: string) => this.loadFromSlot(slotId),
+      setQuality: (preset: QualityPreset) => this.setQualityPreset(preset),
+      getTelemetry: () => this.quality.getTelemetry(this.engine.renderer),
     };
   }
 

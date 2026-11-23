@@ -67,8 +67,7 @@ export class WorldSpawner {
           this.state.markChestOpened(c.id);
           const lid = mesh.getObjectByName('ChestLid');
           if (lid) {
-            lid.rotation.x = -0.75;
-            lid.position.set(0, 0.78, -0.22);
+            lid.rotation.x = -0.88;
           }
           this.registry.setEnabled(`chest:${c.id}`, false);
           this.registry.setLabel(`chest:${c.id}`, `${c.name} (已开启)`);
@@ -160,13 +159,7 @@ export class WorldSpawner {
       this.registry.setLabel(`chest:${c.id}`, opened ? `${c.name} (已开启)` : `开启 ${c.name}`);
       const lid = c.mesh.getObjectByName('ChestLid');
       if (lid) {
-        if (opened) {
-          lid.rotation.x = -0.75;
-          lid.position.set(0, 0.78, -0.22);
-        } else {
-          lid.rotation.x = 0;
-          lid.position.set(0, 0.65, 0);
-        }
+        lid.rotation.x = opened ? -0.88 : 0;
       }
     }
 

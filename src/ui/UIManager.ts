@@ -1,13 +1,21 @@
 import type { GameState } from '../core/GameState';
-import type { EquipSlot } from '../core/types';
+import type { EquipSlot, ItemCategory } from '../core/types';
 import worldConfig from '../data/worldConfig.json';
 import type { ActiveDialogueView, DialogueSystem } from '../dialogue/DialogueSystem';
+import type { PerformanceTelemetry, QualityPreset } from '../engine/QualityManager';
 import type { InventorySystem } from '../inventory/InventorySystem';
 import type { NPCSystem } from '../npc/NPCSystem';
 import type { QuestSystem } from '../quests/QuestSystem';
 import type { SaveSlotMeta } from '../save/SaveSystem';
 import { DayNightCycle } from '../world/DayNightCycle';
 import { getRegionDisplayName, getRiverCenterX } from '../world/TerrainGenerator';
+import {
+  COIN_ICON_SVG,
+  getCategoryLabel,
+  getItemIconSvg,
+  getItemRarity,
+  SPELL_ICON_SVG,
+} from './IconRegistry';
 
 export type ModalType =
   | null
@@ -28,7 +36,23 @@ export interface UIActions {
   listSaveSlots: () => Promise<SaveSlotMeta[]>;
   onToggleMute: () => boolean;
   onReleasePointerLock: () => void;
+  onEquipmentChanged?: () => void;
+  onQuickPotion?: (kind: 'health' | 'mana') => void;
+  onSetQuality?: (preset: QualityPreset) => void;
+  getQualityPreset?: () => QualityPreset;
+  getTelemetry?: () => PerformanceTelemetry;
 }
+
+const COMPASS_LABELS = [
+  { label: '北 N', minor: false },
+  { label: '东北', minor: true },
+  { label: '东 E', minor: false },
+  { label: '东南', minor: true },
+  { label: '南 S', minor: false },
+  { label: '西南', minor: true },
+  { label: '西 W', minor: false },
+  { label: '西北', minor: true },
+];
 
 export class UIManager {
   private readonly root: HTMLElement;
@@ -45,8 +69,13 @@ export class UIManager {
   private loreContent: { title: string; body: string } | null = null;
   private saveSlotsCache: SaveSlotMeta[] = [];
 
+  private invFilter: 'all' | ItemCategory = 'all';
+  private selectedInvItemId: string | null = null;
+  private selectedQuestId: string | null = null;
+
   // Persistent HUD DOM references
-  private compassEl!: HTMLElement;
+  private compassTrackEl!: HTMLElement;
+  private compassTextEl!: HTMLElement;
   private questTrackerEl!: HTMLElement;
   private notificationsEl!: HTMLElement;
   private promptEl!: HTMLElement;
@@ -59,8 +88,10 @@ export class UIManager {
   private mpFillEl!: HTMLElement;
   private staminaTextEl!: HTMLElement;
   private staminaFillEl!: HTMLElement;
-  private xpTextEl!: HTMLElement;
   private xpFillEl!: HTMLElement;
+  private quickWeaponIconEl!: HTMLElement;
+  private quickHpCountEl!: HTMLElement;
+  private quickMpCountEl!: HTMLElement;
   private modalOverlayEl!: HTMLElement;
   private modalPanelEl!: HTMLElement;
 
@@ -87,42 +118,54 @@ export class UIManager {
   }
 
   private buildDOM(): void {
+    const repeatedTicks = [...COMPASS_LABELS, ...COMPASS_LABELS, ...COMPASS_LABELS]
+      .map((t) => `<span class="compass-tick${t.minor ? ' minor' : ''}">${t.label}</span>`)
+      .join('');
+
     this.root.innerHTML = `
       <div class="hud-damage-flash" id="hud-damage-flash"></div>
-      <div class="hud-compass" id="hud-compass" data-testid="hud-compass"></div>
+
+      <div class="hud-compass-wrap">
+        <div class="hud-compass-strip">
+          <div class="hud-compass-pointer"></div>
+          <div class="hud-compass-track" id="hud-compass-track">${repeatedTicks}</div>
+        </div>
+        <div class="hud-region-sub" id="hud-compass" data-testid="hud-compass"></div>
+      </div>
+
       <div class="hud-notifications" id="hud-notifications"></div>
       <div class="hud-quest-tracker" id="hud-quest-tracker" data-testid="hud-quest-tracker"></div>
       <div class="hud-crosshair"></div>
       <div class="hud-interact-prompt" id="hud-interact-prompt" data-testid="hud-interact-prompt"></div>
 
-      <div class="hud-bars" data-testid="hud-bars">
-        <div class="hud-meta-row">
+      <div class="hud-status-cluster" data-testid="hud-bars">
+        <div class="hud-meta-line">
           <span id="hud-level">Lv.1</span>
-          <span id="hud-gold">50 金币</span>
+          <span class="hud-coin-badge">${COIN_ICON_SVG}<span id="hud-gold">50</span></span>
         </div>
-        <div class="bar-row">
-          <div class="bar-label"><span>生命 HP</span><span id="hud-hp-text">120 / 120</span></div>
-          <div class="bar-track"><div class="bar-fill hp" id="hud-hp-fill" style="width:100%"></div></div>
+        <div class="status-bar-row">
+          <div class="status-bar-meta"><span>生命</span><span id="hud-hp-text">120 / 120</span></div>
+          <div class="status-track"><div class="status-fill hp" id="hud-hp-fill" style="width:100%"></div></div>
         </div>
-        <div class="bar-row">
-          <div class="bar-label"><span>法力 MP</span><span id="hud-mp-text">60 / 60</span></div>
-          <div class="bar-track"><div class="bar-fill mp" id="hud-mp-fill" style="width:100%"></div></div>
+        <div class="status-bar-row">
+          <div class="status-bar-meta"><span>法力</span><span id="hud-mp-text">60 / 60</span></div>
+          <div class="status-track"><div class="status-fill mp" id="hud-mp-fill" style="width:100%"></div></div>
         </div>
-        <div class="bar-row">
-          <div class="bar-label"><span>耐力 Stamina</span><span id="hud-stamina-text">100 / 100</span></div>
-          <div class="bar-track"><div class="bar-fill stamina" id="hud-stamina-fill" style="width:100%"></div></div>
+        <div class="status-bar-row">
+          <div class="status-bar-meta"><span>耐力</span><span id="hud-stamina-text">100 / 100</span></div>
+          <div class="status-track"><div class="status-fill stamina" id="hud-stamina-fill" style="width:100%"></div></div>
         </div>
-        <div class="bar-row">
-          <div class="bar-label"><span>经验 XP</span><span id="hud-xp-text">0 / 100</span></div>
-          <div class="bar-track"><div class="bar-fill xp" id="hud-xp-fill" style="width:0%"></div></div>
-        </div>
+        <div class="status-track" style="margin-top:2px;"><div class="status-fill xp" id="hud-xp-fill" style="width:0%"></div></div>
       </div>
 
-      <div class="hud-hotkeys">
-        <button class="hud-pill-btn" data-panel="inventory">背包 [I]</button>
-        <button class="hud-pill-btn" data-panel="quests">任务 [J]</button>
-        <button class="hud-pill-btn" data-panel="map">地图 [M]</button>
-        <button class="hud-pill-btn" data-panel="menu">菜单/存档 [Esc]</button>
+      <div class="hud-quickbar">
+        <div class="quickslot-row">
+          <div class="quickslot" title="单手近战 (左键)"><span class="quickslot-key">LMB</span><span id="quick-weapon-icon"></span></div>
+          <div class="quickslot" title="火球术 15 MP (右键)"><span class="quickslot-key">RMB</span><span>${SPELL_ICON_SVG}</span></div>
+          <div class="quickslot" id="quick-hp-btn" title="治疗药水 [3]"><span class="quickslot-key">3</span><span>${getItemIconSvg('minor_health_potion', 'consumable')}</span><span class="quickslot-count" id="quick-hp-count">0</span></div>
+          <div class="quickslot" id="quick-mp-btn" title="法力药水 [4]"><span class="quickslot-key">4</span><span>${getItemIconSvg('mana_potion', 'consumable')}</span><span class="quickslot-count" id="quick-mp-count">0</span></div>
+        </div>
+        <div class="hud-hint-line">[I] 背包 · [J] 任务 · [M] 地图 · [E] 交互 · [Esc] 系统</div>
       </div>
 
       <div class="modal-overlay" id="modal-overlay" data-testid="modal-overlay">
@@ -130,7 +173,8 @@ export class UIManager {
       </div>
     `;
 
-    this.compassEl = this.root.querySelector('#hud-compass')!;
+    this.compassTrackEl = this.root.querySelector('#hud-compass-track')!;
+    this.compassTextEl = this.root.querySelector('#hud-compass')!;
     this.questTrackerEl = this.root.querySelector('#hud-quest-tracker')!;
     this.notificationsEl = this.root.querySelector('#hud-notifications')!;
     this.promptEl = this.root.querySelector('#hud-interact-prompt')!;
@@ -143,16 +187,18 @@ export class UIManager {
     this.mpFillEl = this.root.querySelector('#hud-mp-fill')!;
     this.staminaTextEl = this.root.querySelector('#hud-stamina-text')!;
     this.staminaFillEl = this.root.querySelector('#hud-stamina-fill')!;
-    this.xpTextEl = this.root.querySelector('#hud-xp-text')!;
     this.xpFillEl = this.root.querySelector('#hud-xp-fill')!;
+    this.quickWeaponIconEl = this.root.querySelector('#quick-weapon-icon')!;
+    this.quickHpCountEl = this.root.querySelector('#quick-hp-count')!;
+    this.quickMpCountEl = this.root.querySelector('#quick-mp-count')!;
     this.modalOverlayEl = this.root.querySelector('#modal-overlay')!;
     this.modalPanelEl = this.root.querySelector('#modal-panel')!;
 
-    this.root.querySelectorAll('.hud-pill-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const panel = btn.getAttribute('data-panel') as 'inventory' | 'quests' | 'map' | 'menu';
-        this.togglePanel(panel);
-      });
+    this.root.querySelector('#quick-hp-btn')?.addEventListener('click', () => {
+      this.actions.onQuickPotion?.('health');
+    });
+    this.root.querySelector('#quick-mp-btn')?.addEventListener('click', () => {
+      this.actions.onQuickPotion?.('mana');
     });
   }
 
@@ -173,7 +219,7 @@ export class UIManager {
     el.className = `hud-toast ${kind}`;
     el.textContent = text;
     this.notificationsEl.prepend(el);
-    while (this.notificationsEl.children.length > 5) {
+    while (this.notificationsEl.children.length > 4) {
       this.notificationsEl.lastElementChild?.remove();
     }
     setTimeout(() => {
@@ -225,19 +271,37 @@ export class UIManager {
     this.staminaFillEl.style.width = `${stPct}%`;
 
     const xpPct = Math.max(0, Math.min(100, (stats.xp / Math.max(1, stats.xpToNextLevel)) * 100));
-    this.xpTextEl.textContent = `${stats.xp} / ${stats.xpToNextLevel}`;
     this.xpFillEl.style.width = `${xpPct}%`;
 
-    // Compass & Zone
+    // Quickbar icons & potion counters
+    const weaponDef = this.state.equipped.weapon
+      ? this.inventory.getItemDef(this.state.equipped.weapon)
+      : undefined;
+    this.quickWeaponIconEl.innerHTML = getItemIconSvg(
+      weaponDef?.id ?? 'iron_sword',
+      'weapon',
+      weaponDef?.color ?? '#a8b2bd',
+    );
+    const hpCount =
+      this.inventory.getCount('minor_health_potion') + this.inventory.getCount('greater_health_potion');
+    const mpCount = this.inventory.getCount('mana_potion');
+    this.quickHpCountEl.textContent = String(hpCount);
+    this.quickMpCountEl.textContent = String(mpCount);
+
+    // Compass ribbon scroll: 8 ticks * 48px = 384px per 360deg
     const deg = (((-this.state.player.yaw * 180) / Math.PI) % 360 + 360) % 360;
+    const cycleWidth = 8 * 48;
+    const offset = 170 - 24 - (deg / 360) * cycleWidth - cycleWidth;
+    this.compassTrackEl.style.transform = `translateX(${offset.toFixed(1)}px)`;
+
     const dirs = ['北 N', '东北 NE', '东 E', '东南 SE', '南 S', '西南 SW', '西 W', '西北 NW'];
     const dirLabel = dirs[Math.round(deg / 45) % 8];
     const zoneLabel =
       this.state.player.currentZone === 'ancient_crypt'
-        ? '古代墓穴 (地下城)'
+        ? '古代墓穴 · 地下城'
         : getRegionDisplayName(this.state.player.currentRegion);
+    this.compassTextEl.textContent = `${dirLabel} · ${zoneLabel} · ${DayNightCycle.formatTime(this.state.world.timeOfDay)}`;
 
-    this.compassEl.textContent = `${dirLabel}  |  ${zoneLabel}  |  ${DayNightCycle.formatTime(this.state.world.timeOfDay)}`;
     this.refreshQuestTracker();
   }
 
@@ -245,8 +309,8 @@ export class UIManager {
     const active = this.quests.getActiveQuests();
     if (active.length === 0) {
       this.questTrackerEl.innerHTML = `
-        <h4>当前任务</h4>
-        <div style="color: var(--text-dim);">前往溪谷村与【村长奥尔德林】交谈开启冒险。</div>
+        <div class="hud-quest-header">当前线索</div>
+        <div class="hud-quest-obj">在溪谷村与村长奥尔德林交谈</div>
       `;
       return;
     }
@@ -257,14 +321,14 @@ export class UIManager {
         const objText = stage
           ? `${stage.objective.description} (${state.progress}/${stage.objective.requiredCount})`
           : '待完成';
-        return `<div style="margin-bottom:6px;">
-          <div style="color:var(--gold-bright);font-weight:bold;">${def.isMain ? '★ ' : '◆ '}${def.title}</div>
-          <div style="color:var(--text-main);font-size:12px;">${objText}</div>
+        return `<div style="margin-bottom:5px;">
+          <div class="hud-quest-header">${def.isMain ? '★ ' : '◆ '}${def.title}</div>
+          <div class="hud-quest-obj">${objText}</div>
         </div>`;
       })
       .join('');
 
-    this.questTrackerEl.innerHTML = `<h4>当前任务</h4>${itemsHtml}`;
+    this.questTrackerEl.innerHTML = itemsHtml;
   }
 
   togglePanel(panel: 'inventory' | 'quests' | 'map' | 'menu'): void {
@@ -284,7 +348,10 @@ export class UIManager {
     this.activeModal = panel;
     this.state.isPaused = true;
     this.actions.onReleasePointerLock();
+
     this.modalOverlayEl.classList.add('open');
+    this.modalOverlayEl.classList.toggle('dialogue-mode', panel === 'dialogue');
+    this.modalPanelEl.classList.toggle('dialogue-sheet', panel === 'dialogue');
 
     if (panel === 'menu') {
       void this.actions.listSaveSlots().then((slots) => {
@@ -302,7 +369,8 @@ export class UIManager {
     this.loreContent = null;
     this.dialogue.close();
     this.state.isPaused = false;
-    this.modalOverlayEl.classList.remove('open');
+    this.modalOverlayEl.classList.remove('open', 'dialogue-mode');
+    this.modalPanelEl.classList.remove('dialogue-sheet');
     this.modalPanelEl.innerHTML = '';
   }
 
@@ -330,6 +398,8 @@ export class UIManager {
     this.state.isPaused = true;
     this.actions.onReleasePointerLock();
     this.modalOverlayEl.classList.add('open');
+    this.modalOverlayEl.classList.remove('dialogue-mode');
+    this.modalPanelEl.classList.remove('dialogue-sheet');
     this.renderModal();
   }
 
@@ -368,12 +438,17 @@ export class UIManager {
       return;
     }
     const d = this.currentDialogue;
+    const npc = this.npcs.getAllDefinitions().find((n) => n.name === d.speaker);
+
     this.modalPanelEl.innerHTML = `
-      <div class="modal-header" data-testid="modal-dialogue">
-        <h2>${d.speaker}</h2>
+      <div class="dialogue-speaker-row" data-testid="modal-dialogue">
+        <div>
+          <span class="dialogue-speaker-name">${d.speaker}</span>
+          ${npc ? `<span class="dialogue-speaker-title">${npc.title}</span>` : ''}
+        </div>
         <button class="btn" id="btn-close-modal">离开 [Esc]</button>
       </div>
-      <div class="dialogue-box">${d.text}</div>
+      <div class="dialogue-text">${d.text}</div>
       <div class="choice-list">
         ${d.choices
           .map(
@@ -411,14 +486,16 @@ export class UIManager {
       .map((itemId) => {
         const def = this.inventory.getItemDef(itemId);
         if (!def) return '';
+        const rarity = getItemRarity(def);
         const canAfford = this.state.player.stats.gold >= def.value;
         return `
           <div class="item-row">
-            <div class="item-info">
-              <span class="item-name">${def.name}</span>
-              <span class="item-desc">${def.description} | 价格: ${def.value} 金币</span>
+            <div class="icon-frame">${getItemIconSvg(def.id, def.category, def.color)}</div>
+            <div class="item-info" style="flex:1">
+              <span class="item-name" style="color:${rarity.color}">${def.name}</span>
+              <span class="item-desc">${def.description}</span>
             </div>
-            <button class="btn" data-buy-id="${def.id}" ${canAfford ? '' : 'disabled'}>购买 (${def.value})</button>
+            <button class="btn btn-primary" data-buy-id="${def.id}" ${canAfford ? '' : 'disabled'}>购买 ${def.value} 金</button>
           </div>
         `;
       })
@@ -432,11 +509,12 @@ export class UIManager {
         const sellVal = Math.max(1, Math.floor(def.value * 0.5));
         return `
           <div class="item-row">
-            <div class="item-info">
+            <div class="icon-frame">${getItemIconSvg(def.id, def.category, def.color)}</div>
+            <div class="item-info" style="flex:1">
               <span class="item-name">${def.name} ×${slot.quantity}</span>
-              <span class="item-desc">可售出: ${sellVal} 金币</span>
+              <span class="item-desc">回收价: ${sellVal} 金币</span>
             </div>
-            <button class="btn" data-sell-id="${def.id}">出售 (+${sellVal})</button>
+            <button class="btn" data-sell-id="${def.id}">出售 +${sellVal}</button>
           </div>
         `;
       })
@@ -444,16 +522,19 @@ export class UIManager {
 
     this.modalPanelEl.innerHTML = `
       <div class="modal-header" data-testid="modal-shop">
-        <h2>${npc?.name ?? '商店'} — 货摊交易 (持有金币: ${this.state.player.stats.gold})</h2>
-        <button class="btn" id="btn-close-modal">关闭</button>
+        <h2>${npc?.name ?? '铁匠商铺'} · 交易货物</h2>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span class="hud-coin-badge" style="color:var(--accent-gold); font-size:14px;">${COIN_ICON_SVG}${this.state.player.stats.gold} 金币</span>
+          <button class="btn" id="btn-close-modal">离开</button>
+        </div>
       </div>
-      <div class="grid-2">
-        <div class="card-box">
-          <h3 style="color:var(--gold)">商人货物</h3>
+      <div class="split-2">
+        <div class="panel-card">
+          <div class="panel-title">商铺货物</div>
           ${buyRows || '<div class="item-desc">暂无商品</div>'}
         </div>
-        <div class="card-box">
-          <h3 style="color:var(--gold)">背包可出售</h3>
+        <div class="panel-card">
+          <div class="panel-title">背包可出售物品</div>
           ${sellRows || '<div class="item-desc">无可出售物品</div>'}
         </div>
       </div>
@@ -462,16 +543,15 @@ export class UIManager {
     this.modalPanelEl.querySelector('#btn-close-modal')?.addEventListener('click', () => this.closeModal());
     this.modalPanelEl.querySelectorAll('[data-buy-id]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-buy-id')!;
-        this.inventory.buyItem(id);
+        this.inventory.buyItem(btn.getAttribute('data-buy-id')!);
         this.refreshHUD();
         this.renderShop();
       });
     });
     this.modalPanelEl.querySelectorAll('[data-sell-id]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-sell-id')!;
-        this.inventory.sellItem(id);
+        this.inventory.sellItem(btn.getAttribute('data-sell-id')!);
+        this.actions.onEquipmentChanged?.();
         this.refreshHUD();
         this.renderShop();
       });
@@ -481,77 +561,170 @@ export class UIManager {
   private renderInventory(): void {
     const computed = this.inventory.getComputedStats();
     const eq = this.state.equipped;
+    const allSlots = this.inventory.getSlots();
 
-    const slotLabel = (slot: EquipSlot, label: string): string => {
+    const filtered = allSlots.filter((slot) => {
+      if (this.invFilter === 'all') return true;
+      const def = this.inventory.getItemDef(slot.itemId);
+      if (!def) return false;
+      if (this.invFilter === 'armor') return def.category === 'armor' || def.category === 'accessory';
+      if (this.invFilter === 'material') return def.category === 'material' || def.category === 'quest';
+      return def.category === this.invFilter;
+    });
+
+    if (!this.selectedInvItemId || !filtered.some((s) => s.itemId === this.selectedInvItemId)) {
+      this.selectedInvItemId = filtered[0]?.itemId ?? null;
+    }
+
+    const slotHtml = (slot: EquipSlot, label: string): string => {
       const id = eq[slot];
       const def = id ? this.inventory.getItemDef(id) : undefined;
       return `
-        <div class="item-row">
-          <div class="item-info">
-            <span class="item-name">${label}: ${def ? def.name : '空'}</span>
-            <span class="item-desc">${def ? def.description : '未装备'}</span>
+        <div class="equip-slot-card">
+          <div class="icon-frame">${def ? getItemIconSvg(def.id, def.category, def.color) : ''}</div>
+          <div class="inv-row-meta">
+            <div class="inv-row-sub">${label}</div>
+            <div class="inv-row-name">${def ? def.name : '空置'}</div>
           </div>
           ${def ? `<button class="btn" data-unequip="${slot}">卸下</button>` : ''}
         </div>
       `;
     };
 
-    const itemsHtml = this.inventory
-      .getSlots()
+    const filterTabs: Array<{ id: 'all' | ItemCategory; label: string }> = [
+      { id: 'all', label: '全部' },
+      { id: 'weapon', label: '武器' },
+      { id: 'armor', label: '防具/饰品' },
+      { id: 'consumable', label: '药水' },
+      { id: 'material', label: '任务/材料' },
+    ];
+
+    const listHtml = filtered
       .map((slot) => {
         const def = this.inventory.getItemDef(slot.itemId);
         if (!def) return '';
-        const isEquipped =
-          eq.weapon === def.id || eq.armor === def.id || eq.accessory === def.id;
-
+        const rarity = getItemRarity(def);
+        const isEquipped = eq.weapon === def.id || eq.armor === def.id || eq.accessory === def.id;
+        const isSelected = this.selectedInvItemId === def.id;
         return `
-          <div class="item-row">
-            <div class="item-info">
-              <span class="item-name">${def.name}${slot.quantity > 1 ? ` ×${slot.quantity}` : ''}${isEquipped ? ' [已装备]' : ''}</span>
-              <span class="item-desc">${def.description} (价值 ${def.value} 金币)</span>
-            </div>
-            <div class="item-actions">
-              ${def.equipSlot ? `<button class="btn" data-equip="${def.id}">${isEquipped ? '已穿戴' : '装备'}</button>` : ''}
-              ${def.category === 'consumable' ? `<button class="btn" data-use="${def.id}">使用</button>` : ''}
-              ${def.category !== 'quest' ? `<button class="btn btn-danger" data-drop="${def.id}">丢弃</button>` : ''}
+          <div class="inv-row ${isSelected ? 'selected' : ''}" data-select-item="${def.id}">
+            <div class="icon-frame">${getItemIconSvg(def.id, def.category, def.color)}</div>
+            <div class="inv-row-meta">
+              <div class="inv-row-name" style="color:${rarity.color}">
+                ${def.name}${slot.quantity > 1 ? ` ×${slot.quantity}` : ''}${isEquipped ? ' [已穿戴]' : ''}
+              </div>
+              <div class="inv-row-sub">${getCategoryLabel(def.category)} · ${rarity.label}</div>
             </div>
           </div>
         `;
       })
       .join('');
 
-    this.modalPanelEl.innerHTML = `
-      <div class="modal-header" data-testid="modal-inventory">
-        <h2>背包与属性 (金币: ${this.state.player.stats.gold})</h2>
-        <button class="btn" id="btn-close-modal">关闭 [I]</button>
-      </div>
-      <div class="grid-2">
-        <div class="card-box">
-          <h3 style="color:var(--gold)">当前装备</h3>
-          ${slotLabel('weapon', '武器')}
-          ${slotLabel('armor', '护甲')}
-          ${slotLabel('accessory', '饰品')}
-        </div>
-        <div class="card-box">
-          <h3 style="color:var(--gold)">角色总属性 (Lv.${this.state.player.stats.level})</h3>
-          <div class="item-desc" style="font-size:13px; color:var(--text-main); line-height:1.8;">
-            物理攻击: <b>${computed.attack}</b><br/>
-            魔法强度: <b>${computed.magic}</b><br/>
-            物理防御: <b>${computed.defense}</b><br/>
-            生命上限: <b>${computed.maxHp}</b> | 法力上限: <b>${computed.maxMp}</b>
+    const selDef = this.selectedInvItemId ? this.inventory.getItemDef(this.selectedInvItemId) : undefined;
+    const selSlot = this.selectedInvItemId
+      ? allSlots.find((s) => s.itemId === this.selectedInvItemId)
+      : undefined;
+    let inspectorHtml = '<div class="item-desc">点击左侧列表中的物品查看详情与操作。</div>';
+    if (selDef && selSlot) {
+      const rarity = getItemRarity(selDef);
+      const isEquipped =
+        eq.weapon === selDef.id || eq.armor === selDef.id || eq.accessory === selDef.id;
+      const statLines: string[] = [];
+      if (selDef.stats.attack) statLines.push(`物理攻击 +${selDef.stats.attack}`);
+      if (selDef.stats.magic) statLines.push(`魔法强度 +${selDef.stats.magic}`);
+      if (selDef.stats.defense) statLines.push(`物理防御 +${selDef.stats.defense}`);
+      if (selDef.stats.maxHp) statLines.push(`生命上限 +${selDef.stats.maxHp}`);
+      if (selDef.stats.maxMp) statLines.push(`法力上限 +${selDef.stats.maxMp}`);
+      if (selDef.stats.healHp) statLines.push(`立即恢复生命 +${selDef.stats.healHp}`);
+      if (selDef.stats.restoreMp) statLines.push(`立即恢复法力 +${selDef.stats.restoreMp}`);
+
+      inspectorHtml = `
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div class="icon-frame large">${getItemIconSvg(selDef.id, selDef.category, selDef.color)}</div>
+          <div>
+            <div class="item-name" style="color:${rarity.color}; font-size:15px; font-weight:600;">${selDef.name}</div>
+            <div class="item-desc">${rarity.label} · ${getCategoryLabel(selDef.category)}</div>
           </div>
         </div>
+        ${
+          statLines.length > 0
+            ? `<div style="font-size:12px; color:#8ec998; background:rgba(30,52,35,0.35); padding:7px 9px; border-radius:3px;">${statLines.join('<br/>')}</div>`
+            : ''
+        }
+        <div class="item-desc" style="color:var(--text-main);">${selDef.description}</div>
+        <div class="item-desc">数量: ${selSlot.quantity} · 估价: ${selDef.value} 金币</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:auto; padding-top:8px;">
+          ${
+            selDef.equipSlot
+              ? `<button class="btn btn-primary" data-equip="${selDef.id}">${isEquipped ? '已穿戴' : '装备'}</button>`
+              : ''
+          }
+          ${selDef.category === 'consumable' ? `<button class="btn btn-primary" data-use="${selDef.id}">饮用</button>` : ''}
+          ${selDef.category !== 'quest' ? `<button class="btn btn-danger" data-drop="${selDef.id}">丢弃</button>` : ''}
+        </div>
+      `;
+    }
+
+    this.modalPanelEl.innerHTML = `
+      <div class="modal-header" data-testid="modal-inventory">
+        <h2>行囊与装备</h2>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span class="hud-coin-badge" style="color:var(--accent-gold); font-size:14px;">${COIN_ICON_SVG}${this.state.player.stats.gold} 金币</span>
+          <button class="btn" id="btn-close-modal">关闭 [I]</button>
+        </div>
       </div>
-      <div class="card-box">
-        <h3 style="color:var(--gold)">物品列表</h3>
-        ${itemsHtml || '<div class="item-desc">背包空空如也</div>'}
+      <div class="inv-layout">
+        <div class="panel-card">
+          <div class="panel-title">当前穿戴</div>
+          ${slotHtml('weapon', '武器')}
+          ${slotHtml('armor', '护甲')}
+          ${slotHtml('accessory', '饰品')}
+          <div class="panel-title" style="margin-top:4px;">属性总览 (Lv.${this.state.player.stats.level})</div>
+          <div class="stat-grid">
+            <div class="stat-pill"><span>攻击</span><b>${computed.attack}</b></div>
+            <div class="stat-pill"><span>法术</span><b>${computed.magic}</b></div>
+            <div class="stat-pill"><span>防御</span><b>${computed.defense}</b></div>
+            <div class="stat-pill"><span>生命</span><b>${computed.maxHp}</b></div>
+            <div class="stat-pill"><span>法力</span><b>${computed.maxMp}</b></div>
+            <div class="stat-pill"><span>经验</span><b>${this.state.player.stats.xp}/${this.state.player.stats.xpToNextLevel}</b></div>
+          </div>
+        </div>
+        <div class="panel-card">
+          <div class="tab-strip">
+            ${filterTabs
+              .map(
+                (t) => `<button class="tab-btn ${this.invFilter === t.id ? 'active' : ''}" data-inv-tab="${t.id}">${t.label}</button>`,
+              )
+              .join('')}
+          </div>
+          <div class="inv-list">
+            ${listHtml || '<div class="item-desc" style="padding:12px;">该分类下暂无物品</div>'}
+          </div>
+        </div>
+        <div class="panel-card">
+          <div class="panel-title">物品详情</div>
+          ${inspectorHtml}
+        </div>
       </div>
     `;
 
     this.modalPanelEl.querySelector('#btn-close-modal')?.addEventListener('click', () => this.closeModal());
+    this.modalPanelEl.querySelectorAll('[data-inv-tab]').forEach((b) => {
+      b.addEventListener('click', () => {
+        this.invFilter = b.getAttribute('data-inv-tab') as 'all' | ItemCategory;
+        this.renderInventory();
+      });
+    });
+    this.modalPanelEl.querySelectorAll('[data-select-item]').forEach((row) => {
+      row.addEventListener('click', () => {
+        this.selectedInvItemId = row.getAttribute('data-select-item');
+        this.renderInventory();
+      });
+    });
     this.modalPanelEl.querySelectorAll('[data-unequip]').forEach((b) => {
       b.addEventListener('click', () => {
         this.inventory.unequipSlot(b.getAttribute('data-unequip') as EquipSlot);
+        this.actions.onEquipmentChanged?.();
         this.refreshHUD();
         this.renderInventory();
       });
@@ -559,6 +732,7 @@ export class UIManager {
     this.modalPanelEl.querySelectorAll('[data-equip]').forEach((b) => {
       b.addEventListener('click', () => {
         this.inventory.equipItem(b.getAttribute('data-equip')!);
+        this.actions.onEquipmentChanged?.();
         this.refreshHUD();
         this.renderInventory();
       });
@@ -573,6 +747,7 @@ export class UIManager {
     this.modalPanelEl.querySelectorAll('[data-drop]').forEach((b) => {
       b.addEventListener('click', () => {
         this.inventory.dropItem(b.getAttribute('data-drop')!);
+        this.actions.onEquipmentChanged?.();
         this.refreshHUD();
         this.renderInventory();
       });
@@ -582,65 +757,104 @@ export class UIManager {
   private renderQuests(): void {
     const active = this.quests.getActiveQuests();
     const completed = this.quests.getCompletedQuests();
+    const allEntries = [
+      ...active.map((a) => ({ def: a.def, state: a.state, stage: a.stage, done: false })),
+      ...completed.map((c) => ({ def: c.def, state: c.state, stage: undefined, done: true })),
+    ];
 
-    const activeHtml = active
-      .map(({ def, state, stage }) => {
-        return `
-          <div class="card-box">
-            <div class="item-name">${def.isMain ? '★ [主线] ' : '◆ [支线] '}${def.title}</div>
-            <div class="item-desc" style="color:var(--text-main)">${def.summary}</div>
-            ${
-              stage
-                ? `<div class="item-desc" style="color:var(--gold)">当前阶段: ${stage.description}<br/>进度: ${stage.objective.description} (${state.progress}/${stage.objective.requiredCount})</div>`
-                : ''
-            }
-          </div>
-        `;
-      })
-      .join('');
+    if (!this.selectedQuestId || !allEntries.some((e) => e.def.id === this.selectedQuestId)) {
+      this.selectedQuestId = allEntries[0]?.def.id ?? null;
+    }
 
-    const completedHtml = completed
-      .map(({ def, state }) => {
-        const outcomeLabel =
-          state.outcome === 'return_relic'
-            ? '结局：交还圣物，重塑边境结界'
-            : state.outcome === 'keep_relic'
-              ? '结局：保留圣物，执掌余烬之力'
-              : '已完成';
+    const listHtml = allEntries
+      .map((entry) => {
+        const selected = entry.def.id === this.selectedQuestId;
+        const badge = entry.done ? '✓' : entry.def.isMain ? '★' : '◆';
         return `
-          <div class="item-row">
-            <div class="item-info">
-              <span class="item-name">✓ ${def.title}</span>
-              <span class="item-desc">${outcomeLabel}</span>
+          <div class="inv-row ${selected ? 'selected' : ''}" data-select-quest="${entry.def.id}">
+            <div class="inv-row-meta">
+              <div class="inv-row-name" style="color:${entry.done ? '#70b379' : 'var(--accent-gold)'}">${badge} ${entry.def.title}</div>
+              <div class="inv-row-sub">${entry.def.isMain ? '主线剧情' : '边境委托'} · ${entry.done ? '已完成' : '进行中'}</div>
             </div>
           </div>
         `;
       })
       .join('');
 
+    const sel = allEntries.find((e) => e.def.id === this.selectedQuestId);
+    let detailHtml = '<div class="item-desc">尚未接取任务。请先前往溪谷村广场与村长奥尔德林、猎人莱拉或铁匠葛伦交谈。</div>';
+    if (sel) {
+      const stagesHtml = sel.def.stages
+        .map((st, idx) => {
+          const isCurrent = !sel.done && sel.state.currentStageId === st.id;
+          const currentIdx = sel.def.stages.findIndex((x) => x.id === sel.state.currentStageId);
+          const isPast = sel.done || (currentIdx >= 0 && idx < currentIdx);
+          return `
+            <div class="item-row" style="border-color:${isCurrent ? 'var(--border-bronze)' : 'var(--border-iron)'}">
+              <div class="item-info">
+                <span class="item-name" style="color:${isPast ? '#70b379' : isCurrent ? 'var(--accent-gold)' : 'var(--text-muted)'}">
+                  ${isPast ? '✓ ' : isCurrent ? '▶ ' : '○ '}${st.objective.description}
+                  ${isCurrent ? ` (${sel.state.progress}/${st.objective.requiredCount})` : ''}
+                </span>
+                <span class="item-desc">${st.description}</span>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+
+      const outcomeNote =
+        sel.state.outcome === 'return_relic'
+          ? '最终抉择：将《守望者圣物》归还溪谷村重塑边境结界。'
+          : sel.state.outcome === 'keep_relic'
+            ? '最终抉择：自己保留《守望者圣物》执掌余烬之力。'
+            : '';
+
+      detailHtml = `
+        <div class="panel-title" style="font-size:16px;">${sel.def.isMain ? '★ 主线' : '◆ 支线'}：${sel.def.title}</div>
+        <div class="item-desc" style="color:var(--text-main); font-size:13px;">${sel.def.summary}</div>
+        ${outcomeNote ? `<div class="item-desc" style="color:var(--accent-gold);">${outcomeNote}</div>` : ''}
+        <div class="panel-title" style="margin-top:4px;">任务阶段</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">${stagesHtml}</div>
+      `;
+    }
+
     this.modalPanelEl.innerHTML = `
       <div class="modal-header" data-testid="modal-quests">
-        <h2>任务日志</h2>
+        <h2>冒险日志</h2>
         <button class="btn" id="btn-close-modal">关闭 [J]</button>
       </div>
-      <h3 style="color:var(--gold)">进行中的任务 (${active.length})</h3>
-      ${activeHtml || '<div class="item-desc">当前暂无进行中的任务，可前往溪谷村与村民对话接取。</div>'}
-      <h3 style="color:var(--gold); margin-top:6px;">已完成的任务 (${completed.length})</h3>
-      ${completedHtml || '<div class="item-desc">暂无已完成任务</div>'}
+      <div class="quest-split">
+        <div class="panel-card">
+          <div class="panel-title">任务目录 (${allEntries.length})</div>
+          <div class="inv-list">
+            ${listHtml || '<div class="item-desc">暂无任务记录</div>'}
+          </div>
+        </div>
+        <div class="panel-card">
+          ${detailHtml}
+        </div>
+      </div>
     `;
 
     this.modalPanelEl.querySelector('#btn-close-modal')?.addEventListener('click', () => this.closeModal());
+    this.modalPanelEl.querySelectorAll('[data-select-quest]').forEach((row) => {
+      row.addEventListener('click', () => {
+        this.selectedQuestId = row.getAttribute('data-select-quest');
+        this.renderQuests();
+      });
+    });
   }
 
   private renderMap(): void {
     this.modalPanelEl.innerHTML = `
       <div class="modal-header" data-testid="modal-map">
-        <h2>灰烬边境 — 世界地图 (512 × 512 米)</h2>
+        <h2>灰烬边境舆图 · 512 × 512 米</h2>
         <button class="btn" id="btn-close-modal">关闭 [M]</button>
       </div>
-      <canvas id="world-map-canvas" width="460" height="460"></canvas>
+      <canvas id="world-map-canvas" width="500" height="500"></canvas>
       <div class="item-desc" style="text-align:center;">
-        金色箭头: 玩家当前位置与朝向 | 彩色圆圈: 五大区域 | 当前已探索: ${this.state.world.discoveredLocations.length} / ${worldConfig.regions.length}
+        ▲ 旅者坐标与朝向 · ⚑ 已发现地标 (${this.state.world.discoveredLocations.length}/${worldConfig.regions.length}) · 虚线为边境驿道
       </div>
     `;
     this.modalPanelEl.querySelector('#btn-close-modal')?.addEventListener('click', () => this.closeModal());
@@ -650,35 +864,72 @@ export class UIManager {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const size = 460;
+    const size = 500;
     const toMap = (wx: number, wz: number): [number, number] => [
       ((wx + 256) / 512) * size,
       ((wz + 256) / 512) * size,
     ];
 
-    // Background terrain tone
-    ctx.fillStyle = '#243025';
+    // Aged Parchment Base
+    const grad = ctx.createRadialGradient(size / 2, size / 2, 40, size / 2, size / 2, size * 0.72);
+    grad.addColorStop(0, '#d8c9a9');
+    grad.addColorStop(1, '#b5a17b');
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, size, size);
 
-    // Northern mountain band
-    ctx.fillStyle = '#3a3f4a';
-    ctx.fillRect(0, 0, size, 75);
+    // Topographic Elevation Contours & Mountains
+    ctx.strokeStyle = 'rgba(104, 82, 52, 0.22)';
+    ctx.lineWidth = 1;
+    for (const r of [65, 110, 165, 225]) {
+      ctx.beginPath();
+      ctx.arc(size * 0.5, size * 0.56, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
-    // River meander
-    ctx.strokeStyle = '#3b7ea1';
-    ctx.lineWidth = 14;
+    // Northern Mountain Range Sketch
+    ctx.fillStyle = 'rgba(84, 72, 58, 0.28)';
+    ctx.fillRect(0, 0, size, 88);
+    ctx.strokeStyle = '#5c4b37';
+    ctx.lineWidth = 1.6;
+    for (let mx = 20; mx < size - 20; mx += 44) {
+      ctx.beginPath();
+      ctx.moveTo(mx - 18, 66);
+      ctx.lineTo(mx, 28 + ((mx * 7) % 14));
+      ctx.lineTo(mx + 18, 66);
+      ctx.stroke();
+    }
+
+    // Ashwood Forest Tree Cluster Ink Marks
+    ctx.fillStyle = 'rgba(54, 82, 49, 0.45)';
+    for (let i = 0; i < 24; i++) {
+      const fx = -160 + ((i * 37) % 105);
+      const fz = -90 + ((i * 53) % 125);
+      const [tx, ty] = toMap(fx, fz);
+      ctx.beginPath();
+      ctx.moveTo(tx, ty - 7);
+      ctx.lineTo(tx + 5, ty + 4);
+      ctx.lineTo(tx - 5, ty + 4);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // River Channel & Shore Highlight
+    ctx.strokeStyle = 'rgba(58, 108, 132, 0.78)';
+    ctx.lineWidth = 15;
+    ctx.lineCap = 'round';
     ctx.beginPath();
     for (let z = -15; z <= 250; z += 10) {
-      const rx = getRiverCenterX(z);
-      const [mx, my] = toMap(rx, z);
+      const [mx, my] = toMap(getRiverCenterX(z), z);
       if (z === -15) ctx.moveTo(mx, my);
       else ctx.lineTo(mx, my);
     }
     ctx.stroke();
 
-    // Roads
-    ctx.strokeStyle = '#8b775b';
-    ctx.lineWidth = 4;
+    // Dashed Frontier Roads
+    ctx.save();
+    ctx.strokeStyle = '#6e5233';
+    ctx.lineWidth = 2.6;
+    ctx.setLineDash([6, 4]);
     const drawRoad = (ax: number, az: number, bx: number, bz: number): void => {
       const [x1, y1] = toMap(ax, az);
       const [x2, y2] = toMap(bx, bz);
@@ -691,32 +942,36 @@ export class UIManager {
     drawRoad(0, 38, -105, -25);
     drawRoad(0, 38, 105, 55);
     drawRoad(105, 55, 105, -65);
+    ctx.restore();
 
-    // 5 Regions
+    // Regions & Landmark Crests
     for (const r of worldConfig.regions) {
       const [cx, cy] = toMap(r.center.x, r.center.z);
       const discovered = this.state.world.discoveredLocations.includes(r.id as never);
-      const radPx = (r.radius / 512) * size;
 
       ctx.beginPath();
-      ctx.arc(cx, cy, radPx, 0, Math.PI * 2);
-      ctx.strokeStyle = discovered ? r.color : '#666b73';
+      ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+      ctx.fillStyle = discovered ? '#4d351d' : '#857862';
+      ctx.fill();
+      ctx.strokeStyle = '#e8d9b8';
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      ctx.fillStyle = discovered ? r.color : '#8b9099';
-      ctx.font = '12px serif';
+      ctx.fillStyle = discovered ? '#2b1e10' : '#635847';
+      ctx.font = 'bold 12px serif';
       ctx.textAlign = 'center';
-      ctx.fillText(discovered ? r.name : `${r.name} (未探索)`, cx, cy - 6);
+      ctx.fillText(discovered ? r.name : `${r.name} (未探明)`, cx, cy - 13);
     }
 
-    // Player Arrow
+    // Player Directional Arrow
     if (this.state.player.currentZone === 'overworld') {
       const [px, py] = toMap(this.state.player.position.x, this.state.player.position.z);
       ctx.save();
       ctx.translate(px, py);
       ctx.rotate(-this.state.player.yaw);
-      ctx.fillStyle = '#f2cf88';
+      ctx.fillStyle = '#9e2626';
+      ctx.strokeStyle = '#f5e4c3';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(0, -10);
       ctx.lineTo(7, 8);
@@ -724,12 +979,13 @@ export class UIManager {
       ctx.lineTo(-7, 8);
       ctx.closePath();
       ctx.fill();
+      ctx.stroke();
       ctx.restore();
     } else {
-      ctx.fillStyle = '#7bd3ff';
+      ctx.fillStyle = '#3b2412';
       ctx.font = 'bold 13px serif';
       ctx.textAlign = 'center';
-      ctx.fillText('★ 当前位于地下城：古代墓穴', size / 2, 34);
+      ctx.fillText('★ 当前正探索地下城：古代墓穴', size / 2, size - 22);
     }
   }
 
@@ -741,7 +997,7 @@ export class UIManager {
         <h2>${title}</h2>
         <button class="btn" id="btn-close-modal">收起</button>
       </div>
-      <div class="dialogue-box">${body}</div>
+      <div class="dialogue-text" style="background:rgba(14,16,21,0.65); padding:16px; border-radius:3px;">${body}</div>
     `;
     this.modalPanelEl.querySelector('#btn-close-modal')?.addEventListener('click', () => this.closeModal());
   }
@@ -749,6 +1005,8 @@ export class UIManager {
   private renderMenu(): void {
     const slotIds = ['slot_1', 'slot_2', 'slot_3', 'autosave'];
     const slotMap = new Map(this.saveSlotsCache.map((s) => [s.slotId, s]));
+    const currentQuality = this.actions.getQualityPreset?.() ?? 'high';
+    const telemetry = this.actions.getTelemetry?.();
 
     const slotsHtml = slotIds
       .map((slotId) => {
@@ -757,11 +1015,11 @@ export class UIManager {
         return `
           <div class="item-row">
             <div class="item-info">
-              <span class="item-name">${slotId} ${meta ? `— ${meta.summary}` : ''}</span>
+              <span class="item-name">${slotId} ${meta ? `· ${meta.summary}` : ''}</span>
               <span class="item-desc">${dateStr}</span>
             </div>
             <div class="item-actions">
-              <button class="btn" data-save-slot="${slotId}">保存</button>
+              <button class="btn btn-primary" data-save-slot="${slotId}">保存</button>
               <button class="btn" data-load-slot="${slotId}" ${meta ? '' : 'disabled'}>读取</button>
               ${meta ? `<button class="btn btn-danger" data-del-slot="${slotId}">删除</button>` : ''}
             </div>
@@ -773,26 +1031,40 @@ export class UIManager {
     this.modalPanelEl.innerHTML = `
       <div class="modal-header" data-testid="modal-menu">
         <h2>系统菜单 — Ashen March 灰烬边境</h2>
-        <button class="btn" id="btn-resume-game">继续游戏 [Esc]</button>
+        <button class="btn btn-primary" id="btn-resume-game">继续冒险 [Esc]</button>
       </div>
-      <div class="card-box">
-        <h3 style="color:var(--gold)">本地存档 (IndexedDB)</h3>
-        ${slotsHtml}
-      </div>
-      <div class="grid-2">
-        <div class="card-box">
-          <h3 style="color:var(--gold)">操作说明</h3>
-          <div class="item-desc" style="color:var(--text-main); line-height:1.7;">
-            WASD: 移动 | Shift: 奔跑 | Space: 跳跃<br/>
-            鼠标点击画面旋转视角 | E: 交互/进出区域<br/>
-            左键: 单手剑近战 | 右键: 火球术 (15 MP)<br/>
-            I: 背包 | J: 任务日志 | M: 世界地图
-          </div>
+      <div class="split-2">
+        <div class="panel-card">
+          <div class="panel-title">本地存档 (IndexedDB)</div>
+          ${slotsHtml}
         </div>
-        <div class="card-box">
-          <h3 style="color:var(--gold)">音频与设置</h3>
-          <button class="btn" id="btn-toggle-mute">切换音效静音</button>
-          <div class="item-desc">存档使用浏览器 IndexedDB 持久化，支持跨刷新恢复与版本迁移。</div>
+        <div class="panel-card">
+          <div class="panel-title">画质档位与实时性能</div>
+          <div class="quality-btn-row">
+            ${(['low', 'medium', 'high'] as QualityPreset[])
+              .map(
+                (q) =>
+                  `<button class="btn ${currentQuality === q ? 'btn-primary' : ''}" data-quality="${q}">${q.toUpperCase()}</button>`,
+              )
+              .join('')}
+          </div>
+          ${
+            telemetry
+              ? `<div class="stat-grid">
+                  <div class="stat-pill"><span>帧率 FPS</span><b>${telemetry.fps}</b></div>
+                  <div class="stat-pill"><span>Draw Calls</span><b>${telemetry.drawCalls}</b></div>
+                  <div class="stat-pill"><span>Triangles</span><b>${telemetry.triangles.toLocaleString()}</b></div>
+                  <div class="stat-pill"><span>Textures</span><b>${telemetry.textures}</b></div>
+                </div>`
+              : ''
+          }
+          <div class="panel-title" style="margin-top:4px;">键位与音频</div>
+          <div class="item-desc">
+            WASD 移动 · Shift 奔跑 · Space 跳跃 · E 交互<br/>
+            左键 近战 · 右键 火球术 · 3/4 快捷饮用药水<br/>
+            I 行囊 · J 任务日志 · M 边境舆图 · Esc 系统菜单
+          </div>
+          <button class="btn" id="btn-toggle-mute" style="align-self:flex-start;">切换音效静音</button>
         </div>
       </div>
     `;
@@ -801,6 +1073,14 @@ export class UIManager {
     this.modalPanelEl.querySelector('#btn-toggle-mute')?.addEventListener('click', () => {
       const muted = this.actions.onToggleMute();
       this.pushToast(muted ? '音效已静音' : '音效已开启', 'info');
+    });
+
+    this.modalPanelEl.querySelectorAll('[data-quality]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const q = btn.getAttribute('data-quality') as QualityPreset;
+        this.actions.onSetQuality?.(q);
+        this.renderMenu();
+      });
     });
 
     this.modalPanelEl.querySelectorAll('[data-save-slot]').forEach((btn) => {
@@ -834,10 +1114,10 @@ export class UIManager {
   private renderDeath(): void {
     this.modalPanelEl.innerHTML = `
       <div class="modal-header" data-testid="modal-death">
-        <h2 style="color:#e05a5a;">重伤倒下</h2>
+        <h2 style="color:#d65454;">重伤倒下</h2>
       </div>
-      <div class="dialogue-box">你在灰烬边境的战斗中失去了意识……但命运尚未终结。点击下方按钮将在【溪谷村】醒来，保留已取得的物品与任务进度。</div>
-      <button class="btn" id="btn-respawn" style="align-self:center; padding:12px 26px; font-size:15px;">在溪谷村复活</button>
+      <div class="dialogue-text">你在灰烬边境的战斗中失去了意识……但命运尚未终结。你将在【溪谷村】醒来，保留所有已取得的物品与任务进度。</div>
+      <button class="btn btn-primary" id="btn-respawn" style="align-self:center; padding:11px 26px; font-size:14px;">在溪谷村复活</button>
     `;
 
     this.modalPanelEl.querySelector('#btn-respawn')?.addEventListener('click', () => {

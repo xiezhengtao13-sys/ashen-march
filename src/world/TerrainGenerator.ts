@@ -167,7 +167,10 @@ export interface TerrainBuildResult {
   indices: Uint32Array;
 }
 
-export function buildTerrainMesh(seed = worldConfig.seed): TerrainBuildResult {
+export function buildTerrainMesh(
+  seed = worldConfig.seed,
+  customMaterial?: THREE.Material,
+): TerrainBuildResult {
   const geometry = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE, TERRAIN_SEGMENTS, TERRAIN_SEGMENTS);
   geometry.rotateX(-Math.PI / 2);
 
@@ -175,12 +178,13 @@ export function buildTerrainMesh(seed = worldConfig.seed): TerrainBuildResult {
   const count = posAttr.count;
   const colors = new Float32Array(count * 3);
 
-  const cGrass = new THREE.Color(0x4f6840);
-  const cForest = new THREE.Color(0x394d32);
-  const cRoad = new THREE.Color(0x7d6c55);
-  const cSand = new THREE.Color(0x8a7d62);
-  const cRock = new THREE.Color(0x63666c);
-  const cSnow = new THREE.Color(0xc9d1d9);
+  const cGrass = new THREE.Color(0x4c623d);
+  const cForest = new THREE.Color(0x36492d);
+  const cVillage = new THREE.Color(0x636746);
+  const cRoad = new THREE.Color(0x75644e);
+  const cSand = new THREE.Color(0x82755b);
+  const cRock = new THREE.Color(0x5b5f66);
+  const cSnow = new THREE.Color(0xc2cad3);
   const tmp = new THREE.Color();
 
   for (let i = 0; i < count; i++) {
@@ -191,17 +195,18 @@ export function buildTerrainMesh(seed = worldConfig.seed): TerrainBuildResult {
 
     const roadFactor = isOnRoad(x, z);
     const forestFactor = 1 - smoothstep(35, 95, Math.hypot(x - -105, z - -25));
+    const villageFactor = 1 - smoothstep(14, 42, Math.hypot(x, z - 40));
 
-    tmp.copy(cGrass).lerp(cForest, forestFactor * 0.75);
+    tmp.copy(cGrass).lerp(cForest, forestFactor * 0.78).lerp(cVillage, villageFactor * 0.45);
 
-    if (y < 1.65) {
-      const bank = 1 - smoothstep(0.2, 1.65, y);
-      tmp.lerp(cSand, bank * 0.85);
+    if (y < 1.8) {
+      const bank = 1 - smoothstep(0.2, 1.8, y);
+      tmp.lerp(cSand, bank * 0.88);
     }
 
     if (y > 12.5) {
       const rockMix = smoothstep(12.5, 22, y);
-      tmp.lerp(cRock, rockMix * 0.9);
+      tmp.lerp(cRock, rockMix * 0.85);
     }
 
     if (y > 27) {
@@ -210,24 +215,37 @@ export function buildTerrainMesh(seed = worldConfig.seed): TerrainBuildResult {
     }
 
     if (roadFactor > 0.01 && y > 1.3) {
-      tmp.lerp(cRoad, roadFactor * 0.82);
+      tmp.lerp(cRoad, roadFactor * 0.86);
     }
 
-    // Subtle organic variation
-    const tint = valueNoise2D(x * 0.14, z * 0.14, seed + 900) * 0.05;
+    const tint = valueNoise2D(x * 0.14, z * 0.14, seed + 900) * 0.06;
     colors[i * 3] = Math.max(0, Math.min(1, tmp.r + tint));
     colors[i * 3 + 1] = Math.max(0, Math.min(1, tmp.g + tint));
     colors[i * 3 + 2] = Math.max(0, Math.min(1, tmp.b + tint));
   }
 
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   geometry.computeVertexNormals();
+  const normAttr = geometry.attributes.normal as THREE.BufferAttribute;
+  for (let i = 0; i < count; i++) {
+    const ny = normAttr.getY(i);
+    if (ny < 0.9) {
+      const slopeRock = smoothstep(0.9, 0.72, ny);
+      tmp.setRGB(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]).lerp(cRock, slopeRock * 0.78);
+      colors[i * 3] = tmp.r;
+      colors[i * 3 + 1] = tmp.g;
+      colors[i * 3 + 2] = tmp.b;
+    }
+  }
 
-  const material = new THREE.MeshStandardMaterial({
-    vertexColors: true,
-    roughness: 0.94,
-    metalness: 0.02,
-  });
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const material =
+    customMaterial ??
+    new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: 0.94,
+      metalness: 0.02,
+    });
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.receiveShadow = true;
