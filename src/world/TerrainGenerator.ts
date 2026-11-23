@@ -133,6 +133,10 @@ export function getRegionAt(x: number, z: number): RegionId {
 export function getRegionDisplayName(regionId: RegionId): string {
   if (regionId === 'ashenhold_gate') return '灰烬城 · 南城门';
   if (regionId === 'ashenhold_main_street') return '灰烬城 · 门卫主街';
+  if (regionId === 'ashenhold_market_plaza') return '灰烬城 · 中央市集';
+  if (regionId === 'ashenhold_artisan_quarter') return '灰烬城 · 铁匠工坊区';
+  if (regionId === 'ashenhold_residential_quarter') return '灰烬城 · 织坊居民高地';
+  if (regionId === 'ashenhold_castle_approach') return '灰烬城 · 城堡大道';
   const found = worldConfig.regions.find((r) => r.id === regionId);
   return found ? found.name : '灰烬边境';
 }

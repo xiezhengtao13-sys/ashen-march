@@ -1,0 +1,5 @@
+[
+ {"name":"p2_same_gate_1300","time":13,"pos":[0,0.35,8.2],"yaw":0,"pitch":0.02},
+ {"name":"p2_castle_forecourt_1300","time":13,"pos":[4.0,10.1,-148.0],"yaw":0.0,"pitch":0.14},
+ {"name":"p2_market_1080p","time":13,"width":1920,"height":1080,"pos":[4.0,2.8,-51.0],"yaw":0.05,"pitch":0.02}
+]

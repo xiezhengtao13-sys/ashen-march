@@ -229,7 +229,7 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
     expect(errors).toEqual([]);
   });
 
-  test('loads Ashenhold City Phase 1 (?zone=city), verifies Gatehouse passage, city NPCs, shop, enterable Tavern & Guardhouse', async ({
+  test('loads Ashenhold City (?zone=city), traverses South Gate -> Market Plaza, trades in Market, explores West/East routes, checks Citadel barrier & City Map', async ({
     page,
   }) => {
     const errors: string[] = [];
@@ -241,14 +241,16 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
     });
 
     await page.goto('/?zone=city');
-    await page.waitForFunction(() => Boolean((window as unknown as { __ASHEN_MARCH__?: unknown }).__ASHEN_MARCH__), {
-      timeout: 25_000,
-    });
+    await page.waitForFunction(
+      () => Boolean((window as unknown as { __ASHEN_MARCH__?: unknown }).__ASHEN_MARCH__),
+      null,
+      { timeout: 90_000 },
+    );
     await page.waitForTimeout(800);
 
     await expect(page.getByTestId('hud-compass')).toContainText('灰烬城 · 南城门');
 
-    // Walk north through Gatehouse tunnel into Gateward Main Street
+    // 1. Walk north continuously through South Gatehouse tunnel into Gateward Main Street
     await page.evaluate(() => {
       const api = (window as unknown as {
         __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
@@ -257,7 +259,7 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
       api.setLook(0, 0);
     });
     await page.keyboard.down('KeyW');
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(450);
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     await page.keyboard.up('KeyW');
 
@@ -267,7 +269,7 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
     expect(streetSnap.zone).toBe('ashenhold_city');
     expect(streetSnap.position.z).toBeLessThan(15.2);
 
-    // Talk to South Gate Captain Marcus
+    // 2. Talk to South Gate Captain Marcus
     await page.evaluate(() => {
       const api = (window as unknown as {
         __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
@@ -281,7 +283,7 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
     await expect(page.getByTestId('modal-dialogue')).toBeVisible();
     await page.keyboard.press('Escape');
 
-    // Enter The Ember & Flagon Tavern and read the Tavern Ledger
+    // 3. Enter Ember & Flagon Tavern and read Tavern Ledger
     await page.evaluate(() => {
       const api = (window as unknown as {
         __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
@@ -294,6 +296,99 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
     await page.keyboard.press('KeyE');
     await expect(page.getByTestId('modal-lore')).toBeVisible();
     await page.keyboard.press('Escape');
+
+    // 4. Continuous traversal north through Market Gate Arch -> Central Market Plaza
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(3.6, 1.5, -26.5);
+      api.setLook(-0.04, 0);
+    });
+    await page.keyboard.down('KeyW');
+    for (let k = 0; k < 4; k++) {
+      await page.waitForTimeout(280);
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    }
+    await page.keyboard.up('KeyW');
+    const afterArchSnap: Snapshot = await page.evaluate(() =>
+      (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+    );
+    expect(afterArchSnap.position.z).toBeLessThan(-32.5);
+
+    // 5. Explore Central Market Plaza & Trade with Baker Marta (real shop & gold deduction)
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(-11.0, 2.7, -53.6);
+      api.setLook(0.85, -0.02);
+    });
+    await page.waitForTimeout(200);
+    await expect(page.getByTestId('hud-compass')).toContainText('灰烬城 · 中央市集');
+    await expect(page.getByTestId('hud-interact-prompt')).toContainText('烘焙娘玛尔塔');
+    await page.keyboard.press('KeyE');
+    await expect(page.getByTestId('modal-dialogue')).toBeVisible();
+    await page.locator('.choice-btn').first().click();
+    await expect(page.getByTestId('modal-shop')).toBeVisible();
+    const goldBefore = (
+      await page.evaluate(() =>
+        (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+      )
+    ).stats.gold;
+    await page.locator('[data-buy-id="hearth_bread"]').click();
+    const goldAfter = (
+      await page.evaluate(() =>
+        (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+      )
+    ).stats.gold;
+    expect(goldAfter).toBe(goldBefore - 12);
+    await page.keyboard.press('Escape');
+
+    // 6. Visit West Artisan Quarter (Route A) & East Weavers' Hill Overlook (Route B)
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(-42.5, 3.1, -73.0);
+      api.setLook(0.75, 0);
+    });
+    await page.waitForTimeout(180);
+    await expect(page.getByTestId('hud-compass')).toContainText('铁匠工坊区');
+
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(47.2, 4.3, -70.2);
+      api.setLook(-0.85, 0);
+    });
+    await page.waitForTimeout(180);
+    await expect(page.getByTestId('hud-compass')).toContainText('织坊居民高地');
+
+    // 7. Verify Citadel Barbican Portcullis Barrier (Phase 3 Boundary)
+    await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: { teleport: (x: number, y: number, z: number) => void; setLook: (yaw: number, pitch: number) => void };
+      }).__ASHEN_MARCH__;
+      api.teleport(4.0, 10.1, -166.5);
+      api.setLook(0, 0.04);
+    });
+    await page.keyboard.down('KeyW');
+    await page.waitForTimeout(350);
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await page.keyboard.up('KeyW');
+    const citadelSnap: Snapshot = await page.evaluate(() =>
+      (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
+    );
+    expect(citadelSnap.position.z).toBeGreaterThan(-170.5);
+    await expect(page.getByTestId('hud-compass')).toContainText('城堡大道');
+
+    // 8. Open In-Game Ashenhold Parchment City Map [M]
+    await page.keyboard.press('KeyM');
+    await expect(page.getByTestId('modal-map')).toBeVisible();
+    await expect(page.getByTestId('modal-map')).toContainText('灰烬城舆图');
+    await page.keyboard.press('KeyM');
 
     expect(errors).toEqual([]);
   });

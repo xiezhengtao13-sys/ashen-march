@@ -18,6 +18,8 @@ import { PlayerController } from './player/PlayerController';
 import { QuestSystem } from './quests/QuestSystem';
 import { applySavePayloadToState, SaveSystem } from './save/SaveSystem';
 import { UIManager } from './ui/UIManager';
+import { buildCityEnvironmentMap } from './world/city/CityEnvironment';
+import { CITY_TONE, OVERWORLD_TONE } from './world/city/CityLighting';
 import { buildAshenholdCity, getCityRegionAt } from './world/city/CityPhase1Builder';
 import { DayNightCycle } from './world/DayNightCycle';
 import { buildAncientCrypt } from './world/DungeonBuilder';
@@ -51,7 +53,7 @@ export class GameApp {
   private readonly clock = new THREE.Clock();
   private overworldUpdate: (elapsed: number, dt?: number) => void = () => {};
   private cryptUpdate: (elapsed: number) => void = () => {};
-  private cityUpdate: (elapsed: number, dt: number) => void = () => {};
+  private cityUpdate: (elapsed: number, dt: number, timeOfDay?: number, playerPos?: { x: number; y: number; z: number }) => void = () => {};
   private cityDispose: () => void = () => {};
   private cityEnvMap: THREE.Texture | null = null;
   private vegetation: VegetationController | null = null;
@@ -256,7 +258,7 @@ export class GameApp {
 
     this.ui.pushToast(
       this.state.player.currentZone === 'ashenhold_city'
-        ? '已抵达【灰烬城 · Ashenhold】南城门（Phase 1 样板区），按 [E] 与守门队长交谈。'
+        ? '已抵达【灰烬城 · Ashenhold】：南门、中央市集、铁匠工坊区与织坊高地已开放。'
         : '欢迎来到灰烬边境！按 [E] 与溪谷村长老对话，或在村口路牌前往【灰烬城】。',
       'quest',
     );
@@ -265,13 +267,16 @@ export class GameApp {
   }
 
   setQualityPreset(preset: QualityPreset): void {
-    this.quality.applyPreset(
+    const cfg = this.quality.applyPreset(
       preset,
       this.engine.renderer,
       this.engine.camera,
       this.dayNight.sunLight,
       (density) => this.vegetation?.setDensity(density),
     );
+    const inCity = this.state.player.currentZone === 'ashenhold_city';
+    this.engine.renderer.toneMapping = inCity ? CITY_TONE.mapping : OVERWORLD_TONE.mapping;
+    this.engine.renderer.toneMappingExposure = inCity ? CITY_TONE.exposure : cfg.toneExposure;
   }
 
   useQuickPotion(kind: 'health' | 'mana'): void {
@@ -299,6 +304,10 @@ export class GameApp {
     this.engine.cryptGroup.visible = zone === 'ancient_crypt';
     this.engine.cityGroup.visible = zone === 'ashenhold_city';
     this.physics.setActiveZone(zone);
+    // City uses a neutral tone curve (keeps albedo hue/brightness); open world + crypt keep ACES
+    const inCity = zone === 'ashenhold_city';
+    this.engine.renderer.toneMapping = inCity ? CITY_TONE.mapping : OVERWORLD_TONE.mapping;
+    this.engine.renderer.toneMappingExposure = inCity ? CITY_TONE.exposure : this.quality.getConfig().toneExposure;
   }
 
   enterCrypt(): void {
@@ -332,7 +341,10 @@ export class GameApp {
           onExitCity: () => this.exitCity(),
           onLoreRead: (title, body) => this.ui.openLore(title, body),
         },
-        { maxAnisotropy: Math.min(8, this.engine.renderer.capabilities.getMaxAnisotropy()) },
+        {
+          maxAnisotropy: Math.min(8, this.engine.renderer.capabilities.getMaxAnisotropy()),
+          metalEnvMap: (this.cityEnvMap ??= buildCityEnvironmentMap(this.engine.renderer)),
+        },
       ).then((cityBuilt) => {
         this.cityUpdate = cityBuilt.update;
         this.cityDispose = cityBuilt.dispose;
@@ -421,8 +433,8 @@ export class GameApp {
         this.state.markLocationDiscovered(region, getRegionDisplayName(region));
       }
     } else if (this.state.player.currentZone === 'ashenhold_city') {
-      this.cityUpdate(elapsed, dt);
-      const region = getCityRegionAt(this.state.player.position.z);
+      this.cityUpdate(elapsed, dt, this.state.world.timeOfDay, this.state.player.position);
+      const region = getCityRegionAt(this.state.player.position.x, this.state.player.position.z);
       if (region !== this.state.player.currentRegion) {
         this.state.player.currentRegion = region;
         this.state.markLocationDiscovered(region, getRegionDisplayName(region));

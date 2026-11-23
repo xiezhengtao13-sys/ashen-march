@@ -546,6 +546,69 @@ static void gen_forged_metal(const char *dir, const char *name, int size,
     free(alb); free(rgh); free(h);
 }
 
+
+// 8. Weathered Flemish Red-Clay Medieval Brick Masonry (running bond with lime mortar)
+static void gen_medieval_brick(const char *dir, const char *name, int size, uint32_t seed) {
+    uint8_t *alb = malloc((size_t)size * size * 4);
+    uint8_t *rgh = malloc((size_t)size * size * 4);
+    float *h = malloc((size_t)size * size * sizeof(float));
+
+    const int rows = 14;
+    const int cols = 7;
+    for (int y = 0; y < size; y++) {
+        float v = (float)y / size;
+        for (int x = 0; x < size; x++) {
+            float u = (float)x / size;
+            float fy = v * rows;
+            int row = ((int)floorf(fy) % rows + rows) % rows;
+            float rf = fy - floorf(fy);
+
+            float fx = u * cols + ((row & 1) ? 0.5f : 0.0f);
+            int col = ((int)floorf(fx) % cols + cols) % cols;
+            float cf = fx - floorf(fx);
+
+            float bid = hash2f(col, row, seed + 17u);
+            float grain = tile_fbm(u, v, 18, seed + 71u, 4);
+            float fine = tile_fbm(u, v, 64, seed + 193u, 3);
+
+            float ex = fminf(cf, 1.0f - cf) * ((float)rows / (float)cols);
+            float ey = fminf(rf, 1.0f - rf);
+            float edge = fminf(ex, ey) + (fine - 0.5f) * 0.055f;
+
+            float mortar = 1.0f - smoothstep(0.055f, 0.125f, edge);
+            float bevel = smoothstep(0.08f, 0.22f, edge);
+            float soot = smoothstep(0.58f, 0.85f, tile_fbm(u * 0.8f, v * 0.4f, 5, seed + 409u, 3)) * 0.22f;
+
+            h[y * size + x] = lerpf(0.32f + bevel * 0.42f + grain * 0.18f + fine * 0.08f, 0.09f + fine * 0.06f, mortar);
+
+            float warm = (bid - 0.5f) * 38.0f;
+            float br = (146.0f + warm + (grain - 0.5f) * 32.0f + (fine - 0.5f) * 16.0f) * lerpf(0.76f, 1.0f, bevel) * (1.0f - soot);
+            float bg = (82.0f  + warm * 0.55f + (grain - 0.5f) * 20.0f) * lerpf(0.76f, 1.0f, bevel) * (1.0f - soot);
+            float bb = (66.0f  + warm * 0.35f + (grain - 0.5f) * 18.0f) * lerpf(0.76f, 1.0f, bevel) * (1.0f - soot * 0.9f);
+
+            float mr = 148.0f + (fine - 0.5f) * 22.0f;
+            float mg = 138.0f + (fine - 0.5f) * 20.0f;
+            float mb = 122.0f + (fine - 0.5f) * 18.0f;
+
+            float r = lerpf(br, mr, mortar);
+            float g = lerpf(bg, mg, mortar);
+            float b = lerpf(bb, mb, mortar);
+
+            size_t idx = ((size_t)y * size + x) * 4;
+            alb[idx + 0] = (uint8_t)(clamp01(r / 255.0f) * 255.0f + 0.5f);
+            alb[idx + 1] = (uint8_t)(clamp01(g / 255.0f) * 255.0f + 0.5f);
+            alb[idx + 2] = (uint8_t)(clamp01(b / 255.0f) * 255.0f + 0.5f);
+            alb[idx + 3] = 255;
+
+            uint8_t rb = (uint8_t)(clamp01(lerpf(0.84f - grain * 0.15f, 0.95f, mortar)) * 255.0f + 0.5f);
+            rgh[idx + 0] = rgh[idx + 1] = rgh[idx + 2] = rb;
+            rgh[idx + 3] = 255;
+        }
+    }
+    write_pbr_set(dir, name, size, alb, h, rgh, 2.5f);
+    free(alb); free(rgh); free(h);
+}
+
 int main(int argc, char **argv) {
     if (argc < 2) return 1;
     const char *dir = argv[1];
@@ -554,6 +617,7 @@ int main(int argc, char **argv) {
 
     gen_ashlar_stone(dir, "stone_ashlar", tex_size, 1001, 134, 128, 118, 0.35f, 2.8f);
     gen_ashlar_stone(dir, "stone_trim",   tex_size, 2002, 104, 102, 100, 0.22f, 2.6f);
+    gen_medieval_brick(dir, "brick_medieval", tex_size, 2505);
     gen_cobble_street(dir, "cobble_street", ground_size, 3003);
     gen_dirt_gravel(dir, "dirt_gravel", tex_size, 4004);
     gen_oak_timber(dir, "timber_oak",   tex_size, 3, 82, 55, 36, 5005);

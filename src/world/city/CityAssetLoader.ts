@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { CityMaterialLibrary } from './CityMaterialLibrary';
 
 const MODEL_BASE = './assets/city/models';
@@ -10,6 +11,16 @@ export interface PropInstanceTransform {
   z: number;
   yaw: number;
   scale: number;
+}
+
+export interface StaticBatchEntry {
+  filename: string;
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+  castShadow: boolean;
+  receiveShadow: boolean;
 }
 
 export interface ExtractedPrimitive {
@@ -68,6 +79,106 @@ export class CityAssetLoader {
     });
 
     return clone;
+  }
+
+  /**
+   * Static scene batching by material within a district block: merges sub-meshes sharing the
+   * same PBR material & shadow flags so an entire city block draws in ~12-18 draw calls instead
+   * of 120-200 individual mesh nodes.
+   */
+  async createDistrictStaticBatch(
+    batchName: string,
+    entries: StaticBatchEntry[],
+    parent: THREE.Group,
+  ): Promise<THREE.Group> {
+    const group = new THREE.Group();
+    group.name = batchName;
+    if (entries.length === 0) {
+      parent.add(group);
+      return group;
+    }
+
+    const uniqueFiles = [...new Set(entries.map((e) => e.filename))];
+    await Promise.all(uniqueFiles.map((f) => this.loadGLB(f)));
+
+    interface MergeBucket {
+      material: THREE.MeshStandardMaterial;
+      castShadow: boolean;
+      receiveShadow: boolean;
+      geoms: THREE.BufferGeometry[];
+    }
+    const buckets = new Map<string, MergeBucket>();
+    const instMat = new THREE.Matrix4();
+    const rotMat = new THREE.Matrix4();
+    const worldMat = new THREE.Matrix4();
+
+    for (const entry of entries) {
+      const template = await this.loadGLB(entry.filename);
+      template.updateMatrixWorld(true);
+      instMat.makeTranslation(entry.x, entry.y, entry.z);
+      rotMat.makeRotationY(entry.yaw);
+      instMat.multiply(rotMat);
+
+      template.traverse((child) => {
+        if (!(child instanceof THREE.Mesh)) return;
+        const origMat = Array.isArray(child.material) ? child.material[0] : child.material;
+        const matName = origMat?.name ?? 'stone_ashlar';
+        const hasVC = Boolean(child.geometry.attributes.color);
+        const mat = this.materials.getMaterial(matName, hasVC);
+        const isGlowOrGlass = matName.startsWith('glow_warm') || matName.startsWith('window_leaded');
+        const castShadow = entry.castShadow && !isGlowOrGlass;
+
+        // Normalize geometry to non-indexed with uniform attributes so mergeGeometries never fails
+        const raw = child.geometry.index ? child.geometry.toNonIndexed() : child.geometry.clone();
+        const allowed = new Set(['position', 'normal', 'uv', ...(hasVC ? ['color'] : [])]);
+        for (const attrName of Object.keys(raw.attributes)) {
+          if (!allowed.has(attrName)) {
+            raw.deleteAttribute(attrName);
+          }
+        }
+        // Ensure vertex color component count is consistent (always vec4 float or vec3 float -> normalize to vec3 float)
+        if (hasVC && raw.attributes.color && raw.attributes.color.itemSize !== 3) {
+          const src = raw.attributes.color;
+          const v3 = new Float32Array(src.count * 3);
+          for (let i = 0; i < src.count; i++) {
+            v3[i * 3] = src.getX(i);
+            v3[i * 3 + 1] = src.getY(i);
+            v3[i * 3 + 2] = src.getZ(i);
+          }
+          raw.setAttribute('color', new THREE.BufferAttribute(v3, 3));
+        }
+
+        worldMat.copy(instMat).multiply(child.matrixWorld);
+        raw.applyMatrix4(worldMat);
+
+        const bucketKey = `${mat.name}__vc${hasVC ? 1 : 0}__cs${castShadow ? 1 : 0}__rs${entry.receiveShadow ? 1 : 0}`;
+        let b = buckets.get(bucketKey);
+        if (!b) {
+          b = { material: mat, castShadow, receiveShadow: entry.receiveShadow, geoms: [] };
+          buckets.set(bucketKey, b);
+        }
+        b.geoms.push(raw);
+      });
+    }
+
+    for (const [key, b] of buckets) {
+      if (b.geoms.length === 0) continue;
+      const merged = b.geoms.length === 1 ? b.geoms[0] : mergeGeometries(b.geoms, false);
+      if (b.geoms.length > 1) {
+        for (const g of b.geoms) g.dispose();
+      }
+      if (!merged) continue;
+      merged.computeBoundingSphere();
+      const mesh = new THREE.Mesh(merged, b.material);
+      mesh.name = `${batchName}_${key}`;
+      mesh.castShadow = b.castShadow;
+      mesh.receiveShadow = b.receiveShadow;
+      mesh.frustumCulled = true;
+      group.add(mesh);
+    }
+
+    parent.add(group);
+    return group;
   }
 
   async createInstancedPropBatch(

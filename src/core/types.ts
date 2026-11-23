@@ -7,7 +7,11 @@ export type RegionId =
   | 'ancient_crypt'
   | 'river_valley'
   | 'ashenhold_gate'
-  | 'ashenhold_main_street';
+  | 'ashenhold_main_street'
+  | 'ashenhold_market_plaza'
+  | 'ashenhold_artisan_quarter'
+  | 'ashenhold_residential_quarter'
+  | 'ashenhold_castle_approach';
 
 export interface Vec3 {
   x: number;

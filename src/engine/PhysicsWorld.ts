@@ -193,8 +193,9 @@ export class PhysicsWorld {
       nextPos.x = Math.max(-248, Math.min(248, nextPos.x));
       nextPos.z = Math.max(-248, Math.min(248, nextPos.z));
     } else if (this.activeKey === 'ashenhold_city') {
-      nextPos.x = Math.max(-24, Math.min(24, nextPos.x));
-      nextPos.z = Math.max(-28, Math.min(31, nextPos.z));
+      const southOutsideLimitX = nextPos.z > 15.5 ? 16 : 69;
+      nextPos.x = Math.max(-southOutsideLimitX, Math.min(southOutsideLimitX, nextPos.x));
+      nextPos.z = Math.max(-171, Math.min(31, nextPos.z));
     }
 
     this.playerBody.setNextKinematicTranslation(nextPos);

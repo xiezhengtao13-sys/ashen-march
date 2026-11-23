@@ -1,0 +1,7 @@
+[
+ {"name":"p2_same_gate_1300","time":13,"pos":[0,0.35,8.2],"yaw":0,"pitch":0.02},
+ {"name":"p2_market_1000","time":10,"pos":[4.0,2.8,-51.0],"yaw":0.05,"pitch":0.02},
+ {"name":"p2_market_1300","time":13,"pos":[4.0,2.8,-51.0],"yaw":0.05,"pitch":0.02},
+ {"name":"p2_market_1700","time":17,"pos":[4.0,2.8,-51.0],"yaw":0.05,"pitch":0.02},
+ {"name":"p2_fountain_sw_1300","time":13,"pos":[-7.0,2.85,-64.0],"yaw":-0.85,"pitch":0.01}
+]

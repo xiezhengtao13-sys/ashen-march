@@ -5,19 +5,21 @@
 ## ▶ 一键在线游玩（浏览器直玩）
 
 [![立即在线游玩 - Ashen March](https://img.shields.io/badge/▶_立即在线游玩-Ashen_March_灰烬边境-d9a043?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/)
-[![直达灰烬城 Phase 1 - 分支在线预览](https://img.shields.io/badge/▶_直达灰烬城_Phase_1-Ashenhold_分支预览直玩-b85c2e?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase1/?zone=city)
+[![直达灰烬城 Phase 2 - 分支在线预览](https://img.shields.io/badge/▶_直达灰烬城_Phase_2-中央市集与双环城区-c86228?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city)
+[![直达灰烬城 Phase 1 - 分支预览](https://img.shields.io/badge/▶_直达灰烬城_Phase_1-城门样板区-7c4d30?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase1/?zone=city)
 [![直达灰烬城 - 主干入口](https://img.shields.io/badge/▶_直达灰烬城-main_%3Fzone%3Dcity-6f4e37?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/?zone=city)
 
 - **开放世界试玩入口（溪谷村出生点）**：https://xiezhengtao13-sys.github.io/ashen-march/
-- **额外入口 — 灰烬城 Phase 1（Ashenhold 城门与门卫主街样板区）**：
-  - **分支在线预览（免合并 `main` 即可直达城市）**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase1/?zone=city
+- **额外入口 — 灰烬城 Phase 2（200×240m 城市规模 · 光照重修 + 中央市集 + 东西双环城区 + 城堡大道）**：
+  - **Phase 2 最新分支在线预览（免合并 `main` 直玩中央市集与双城区）**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase2-market/?zone=city
+  - **Phase 1 样板区归档预览**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase1/?zone=city
   - **主干入口（合并 `main` 后生效）**：https://xiezhengtao13-sys.github.io/ashen-march/?zone=city
-  - **游戏内互传入口**：可在任意模式按 `Esc` 打开系统菜单点击 **「前往灰烬城」**，或在溪谷村口路牌直接传送往返。
+  - **游戏内互传入口**：可在任意模式按 `Esc` 打开系统菜单点击 **「前往灰烬城」**，或在溪谷村口路牌直接传送往返；城内按 `[M]` 可打开灰烬城街道舆图。
 - **零安装直玩**：由 GitHub Actions 自动构建并托管于 GitHub Pages，点击上方按钮即可在桌面浏览器（支持 WebGL2）中直接运行，存档自动保存于浏览器本地 IndexedDB。
 
 ## 核心特性
 
-- **高密度中世纪城市样板区（Ashenhold — 灰烬城 Phase 1）**：独立区域场景（`src/world/city/`），集成 Blender 4.0 Python 原创带倒角与光线投射顶点 AO 的 `.glb` 模型、C99 烘焙高分辨率 PBR 贴图、`InstancedMesh` 静态合批、带路拱/排水沟/积水反射的街道着色器、可进入室内的南门卫戍营房与《余烬与酒壶》酒馆，以及城门守卫与药商 NPC。
+- **200×240 米中世纪城市探索区（Ashenhold — 灰烬城 Phase 2）**：独立城市场景 (`src/world/city/` + [城市总规划](docs/ASHENHOLD_MASTER_PLAN.md))，配备 SH 球谐天空探针与物理分级光照 (`NeutralToneMapping`)、10 座品类各异的市集商摊、双层凤凰铁砧石质喷泉、圣伊格尼斯钟楼圣堂、石匠拱廊、东西双探索环道（西线【铁匠工坊区】含露天锻炉与制桶坊；东线【织坊居民高地】含高差石阶观景台与提灯古巷）、王道阶梯与闭门戒严的领主城堡前庭 (`Phase 3`)；运行时采用分块地形、重复墙体实例化与按区材质合批 (`mergeGeometries`) 优化性能。
 - **第一人称 3D 自由探索**：真实 Rapier 3D 物理碰撞、重力、斜坡行走与可进入建筑/地下城。
 - **五个特色区域（512 × 512 米固定种子世界，完整保留）**：
   - **溪谷村 (Ravendale Village)**：玩家出生点、可进入的村长长屋、铁匠铺、猎人小屋与水井广场。
@@ -48,7 +50,7 @@ npm install
 
 # 启动开发服务器
 # - 原开放世界入口: http://127.0.0.1:5173/
-# - 灰烬城 Phase 1 直达入口: http://127.0.0.1:5173/?zone=city
+# - 灰烬城 Phase 2 直达入口: http://127.0.0.1:5173/?zone=city
 npm run dev
 
 # 类型检查
@@ -77,20 +79,21 @@ npm run test:e2e
 | `E` | 交互（对话、开箱、拾取、进出建筑/墓穴/城门传送） |
 | `I` | 打开/关闭背包与装备界面 |
 | `J` | 打开/关闭任务日志 |
-| `M` | 打开/关闭世界地图 |
+| `M` | 打开/关闭地图（在开放世界显示大地图，在灰烬城显示街道与边界舆图） |
 | `Esc` | 系统菜单（存档/读档/画质切换/一键前往灰烬城） |
 
 ## 项目文档
 
 - [游戏设计文档 (GDD)](docs/GDD.md)
+- [灰烬城总规划 (ASHENHOLD_MASTER_PLAN)](docs/ASHENHOLD_MASTER_PLAN.md)
 - [技术架构文档 (ARCHITECTURE)](docs/ARCHITECTURE.md)
 - [开发路线图 (ROADMAP)](docs/ROADMAP.md)
 - [开发日志 (DEVELOPMENT_LOG)](docs/DEVELOPMENT_LOG.md)
 
 ## 当前验证状态
 
-- `npm run typecheck`: 通过 (`tsc --noEmit`)
-- `npm test`: 7 个测试文件共 19 项单元测试全部通过（含开放世界/墓穴/灰烬城 Phase 1 隔离物理碰撞及 `fake-indexeddb` 存档迁移）
-- `npm run build`: 生产包构建通过
-- `npm run test:e2e`: 2 项 Playwright + Chrome WebGL2 端到端测试全部通过（覆盖原开放世界主线/地下城存档与灰烬城 Phase 1 城门通行/可进入酒馆/NPC，0 控制台/页面错误）
-- **待人工实机体验验证**：桌面独显/核显硬件下的 1080p 帧率手感、Pointer Lock 视角灵敏度以及 30–60 分钟完整主支线数值平衡调优。
+- `npm run typecheck`: 通过 (`tsc --noEmit`，0 错误)
+- `npm test`: 9 个测试文件共 23 项单元测试全部通过（含开放世界/墓穴、灰烬城光照探针、Phase 1 室内门洞与 Phase 2 约 200×240m 双环道路/市集拱门/内堡铁闸碰撞及 `fake-indexeddb` 存档迁移）
+- `npm run build`: 生产包构建通过 (`vite build`)
+- `npm run test:e2e`: 2 项 Playwright + Chrome WebGL2 端到端测试全部通过（1. 开放世界主线/战斗/墓穴/画质/IndexedDB 存档；2. 灰烬城南门穿越→中央市集面包交易→铁匠工坊区→织坊高地→城堡前庭铁闸阻挡→`[M]` 舆图，0 控制台/页面错误）
+- **性能实测说明（CPU SwiftShader vs 硬件 GPU）**：本云端验证环境无独立显卡，运行于 headless Chrome SwiftShader 软件光栅化（中央市集 1080p High 档：**210 Draw Calls / 655,832 Triangles / 70 Textures**，CPU 软件帧耗时 ~9.1s；城堡前庭 82 Draw Calls / ~2.5s；南城门 379 Draw Calls / ~8.8s）。桌面硬件 GPU（WebGL2）上的 1080p 60 FPS 实际帧率表现待真机实测确认。

@@ -72,3 +72,27 @@
   - `npm run test:e2e` Playwright 端到端测试通过（覆盖原开放世界/地下城全流程 + 灰烬城 Phase 1 渲染、街道行走、走入酒馆室内与卫队长交互，0 控制台/页面错误）。
   - 采集 6 张真实浏览器游戏截图 (`city_01_gate_approach.png` 至 `city_06_skyline_vista.png`)：1080p High 档视角下实测 **137 Draw Calls / 158,332 Triangles**（720p 全景视角 236 Draw Calls / 187,332 Triangles / 51 Textures；在无硬件 GPU 的云端 CPU SwiftShader 软件光栅化下帧耗时约 3.1s–5.0s，合批后的 137–236 Draw Calls 与 ~18.7 万三角面在桌面独立/集成硬件 WebGL2 GPU 上完全契合 1080p 60 FPS 预算）。
 
+## 2026-11-23 — Ashenhold (灰烬城) Phase 2 (`feature/ashenhold-phase2-market`)：光照重修、200×240m 双环城区与中央市集
+- **画面偏暗系统性修复 (`CityLighting.ts`, `CityMaterialLibrary.ts`, `DayNightCycle.ts`)**：
+  - 针对基线版本缺乏天空球谐补光、顶点 AO 与实时阴影双重乘算压暗直接光照、全材质全局挂接 `scene.environment` 以及单一 `ACESFilmicToneMapping` 压缩高光的问题，新增 `CityAmbientProbe`（基于物理太阳方向与天顶/地平散射色的 9 系数 SH 球谐天空探针 `THREE.LightProbe`）。
+  - 通过 `injectIndirectAO` 将 GLB 顶点 AO (`COLOR_0`) 分离约束于 `indirectDiffuse` / `indirectSpecular`（直接光仅保留 `0.3` 软折减），仅对锻铁/黄铜/窗玻璃/水面赋予专属 PMREM 环境反射，避免粗糙石面与抹灰墙受暗环境贴图压暗，并随昼夜切换自发光窗玻璃 (`window_leaded`)。
+  - 为城市启用 `THREE.NeutralToneMapping`（曝光 `1.0`，高光过渡自然且不靠过度 Bloom 或浓雾遮丑），保持开放世界 `ACESFilmicToneMapping` 不变；阴影相机围绕玩家按 48m 范围纹素对齐锚定 (`DayNightCycle.applyCityLighting`)。
+  - 实测亮度统计 (`tools/lum.py`)：同机位南门 13:00 均值 `meanY` 从 `0.038` 提升至 `0.108–0.117`（过暗像素 `<0.02` 由 `63.8%` 降至 `26.8%`），中央市集 10:00 `meanY=0.163` (`dark<0.02=6.5%`)、13:00 `meanY=0.177` (`dark<0.02=9.7%`)、17:00 黄金落日 `meanY=0.045` (`dark<0.02=23.0%`)、城堡前庭 13:00 `meanY=0.224` (`dark<0.02=2.3%`)。
+- **200×240m 城市总体规划、道路网与分块地形 (`ASHENHOLD_MASTER_PLAN.md`, `CityRoadNetwork.ts`, `CityGroundBuilder.ts`)**：
+  - 建立 `CityRoadNetwork` 连续路线与广场台地体系：保留 Phase 1 南城门主街，向北开启门拱直达 **中央市集广场 (`y=2.45m` / 喷泉台基 `y=2.81m`)**，分支两条可选主要环道——**西环【铁匠工坊区】（铸铁巷 → 制桶坊 → 铜角小巷 + 鞋匠捷径）** 与 **东环【织坊居民高地】（+1.9m 高差石阶观景台 → 提灯古巷 → 东行会车拱 + 面包台阶巷）**——以及通往 **城堡前庭 (`y=9.8m`)** 与 **领主内堡高台 (`y=13.5m`)** 的王道阶梯。
+  - 城墙内真实可探索区域、城北闭锁的 **Phase 3 领主内堡** 与墙外装饰天际线在物理围墙、公告牌及 `[M]` 灰烬城羊皮纸舆图上明确区分，绝不以装饰远景冒充可探索区；`PhysicsWorld` 灰烬城边界同步扩展至 `x ∈ [-69, 69]`、`z ∈ [-171, 31]`。
+- **扩展材质、47 个 Phase 2 GLB 资产库与 BMesh UV 修复 (`scripts/city/`)**：
+  - `texgen.c` / `generate_textures.py` 新增中世纪赤砖 (`brick_medieval`)、4 色条纹遮阳篷布及面包店/铁匠铺/市集手绘招牌，全套城市 PBR 纹理扩充至 **54 张**。
+  - 修复 `scripts/city/generate_models.py` 中 `MeshBuilder.custom_uv_faces` 使用易被 CPython GC 复用的 `id(f)` 导致随机石砌面跳过三平面 UV 的长期隐藏漏洞，改用持久 `BMesh` 整型面层 `custom_uv`，重导全量模型后 `gatehouse.glb` 与 `castle_barbican_gate.glb` 的 `bad_uv_big_tris` 分别由 `1219` / `462` 降至 **0**。
+  - `building_kit.py` 新增 **47 个 Phase 2 资产**（全城总计 **67 个 `.glb` 模型**），包含 **10 座独立设计商摊 (`stall_01..10`)**、凤凰铁砧双层石喷泉、市政宪章碑、圣伊格尼斯钟楼圣堂、石匠拱廊、铸匠铺、制桶坊、硝皮坊、织坊会堂、多层居民住宅、城堡瓮城（带闭锁铁闸与双圆柱角楼）及主堡天际线，由 `build_city_layout.py` 生成 `src/data/cityLayout.json`（94 栋建筑/拱门/城墙，138 个实例化道具）。
+- **分块合批优化、NPC 扩展与双模式 `[M]` 舆图 (`CityAssetLoader.ts`, `CityPhase1Builder.ts`, `UIManager.ts`, `npcs.json`, `items.json`, `dialogues.json`)**：
+  - 将 200×240m 地面切分为 23 块分块网格与物理 Trimesh；实作按区块与 `(material, castShadow)` 合批静态几何体 (`createDistrictStaticBatch`) 及围墙自动 `InstancedMesh`，将南城门方向 Draw Calls 由 `725` 压降至 `379`，市集广场 1080p High 档仅 `210` Draw Calls。
+  - 新增 5 名交互 NPC（`city_baker_marta`、`city_merchant_thorne`、`city_smith_brennan`、`city_weaver_claire`、`city_citadel_warden`）与 3 件新商品（`hearth_bread`、`forged_guild_halberd`、`weavers_silk_cloak`）；`UIManager` 按区域自动切换开放世界地图与灰烬城双环舆图。
+- **全量回归测试、E2E 连续游玩验证与软件渲染诚实报告**：
+  - `npm run typecheck` (`tsc --noEmit`) 通过（0 错误）。
+  - `npm test` (Vitest) **9 个测试套件共 23 项单元测试**全部通过（新增 `tests/unit/city-lighting.test.ts` 与 `tests/unit/city-phase2-layout.test.ts`，完整覆盖 SH 探针、道路拱门穿越、东西双环与内堡铁闸物理阻挡）。
+  - `npm run build` 生产构建通过。
+  - `npm run test:e2e` (Playwright + headless Chrome WebGL2，SwiftShader CPU 软件渲染) **2/2 全部通过**（`2 passed / 5.1m`，0 控制台/页面错误）：完整验证原有开放世界/墓穴/IndexedDB 存档无回归，以及从南城门进入主街→与卫队长交互→进入酒馆阅读账簿→穿过市集拱门抵达中央市集→向烘焙娘玛尔塔购买热面包扣减金币→探索西侧铁匠工坊区与东侧织坊高地→受阻于城堡前庭铁闸→打开 `[M]` 灰烬城舆图。
+  - **硬件/软件渲染遥测透明披露**：当前云服务器无独立 GPU，所有截图与 E2E 均于 Chrome SwiftShader CPU 软件渲染运行（1080p 中央市集 High 档：**210 Draw Calls / 655,832 Triangles / 398 Geometries / 70 Textures**，CPU 软件单帧 ~9.1s / 0 FPS；720p 中央市集 **210 Draw Calls / 655,828 Triangles**；铁匠工坊区 **113 Draw Calls / 345,750 Triangles**；城堡前庭 **82 Draw Calls / 122,262 Triangles**）。待在实体硬件 GPU 环境下补充真实 60 FPS 帧率测试。
+
+
