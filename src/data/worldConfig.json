@@ -84,7 +84,7 @@
       "id": "chest_watchtower_top",
       "name": "哨塔补给箱",
       "zone": "overworld",
-      "position": { "x": 103.5, "y": 0, "z": -65 },
+      "position": { "x": 103.5, "y": 19.5, "z": -65 },
       "gold": 40,
       "items": [
         { "itemId": "greater_health_potion", "quantity": 1 },
@@ -130,7 +130,7 @@
       "itemId": "watchers_journal",
       "quantity": 1,
       "zone": "overworld",
-      "position": { "x": 106.5, "y": 0, "z": -65 },
+      "position": { "x": 106.5, "y": 19.5, "z": -65 },
       "label": "守望者日志"
     },
     {
