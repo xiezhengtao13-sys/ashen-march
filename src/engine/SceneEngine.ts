@@ -6,6 +6,7 @@ export class SceneEngine {
   readonly renderer: THREE.WebGLRenderer;
   readonly overworldGroup: THREE.Group;
   readonly cryptGroup: THREE.Group;
+  readonly cityGroup: THREE.Group;
 
   constructor(canvas: HTMLCanvasElement) {
     this.scene = new THREE.Scene();
@@ -42,7 +43,17 @@ export class SceneEngine {
     this.cryptGroup.visible = false;
     this.scene.add(this.cryptGroup);
 
+    this.cityGroup = new THREE.Group();
+    this.cityGroup.name = 'AshenholdCityGroup';
+    this.cityGroup.visible = false;
+    this.scene.add(this.cityGroup);
+
     window.addEventListener('resize', this.handleResize);
+  }
+
+  setEnvironmentMap(envMap: THREE.Texture | null, intensity = 0.72): void {
+    this.scene.environment = envMap;
+    this.scene.environmentIntensity = intensity;
   }
 
   private handleResize = (): void => {

@@ -86,6 +86,7 @@ export class DayNightCycle {
     this.sunLight.shadow.camera.top = d;
     this.sunLight.shadow.camera.bottom = -d;
     this.scene.add(this.sunLight);
+    this.scene.add(this.sunLight.target);
 
     this.skyUniforms = {
       uZenithColor: { value: this.dayZenith.clone() },
@@ -108,6 +109,19 @@ export class DayNightCycle {
     this.scene.add(this.skyMesh);
   }
 
+  private setShadowBounds(halfExtent: number, targetX: number, targetY: number, targetZ: number): void {
+    const cam = this.sunLight.shadow.camera;
+    if (cam.right !== halfExtent) {
+      cam.left = -halfExtent;
+      cam.right = halfExtent;
+      cam.top = halfExtent;
+      cam.bottom = -halfExtent;
+      cam.updateProjectionMatrix();
+    }
+    this.sunLight.target.position.set(targetX, targetY, targetZ);
+    this.sunLight.target.updateMatrixWorld();
+  }
+
   update(dt: number, state: GameState, fogMultiplier = 1.0): void {
     if (!state.isPaused) {
       state.world.timeOfDay = (state.world.timeOfDay + dt * this.hoursPerSecond) % 24;
@@ -128,25 +142,34 @@ export class DayNightCycle {
     }
 
     this.skyMesh.visible = true;
+    const isCity = state.player.currentZone === 'ashenhold_city';
     const t = state.world.timeOfDay;
     const solarAngle = ((t - 6) / 24) * Math.PI * 2;
     const sunY = Math.sin(solarAngle);
     const sunX = Math.cos(solarAngle);
 
-    this.sunLight.position.set(sunX * 140, Math.max(18, sunY * 140), 55);
-    this.skyUniforms.uSunDir.value.set(sunX, sunY, 0.38).normalize();
+    if (isCity) {
+      this.setShadowBounds(44, 0, 1, 2);
+      // Warm diagonal morning/midday raking sunlight across the gate & main street
+      this.sunLight.position.set(sunX * 52 + 24, Math.max(26, sunY * 72 + 12), 42);
+      this.skyUniforms.uSunDir.value.set(sunX * 0.7 + 0.35, Math.max(0.32, sunY), 0.48).normalize();
+    } else {
+      this.setShadowBounds(140, 0, 0, 0);
+      this.sunLight.position.set(sunX * 140, Math.max(18, sunY * 140), 55);
+      this.skyUniforms.uSunDir.value.set(sunX, sunY, 0.38).normalize();
+    }
 
     if (sunY > 0.22) {
       this.skyUniforms.uZenithColor.value.copy(this.dayZenith);
-      this.skyUniforms.uHorizonColor.value.copy(this.dayHorizon);
+      this.skyUniforms.uHorizonColor.value.copy(isCity ? new THREE.Color(0xc4ccd4) : this.dayHorizon);
       this.skyUniforms.uSunColor.value.setHex(0xffe8bf);
       this.skyUniforms.uStarAlpha.value = 0;
 
-      this.sunLight.color.setHex(0xfff0d4);
-      this.sunLight.intensity = 0.78 + sunY * 0.85;
-      this.hemiLight.color.setHex(0xd3e4f5);
-      this.hemiLight.groundColor.setHex(0x473e30);
-      this.hemiLight.intensity = 0.48 + sunY * 0.32;
+      this.sunLight.color.setHex(isCity ? 0xffeacc : 0xfff0d4);
+      this.sunLight.intensity = (isCity ? 1.15 : 0.78) + sunY * 0.85;
+      this.hemiLight.color.setHex(isCity ? 0xc2daf2 : 0xd3e4f5);
+      this.hemiLight.groundColor.setHex(isCity ? 0x5c4b3b : 0x473e30);
+      this.hemiLight.intensity = (isCity ? 0.62 : 0.48) + sunY * 0.28;
     } else if (sunY > -0.15) {
       const k = (sunY + 0.15) / 0.37;
       const warmBlend = Math.sin(k * Math.PI * 0.88);
@@ -175,7 +198,7 @@ export class DayNightCycle {
     this.scene.background = this.skyUniforms.uHorizonColor.value.clone();
     if (this.scene.fog instanceof THREE.FogExp2) {
       this.scene.fog.color.copy(this.skyUniforms.uHorizonColor.value);
-      this.scene.fog.density = 0.0044 * fogMultiplier;
+      this.scene.fog.density = (isCity ? 0.0056 : 0.0044) * fogMultiplier;
     }
   }
 

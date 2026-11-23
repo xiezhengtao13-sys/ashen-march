@@ -5,14 +5,21 @@
 ## ▶ 一键在线游玩（浏览器直玩）
 
 [![立即在线游玩 - Ashen March](https://img.shields.io/badge/▶_立即在线游玩-Ashen_March_灰烬边境-d9a043?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/)
+[![直达灰烬城 Phase 1 - 分支在线预览](https://img.shields.io/badge/▶_直达灰烬城_Phase_1-Ashenhold_分支预览直玩-b85c2e?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase1/?zone=city)
+[![直达灰烬城 - 主干入口](https://img.shields.io/badge/▶_直达灰烬城-main_%3Fzone%3Dcity-6f4e37?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/?zone=city)
 
-- **在线试玩地址**：https://xiezhengtao13-sys.github.io/ashen-march/
+- **开放世界试玩入口（溪谷村出生点）**：https://xiezhengtao13-sys.github.io/ashen-march/
+- **额外入口 — 灰烬城 Phase 1（Ashenhold 城门与门卫主街样板区）**：
+  - **分支在线预览（免合并 `main` 即可直达城市）**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-phase1/?zone=city
+  - **主干入口（合并 `main` 后生效）**：https://xiezhengtao13-sys.github.io/ashen-march/?zone=city
+  - **游戏内互传入口**：可在任意模式按 `Esc` 打开系统菜单点击 **「前往灰烬城」**，或在溪谷村口路牌直接传送往返。
 - **零安装直玩**：由 GitHub Actions 自动构建并托管于 GitHub Pages，点击上方按钮即可在桌面浏览器（支持 WebGL2）中直接运行，存档自动保存于浏览器本地 IndexedDB。
 
 ## 核心特性
 
+- **高密度中世纪城市样板区（Ashenhold — 灰烬城 Phase 1）**：独立区域场景（`src/world/city/`），集成 Blender 4.0 Python 原创带倒角与光线投射顶点 AO 的 `.glb` 模型、C99 烘焙高分辨率 PBR 贴图、`InstancedMesh` 静态合批、带路拱/排水沟/积水反射的街道着色器、可进入室内的南门卫戍营房与《余烬与酒壶》酒馆，以及城门守卫与药商 NPC。
 - **第一人称 3D 自由探索**：真实 Rapier 3D 物理碰撞、重力、斜坡行走与可进入建筑/地下城。
-- **五个特色区域（512 × 512 米固定种子世界）**：
+- **五个特色区域（512 × 512 米固定种子世界，完整保留）**：
   - **溪谷村 (Ravendale Village)**：玩家出生点、可进入的村长长屋、铁匠铺、猎人小屋与水井广场。
   - **灰木森林 (Ashwood Forest)**：程序化多层松树/橡树/枯木林、哥布林营地、草药与隐秘祭坛。
   - **废弃哨塔 (Ruined Watchtower)**：高地石砌遗迹，可沿阶梯攀登探索，燃起的信号火盆与守望者日志线索。
@@ -27,7 +34,8 @@
 ## 技术栈
 
 - **语言与构建**：TypeScript + Vite
-- **3D 渲染与动画**：Three.js (`WebGL2`, `THREE.AnimationMixer`)
+- **3D 渲染与动画**：Three.js (`WebGL2`, `THREE.AnimationMixer`, `GLTFLoader`)
+- **离线资产管线**：Blender 4.0 Python (`bmesh`) + C99 / Pillow PBR 纹理生成器（`scripts/city/`）
 - **物理引擎**：Rapier 3D (`@dimforge/rapier3d-compat`)
 - **持久化存储**：IndexedDB
 - **测试框架**：Vitest + jsdom + fake-indexeddb / Playwright
@@ -38,7 +46,9 @@
 # 安装依赖
 npm install
 
-# 启动开发服务器 (http://127.0.0.1:5173)
+# 启动开发服务器
+# - 原开放世界入口: http://127.0.0.1:5173/
+# - 灰烬城 Phase 1 直达入口: http://127.0.0.1:5173/?zone=city
 npm run dev
 
 # 类型检查
@@ -64,11 +74,11 @@ npm run test:e2e
 | `Space` | 跳跃 |
 | `鼠标左键` | 近战挥砍 |
 | `鼠标右键` | 施放火球术 |
-| `E` | 交互（对话、开箱、拾取、进出建筑/墓穴） |
+| `E` | 交互（对话、开箱、拾取、进出建筑/墓穴/城门传送） |
 | `I` | 打开/关闭背包与装备界面 |
 | `J` | 打开/关闭任务日志 |
 | `M` | 打开/关闭世界地图 |
-| `Esc` | 系统菜单（存档/读档/解锁鼠标） |
+| `Esc` | 系统菜单（存档/读档/画质切换/一键前往灰烬城） |
 
 ## 项目文档
 
@@ -80,7 +90,7 @@ npm run test:e2e
 ## 当前验证状态
 
 - `npm run typecheck`: 通过 (`tsc --noEmit`)
-- `npm test`: 5 个测试文件共 14 项单元测试全部通过（含 Rapier 3D 物理碰撞与 `fake-indexeddb` 存档迁移）
+- `npm test`: 7 个测试文件共 19 项单元测试全部通过（含开放世界/墓穴/灰烬城 Phase 1 隔离物理碰撞及 `fake-indexeddb` 存档迁移）
 - `npm run build`: 生产包构建通过
-- `npm run test:e2e`: Playwright + Chrome WebGL2 端到端测试通过（0 控制台/页面错误）
-- **待人工实机体验验证**：真实桌面鼠标 Pointer Lock 视角手感与 30–60 分钟完整主支线游玩数值节奏。
+- `npm run test:e2e`: 2 项 Playwright + Chrome WebGL2 端到端测试全部通过（覆盖原开放世界主线/地下城存档与灰烬城 Phase 1 城门通行/可进入酒馆/NPC，0 控制台/页面错误）
+- **待人工实机体验验证**：桌面独显/核显硬件下的 1080p 帧率手感、Pointer Lock 视角灵敏度以及 30–60 分钟完整主支线数值平衡调优。

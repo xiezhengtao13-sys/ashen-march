@@ -268,6 +268,51 @@
           "choices": [{ "text": "我会小心应对的。", "nextNodeId": null }]
         }
       }
+    },
+    "city_gate_captain_dialogue": {
+      "entryNodes": [{ "nodeId": "captain_greeting" }],
+      "nodes": {
+        "captain_greeting": {
+          "speaker": "守门队长马库斯",
+          "text": "站住，旅人——啊，看你的装束是从溪谷村北上而来的吧。欢迎来到【灰烬城 (Ashenhold)】南门。吊闸已升，门卫大道对商旅与冒险者开放，只是城内深处市集正在修整扩建，请按路牌指引通行。",
+          "choices": [
+            { "text": "这座城市现在有哪些地方可以参观？", "nextNodeId": "captain_tour" },
+            { "text": "多谢放行，我先四处看看。", "nextNodeId": null }
+          ]
+        },
+        "captain_tour": {
+          "speaker": "守门队长马库斯",
+          "text": "穿过城门拱道，左手边第一栋便是我们的【南门卫兵营房】，门常开着，桌上还有最新的防务日志；斜对面是挂着条纹遮阳篷的【铁锚药铺与裁缝坊】，往前走便是城里最暖和的【余烬与酒杯旅店】，炉火整天都旺着。",
+          "choices": [{ "text": "听起来很热闹，我去街上逛逛。", "nextNodeId": null }]
+        }
+      }
+    },
+    "city_guard_sentinel_dialogue": {
+      "entryNodes": [{ "nodeId": "sentinel_greeting" }],
+      "nodes": {
+        "sentinel_greeting": {
+          "speaker": "城门卫兵凯尔",
+          "text": "早安，旅者。刚落过一阵晨露，门卫大道石板缝里还有些积水，留神脚下。抬头往前看，远处高地上那座尖塔就是领主城堡的哨楼轮廓了。",
+          "choices": [{ "text": "辛苦执勤了。", "nextNodeId": null }]
+        }
+      }
+    },
+    "city_merchant_elena_dialogue": {
+      "entryNodes": [{ "nodeId": "elena_greeting" }],
+      "nodes": {
+        "elena_greeting": {
+          "speaker": "药商伊琳娜",
+          "text": "欢迎光临铁锚药铺！不论是刚刚进城的商队护卫，还是准备深入边境古墓的旅人，这里都有上好的治疗药剂、秘银法力药水和灰烬护符。",
+          "choices": [
+            {
+              "text": "看看店里的商品（打开商店）",
+              "action": { "type": "openShop", "npcId": "city_merchant_elena" },
+              "nextNodeId": null
+            },
+            { "text": "我只是随便看看橱窗。", "nextNodeId": null }
+          ]
+        }
+      }
     }
   }
 }

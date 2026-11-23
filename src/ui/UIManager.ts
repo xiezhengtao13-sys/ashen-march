@@ -41,6 +41,7 @@ export interface UIActions {
   onSetQuality?: (preset: QualityPreset) => void;
   getQualityPreset?: () => QualityPreset;
   getTelemetry?: () => PerformanceTelemetry;
+  onToggleCityZone?: () => void;
 }
 
 const COMPASS_LABELS = [
@@ -981,6 +982,11 @@ export class UIManager {
       ctx.fill();
       ctx.stroke();
       ctx.restore();
+    } else if (this.state.player.currentZone === 'ashenhold_city') {
+      ctx.fillStyle = '#3b2412';
+      ctx.font = 'bold 13px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('★ 当前位于独立城市场景：灰烬城 (Ashenhold · Phase 1)', size / 2, size - 22);
     } else {
       ctx.fillStyle = '#3b2412';
       ctx.font = 'bold 13px serif';
@@ -1058,18 +1064,28 @@ export class UIManager {
                 </div>`
               : ''
           }
-          <div class="panel-title" style="margin-top:4px;">键位与音频</div>
+          <div class="panel-title" style="margin-top:4px;">区域快速测试入口与音频</div>
           <div class="item-desc">
             WASD 移动 · Shift 奔跑 · Space 跳跃 · E 交互<br/>
             左键 近战 · 右键 火球术 · 3/4 快捷饮用药水<br/>
             I 行囊 · J 任务日志 · M 边境舆图 · Esc 系统菜单
           </div>
-          <button class="btn" id="btn-toggle-mute" style="align-self:flex-start;">切换音效静音</button>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-primary" id="btn-travel-city" data-testid="btn-travel-city">${
+              this.state.player.currentZone === 'ashenhold_city' ? '返回 溪谷村 (Overworld)' : '前往 灰烬城 (Ashenhold Phase 1)'
+            }</button>
+            <button class="btn" id="btn-toggle-mute">切换音效静音</button>
+          </div>
         </div>
       </div>
     `;
 
     this.modalPanelEl.querySelector('#btn-resume-game')?.addEventListener('click', () => this.closeModal());
+    this.modalPanelEl.querySelector('#btn-travel-city')?.addEventListener('click', () => {
+      this.closeModal();
+      this.actions.onToggleCityZone?.();
+      this.refreshHUD();
+    });
     this.modalPanelEl.querySelector('#btn-toggle-mute')?.addEventListener('click', () => {
       const muted = this.actions.onToggleMute();
       this.pushToast(muted ? '音效已静音' : '音效已开启', 'info');

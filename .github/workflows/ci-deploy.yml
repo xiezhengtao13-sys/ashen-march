@@ -4,7 +4,12 @@ on:
   push:
     branches:
       - main
+      - 'feature/**'
   workflow_dispatch:
+
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -42,9 +47,33 @@ jobs:
           name: ashen-march-web-build
           path: dist/
 
-      - name: Deploy dist to gh-pages branch
+      - name: Prepare preview redirect when deploying main
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p dist/preview/ashenhold-phase1
+          cat <<'EOF' > dist/preview/ashenhold-phase1/index.html
+          <!DOCTYPE html><meta charset="utf-8"><script>location.replace('../../' + location.search + location.hash);</script>
+          EOF
+
+      - name: Deploy dist to gh-pages root (main)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: gh-pages
+
+      - name: Compute branch preview slug
+        if: github.ref != 'refs/heads/main' && github.event_name == 'push'
+        run: echo "PREVIEW_SLUG=${GITHUB_REF_NAME#feature/}" >> "$GITHUB_ENV"
+
+      - name: Deploy branch preview to gh-pages subpath
+        if: github.ref != 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          destination_dir: preview/${{ env.PREVIEW_SLUG }}
+          keep_files: true
+

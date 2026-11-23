@@ -1,11 +1,13 @@
-export type ZoneId = 'overworld' | 'ancient_crypt';
+export type ZoneId = 'overworld' | 'ancient_crypt' | 'ashenhold_city';
 
 export type RegionId =
   | 'ravendale_village'
   | 'ashwood_forest'
   | 'ruined_watchtower'
   | 'ancient_crypt'
-  | 'river_valley';
+  | 'river_valley'
+  | 'ashenhold_gate'
+  | 'ashenhold_main_street';
 
 export interface Vec3 {
   x: number;

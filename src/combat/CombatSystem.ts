@@ -4,6 +4,7 @@ import type { Vec3 } from '../core/types';
 import type { EnemyInstance, EnemySystem } from '../ai/EnemyAI';
 import type { PhysicsWorld } from '../engine/PhysicsWorld';
 import type { InventorySystem } from '../inventory/InventorySystem';
+import { getCityGroundHeight } from '../world/city/CityGroundBuilder';
 import { getTerrainHeight } from '../world/TerrainGenerator';
 
 export interface FireballProjectile {
@@ -241,10 +242,14 @@ export class CombatSystem {
         continue;
       }
 
-      // Check terrain / dungeon floor impact
+      // Check terrain / city ground / dungeon floor impact
       let hitEnvironment = false;
       if (this.state.player.currentZone === 'overworld') {
         if (nextPos.y <= getTerrainHeight(nextPos.x, nextPos.z) + 0.1) {
+          hitEnvironment = true;
+        }
+      } else if (this.state.player.currentZone === 'ashenhold_city') {
+        if (nextPos.y <= getCityGroundHeight(nextPos.x, nextPos.z) + 0.1) {
           hitEnvironment = true;
         }
       } else if (nextPos.y <= -499.8 || nextPos.y >= -492.0) {
