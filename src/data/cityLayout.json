@@ -1,57 +1,58 @@
 {
-  "name": "Ashenhold Compact Hillside Citadel (Phase 2 Sample Slice)",
   "bounds": {
     "explorable": {
-      "minX": -52,
-      "maxX": 52,
-      "minZ": -124,
-      "maxZ": 26
+      "minX": -24,
+      "maxX": 24,
+      "minZ": -70,
+      "maxZ": 22
     },
-    "sampleSlice": {
-      "minX": -18,
-      "maxX": 18,
-      "minZ": -61,
-      "maxZ": 24
-    },
-    "decorativeEnvelope": {
-      "minX": -92,
-      "maxX": 92,
-      "minZ": -166,
-      "maxZ": 48
-    }
+    "verticalLayers": [
+      -4.0,
+      0.0,
+      3.5,
+      7.5,
+      9.5,
+      19.5
+    ]
   },
-  "spawn": {
-    "position": {
-      "x": 0.0,
-      "y": 0.15,
-      "z": 19.5
-    },
-    "yaw": 0.0
+  "spawnPoint": {
+    "x": 0.0,
+    "y": 0.45,
+    "z": 18.4
   },
+  "spawnYaw": 0.0,
   "portals": {
+    "fromRavendale": {
+      "position": {
+        "x": -5.8,
+        "y": 4.0,
+        "z": 55.5
+      },
+      "label": "前往 灰烬城 · 城门样板区 (Ashenhold)"
+    },
     "toRavendale": {
       "position": {
-        "x": 0.0,
-        "y": 0.1,
-        "z": 21.6
+        "x": 0,
+        "y": 0.05,
+        "z": 28.8
       },
       "targetPosition": {
-        "x": 0.0,
-        "y": 2.0,
-        "z": 31.0
+        "x": -5.8,
+        "y": 4.2,
+        "z": 52.5
       },
-      "targetYaw": 0.0,
-      "label": "返回溪谷村（原开放世界）"
+      "targetYaw": 0,
+      "label": "返回 灰烬边境 · 溪谷村"
     }
   },
   "architecture": [
     {
-      "id": "south_gatehouse",
-      "model": "gatehouse.glb",
+      "id": "sv_south_gate_tower",
+      "model": "sv_hero_gate_tower.glb",
       "position": {
         "x": 0.0,
         "y": 0.0,
-        "z": 14.0
+        "z": 12.2
       },
       "yMode": "fixed",
       "yOffset": 0.0,
@@ -59,418 +60,1294 @@
       "district": "ashenhold_gate",
       "tier": "explorable",
       "buildingClass": "A",
-      "cullDist": 260,
+      "cullDist": 280,
       "colliders": [
         {
           "center": [
-            -3.7,
-            2.8,
-            0.0
-          ],
-          "half": [
-            1.55,
-            2.8,
-            3.35
-          ]
-        },
-        {
-          "center": [
-            3.7,
-            2.8,
-            0.0
-          ],
-          "half": [
-            1.55,
-            2.8,
-            3.35
-          ]
-        },
-        {
-          "center": [
-            0.0,
-            9.2,
-            0.0
-          ],
-          "half": [
-            2.2,
-            4.2,
-            3.2
-          ]
-        }
-      ]
-    },
-    {
-      "id": "bastion_west",
-      "model": "bastion_tower.glb",
-      "position": {
-        "x": -12.6,
-        "y": 0.0,
-        "z": 14.3
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_gate",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 260,
-      "cylinderColliders": [
-        {
-          "center": [
-            0,
-            6.0,
-            0
-          ],
-          "halfHeight": 6.0,
-          "radius": 3.15
-        }
-      ]
-    },
-    {
-      "id": "bastion_east",
-      "model": "bastion_tower.glb",
-      "position": {
-        "x": 12.6,
-        "y": 0.0,
-        "z": 14.3
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_gate",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 260,
-      "cylinderColliders": [
-        {
-          "center": [
-            0,
-            6.0,
-            0
-          ],
-          "halfHeight": 6.0,
-          "radius": 3.15
-        }
-      ]
-    },
-    {
-      "id": "wall_south_w1",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": -27.5,
-        "y": 0.5,
-        "z": 14.4
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_gate",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 260,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_south_w2",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": -45.5,
-        "y": 1.8,
-        "z": 14.4
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_gate",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 260,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_south_e1",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": 27.5,
-        "y": 0.5,
-        "z": 14.4
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_gate",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 260,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_south_e2",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": 45.5,
-        "y": 1.8,
-        "z": 14.4
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_gate",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 260,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "a1_guardhouse",
-      "model": "hillside_guardhouse_a1.glb",
-      "position": {
-        "x": -7.4,
-        "y": 0.65,
-        "z": 5.5
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_main_street",
-      "tier": "explorable",
-      "buildingClass": "A",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            -0.04,
+            -7.2,
+            4.6,
             -0.0
           ],
           "half": [
-            4.55,
-            0.1,
+            4.3,
+            4.6,
+            3.4
+          ]
+        },
+        {
+          "center": [
+            7.2,
+            4.6,
+            -0.0
+          ],
+          "half": [
+            4.3,
+            4.6,
+            3.4
+          ]
+        },
+        {
+          "center": [
+            -13.8,
+            8.5,
+            0.8
+          ],
+          "half": [
+            2.7,
+            8.5,
+            2.9
+          ]
+        },
+        {
+          "center": [
+            13.6,
+            7.0,
+            0.5
+          ],
+          "half": [
+            2.6,
+            7.0,
+            2.8
+          ]
+        },
+        {
+          "center": [
+            -1.5,
+            9.36,
+            -0.0
+          ],
+          "half": [
+            13.8,
+            0.15,
             3.45
           ]
         },
         {
           "center": [
-            0.0,
-            1.8,
-            -3.26
+            -13.2,
+            9.36,
+            -3.8
           ],
           "half": [
-            4.6,
             1.8,
-            0.24
+            0.15,
+            1.8
           ]
         },
         {
           "center": [
-            -4.36,
-            1.8,
-            -0.0
+            -1.5,
+            10.2,
+            3.25
           ],
           "half": [
-            0.24,
-            1.8,
-            3.5
+            13.4,
+            0.7,
+            0.28
           ]
         },
         {
           "center": [
-            4.36,
-            1.8,
-            -0.0
+            0.5,
+            10.2,
+            -3.25
           ],
           "half": [
-            0.24,
-            1.8,
-            3.5
+            11.4,
+            0.7,
+            0.28
           ]
         },
         {
           "center": [
-            -2.9,
-            1.8,
-            3.26
+            -4.8,
+            2.4,
+            -5.2
           ],
           "half": [
-            1.7,
-            1.8,
-            0.24
-          ]
-        },
-        {
-          "center": [
-            2.9,
-            1.8,
-            3.26
-          ],
-          "half": [
-            1.7,
-            1.8,
-            0.24
-          ]
-        },
-        {
-          "center": [
             1.2,
-            0.48,
-            -0.6
+            2.4,
+            1.6
+          ]
+        }
+      ],
+      "orientedColliders": [
+        {
+          "center": [
+            -8.891,
+            6.995,
+            -4.6
           ],
           "half": [
-            1.05,
-            0.48,
-            0.55
+            4.939,
+            0.18,
+            1.18
+          ],
+          "rot": [
+            0.0,
+            -3.1416,
+            0.5312
+          ]
+        },
+        {
+          "center": [
+            -4.8,
+            2.319,
+            -10.11
+          ],
+          "half": [
+            4.927,
+            0.18,
+            1.18
+          ],
+          "rot": [
+            0.0,
+            -1.5708,
+            0.5265
+          ]
+        },
+        {
+          "center": [
+            -3.48,
+            3.141,
+            -9.861
+          ],
+          "half": [
+            4.847,
+            0.675,
+            0.22
+          ],
+          "rot": [
+            0.0,
+            -1.5708,
+            0.5265
+          ]
+        },
+        {
+          "center": [
+            -6.12,
+            3.141,
+            -9.861
+          ],
+          "half": [
+            4.847,
+            0.675,
+            0.22
+          ],
+          "rot": [
+            0.0,
+            -1.5708,
+            0.5265
           ]
         }
       ]
     },
     {
-      "id": "b1_warehouse",
-      "model": "hillside_warehouse_b1.glb",
+      "id": "sv_overhead_gothic_bridge",
+      "model": "sv_hero_gothic_bridge.glb",
       "position": {
-        "x": -8.4,
-        "y": 1.56,
-        "z": -4.5
+        "x": 0.0,
+        "y": 0.0,
+        "z": -14.5
       },
       "yMode": "fixed",
       "yOffset": 0.0,
-      "yaw": 1.5708,
+      "yaw": 0.0,
       "district": "ashenhold_main_street",
       "tier": "explorable",
-      "buildingClass": "B",
-      "cullDist": 135.0,
+      "buildingClass": "A",
+      "cullDist": 260,
+      "colliders": [
+        {
+          "center": [
+            -6.0,
+            4.6,
+            -0.0
+          ],
+          "half": [
+            2.95,
+            4.6,
+            2.8
+          ]
+        },
+        {
+          "center": [
+            6.0,
+            4.6,
+            -0.0
+          ],
+          "half": [
+            2.95,
+            4.6,
+            2.8
+          ]
+        },
+        {
+          "center": [
+            -11.4,
+            5.5,
+            -0.0
+          ],
+          "half": [
+            2.8,
+            3.8,
+            2.3
+          ]
+        },
+        {
+          "center": [
+            9.2,
+            4.7,
+            -0.0
+          ],
+          "half": [
+            0.675,
+            4.7,
+            2.3
+          ]
+        },
+        {
+          "center": [
+            13.8,
+            4.7,
+            -0.0
+          ],
+          "half": [
+            0.675,
+            4.7,
+            2.3
+          ]
+        },
+        {
+          "center": [
+            -2.4,
+            9.36,
+            -0.0
+          ],
+          "half": [
+            12.8,
+            0.15,
+            2.6
+          ]
+        },
+        {
+          "center": [
+            11.8,
+            9.36,
+            -2.0
+          ],
+          "half": [
+            1.7,
+            0.15,
+            0.7
+          ]
+        },
+        {
+          "center": [
+            -0.8,
+            10.2,
+            2.45
+          ],
+          "half": [
+            10.8,
+            0.7,
+            0.28
+          ]
+        },
+        {
+          "center": [
+            0.9,
+            10.2,
+            -2.45
+          ],
+          "half": [
+            12.5,
+            0.7,
+            0.28
+          ]
+        },
+        {
+          "center": [
+            -13.5,
+            5.6,
+            14.1
+          ],
+          "half": [
+            1.7,
+            3.8,
+            11.9
+          ]
+        },
+        {
+          "center": [
+            -13.5,
+            9.36,
+            14.1
+          ],
+          "half": [
+            1.75,
+            0.15,
+            12.0
+          ]
+        },
+        {
+          "center": [
+            -15.0,
+            10.2,
+            14.1
+          ],
+          "half": [
+            0.28,
+            0.7,
+            11.9
+          ]
+        },
+        {
+          "center": [
+            -12.0,
+            10.1,
+            14.1
+          ],
+          "half": [
+            0.28,
+            0.6,
+            11.9
+          ]
+        },
+        {
+          "center": [
+            11.6,
+            5.1,
+            6.35
+          ],
+          "half": [
+            1.2,
+            0.11,
+            0.6
+          ]
+        }
+      ],
+      "orientedColliders": [
+        {
+          "center": [
+            11.6,
+            7.192,
+            2.013
+          ],
+          "half": [
+            4.753,
+            0.18,
+            1.23
+          ],
+          "rot": [
+            0.0,
+            1.5708,
+            0.5038
+          ]
+        },
+        {
+          "center": [
+            12.97,
+            8.009,
+            1.774
+          ],
+          "half": [
+            4.673,
+            0.675,
+            0.22
+          ],
+          "rot": [
+            0.0,
+            1.5708,
+            0.5038
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sv_market_north_bastion",
+      "model": "sv_hero_market_bastion.glb",
+      "position": {
+        "x": 0.0,
+        "y": 3.5,
+        "z": -51.0
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": 0.0,
+      "district": "ashenhold_market_plaza",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 280,
       "colliders": [
         {
           "center": [
             0.0,
-            -0.05,
-            -0.0
+            2.0,
+            -2.1
           ],
           "half": [
-            4.15,
-            0.11,
-            3.35
+            17.0,
+            2.0,
+            2.1
           ]
         },
         {
           "center": [
             0.0,
-            2.2,
-            -3.19
+            2.0,
+            0.1
           ],
           "half": [
-            4.2,
-            2.2,
-            0.21
+            4.1,
+            2.0,
+            0.36
           ]
         },
         {
           "center": [
-            -3.99,
-            2.2,
-            -0.0
+            0.0,
+            3.9,
+            -3.2
           ],
           "half": [
-            0.21,
-            2.2,
-            3.4
+            17.0,
+            0.14,
+            3.3
           ]
         },
         {
           "center": [
-            3.99,
-            2.2,
-            -0.0
+            0.0,
+            4.55,
+            0.2
           ],
           "half": [
-            0.21,
-            2.2,
-            3.4
+            2.6,
+            0.55,
+            0.23
           ]
         },
         {
           "center": [
-            -2.85,
-            2.2,
-            3.19
+            -3.6,
+            2.0,
+            1.45
           ],
           "half": [
-            1.35,
-            2.2,
-            0.21
+            1.1,
+            2.0,
+            1.45
           ]
         },
         {
           "center": [
-            2.85,
-            2.2,
-            3.19
+            3.6,
+            2.0,
+            1.45
           ],
           "half": [
-            1.35,
-            2.2,
-            0.21
+            1.1,
+            2.0,
+            1.45
+          ]
+        },
+        {
+          "center": [
+            -15.3,
+            3.0,
+            18.8
+          ],
+          "half": [
+            0.6,
+            3.0,
+            16.0
+          ]
+        },
+        {
+          "center": [
+            -13.5,
+            5.88,
+            18.8
+          ],
+          "half": [
+            1.9,
+            0.14,
+            16.2
+          ]
+        },
+        {
+          "center": [
+            -15.1,
+            6.65,
+            18.8
+          ],
+          "half": [
+            0.27,
+            0.65,
+            16.0
+          ]
+        },
+        {
+          "center": [
+            -11.9,
+            6.55,
+            18.8
+          ],
+          "half": [
+            0.27,
+            0.55,
+            16.0
+          ]
+        }
+      ],
+      "orientedColliders": [
+        {
+          "center": [
+            -7.909,
+            1.845,
+            1.65
+          ],
+          "half": [
+            4.245,
+            0.18,
+            1.28
+          ],
+          "rot": [
+            0.0,
+            -0.0,
+            0.5317
+          ]
+        },
+        {
+          "center": [
+            -7.658,
+            2.668,
+            3.07
+          ],
+          "half": [
+            4.165,
+            0.675,
+            0.22
+          ],
+          "rot": [
+            0.0,
+            -0.0,
+            0.5317
+          ]
+        },
+        {
+          "center": [
+            7.909,
+            1.845,
+            1.65
+          ],
+          "half": [
+            4.245,
+            0.18,
+            1.28
+          ],
+          "rot": [
+            0.0,
+            -3.1416,
+            0.5317
+          ]
+        },
+        {
+          "center": [
+            7.658,
+            2.668,
+            3.07
+          ],
+          "half": [
+            4.165,
+            0.675,
+            0.22
+          ],
+          "rot": [
+            0.0,
+            -3.1416,
+            0.5317
+          ]
+        },
+        {
+          "center": [
+            -13.5,
+            4.833,
+            0.367
+          ],
+          "half": [
+            2.993,
+            0.18,
+            1.38
+          ],
+          "rot": [
+            0.0,
+            -1.5708,
+            0.3805
+          ]
+        },
+        {
+          "center": [
+            -11.98,
+            5.623,
+            0.551
+          ],
+          "half": [
+            2.913,
+            0.675,
+            0.22
+          ],
+          "rot": [
+            0.0,
+            -1.5708,
+            0.3805
+          ]
+        },
+        {
+          "center": [
+            -15.02,
+            5.623,
+            0.551
+          ],
+          "half": [
+            2.913,
+            0.675,
+            0.22
+          ],
+          "rot": [
+            0.0,
+            -1.5708,
+            0.3805
           ]
         }
       ]
+    },
+    {
+      "id": "sv_summit_watchtower_ascent",
+      "model": "sv_hero_summit_ascent.glb",
+      "position": {
+        "x": 0.0,
+        "y": 7.5,
+        "z": -55.0
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": 0.0,
+      "district": "ashenhold_temple_acropolis",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 340,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            5.9,
+            -11.1
+          ],
+          "half": [
+            12.0,
+            5.9,
+            3.4
+          ]
+        },
+        {
+          "center": [
+            -11.4,
+            2.95,
+            -4.2
+          ],
+          "half": [
+            1.8,
+            3.05,
+            3.25
+          ]
+        },
+        {
+          "center": [
+            -12.9,
+            6.7,
+            -4.2
+          ],
+          "half": [
+            0.28,
+            0.7,
+            3.2
+          ]
+        },
+        {
+          "center": [
+            9.4,
+            5.95,
+            -6.8
+          ],
+          "half": [
+            1.8,
+            6.05,
+            1.65
+          ]
+        },
+        {
+          "center": [
+            0.0,
+            11.88,
+            -11.0
+          ],
+          "half": [
+            11.6,
+            0.15,
+            3.7
+          ]
+        },
+        {
+          "center": [
+            -2.2,
+            12.7,
+            -7.4
+          ],
+          "half": [
+            9.2,
+            0.7,
+            0.28
+          ]
+        },
+        {
+          "center": [
+            0.0,
+            12.7,
+            -14.5
+          ],
+          "half": [
+            11.4,
+            0.7,
+            0.28
+          ]
+        },
+        {
+          "center": [
+            -11.4,
+            12.7,
+            -11.0
+          ],
+          "half": [
+            0.28,
+            0.7,
+            3.6
+          ]
+        },
+        {
+          "center": [
+            11.2,
+            12.7,
+            -10.0
+          ],
+          "half": [
+            0.28,
+            0.7,
+            4.55
+          ]
+        },
+        {
+          "center": [
+            -7.8,
+            16.4,
+            -11.8
+          ],
+          "half": [
+            2.9,
+            4.6,
+            2.7
+          ]
+        }
+      ],
+      "orientedColliders": [
+        {
+          "center": [
+            -0.054,
+            2.828,
+            -2.2
+          ],
+          "half": [
+            10.262,
+            0.18,
+            1.38
+          ],
+          "rot": [
+            0.0,
+            -3.1416,
+            0.3059
+          ]
+        },
+        {
+          "center": [
+            -0.203,
+            3.606,
+            -0.68
+          ],
+          "half": [
+            10.182,
+            0.675,
+            0.22
+          ],
+          "rot": [
+            0.0,
+            -3.1416,
+            0.3059
+          ]
+        },
+        {
+          "center": [
+            -0.688,
+            8.831,
+            -6.2
+          ],
+          "half": [
+            9.079,
+            0.18,
+            1.38
+          ],
+          "rot": [
+            0.0,
+            -0.0,
+            0.3488
+          ]
+        },
+        {
+          "center": [
+            -0.519,
+            9.616,
+            -4.68
+          ],
+          "half": [
+            8.999,
+            0.675,
+            0.22
+          ],
+          "rot": [
+            0.0,
+            -0.0,
+            0.3488
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sv_undercroft_cistern",
+      "model": "sv_hero_undercroft.glb",
+      "position": {
+        "x": -12.5,
+        "y": -4.0,
+        "z": -17.0
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": 0.0,
+      "district": "ashenhold_main_street",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 180,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            -0.15,
+            1.5
+          ],
+          "half": [
+            2.7,
+            0.17,
+            10.6
+          ]
+        },
+        {
+          "center": [
+            -2.8,
+            2.3,
+            1.5
+          ],
+          "half": [
+            0.45,
+            2.6,
+            10.8
+          ]
+        },
+        {
+          "center": [
+            2.8,
+            2.3,
+            -0.5
+          ],
+          "half": [
+            0.45,
+            2.6,
+            8.7
+          ]
+        },
+        {
+          "center": [
+            0.0,
+            2.3,
+            11.8
+          ],
+          "half": [
+            3.2,
+            2.6,
+            0.45
+          ]
+        },
+        {
+          "center": [
+            0.0,
+            4.85,
+            1.5
+          ],
+          "half": [
+            3.25,
+            0.55,
+            10.3
+          ]
+        }
+      ],
+      "orientedColliders": [
+        {
+          "center": [
+            5.697,
+            2.523,
+            10.0
+          ],
+          "half": [
+            5.28,
+            0.18,
+            1.33
+          ],
+          "rot": [
+            0.0,
+            -0.0,
+            0.5671
+          ]
+        },
+        {
+          "center": [
+            1.82,
+            3.595,
+            -13.74
+          ],
+          "half": [
+            7.638,
+            0.18,
+            1.33
+          ],
+          "rot": [
+            0.0,
+            1.347,
+            0.5364
+          ]
+        },
+        {
+          "center": [
+            0.443,
+            4.42,
+            -14.313
+          ],
+          "half": [
+            7.558,
+            0.675,
+            0.22
+          ],
+          "rot": [
+            0.0,
+            1.347,
+            0.5364
+          ]
+        },
+        {
+          "center": [
+            3.31,
+            4.42,
+            -13.66
+          ],
+          "half": [
+            7.558,
+            0.675,
+            0.22
+          ],
+          "rot": [
+            0.0,
+            1.347,
+            0.5364
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sv_tavern_shell",
+      "model": "sv_hero_tavern_v3.glb",
+      "position": {
+        "x": 9.2,
+        "y": 1.56,
+        "z": -3.2
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": -1.5708,
+      "district": "ashenhold_main_street",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 200,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            0.04,
+            -0.0
+          ],
+          "half": [
+            5.3,
+            0.11,
+            4.0
+          ]
+        },
+        {
+          "center": [
+            0.0,
+            1.775,
+            -3.76
+          ],
+          "half": [
+            5.3,
+            1.775,
+            0.24
+          ]
+        },
+        {
+          "center": [
+            -5.06,
+            1.775,
+            -0.0
+          ],
+          "half": [
+            0.24,
+            1.775,
+            4.0
+          ]
+        },
+        {
+          "center": [
+            5.06,
+            1.775,
+            -0.0
+          ],
+          "half": [
+            0.24,
+            1.775,
+            4.0
+          ]
+        },
+        {
+          "center": [
+            -3.35,
+            1.775,
+            3.76
+          ],
+          "half": [
+            1.95,
+            1.775,
+            0.24
+          ]
+        },
+        {
+          "center": [
+            3.35,
+            1.775,
+            3.76
+          ],
+          "half": [
+            1.95,
+            1.775,
+            0.24
+          ]
+        },
+        {
+          "center": [
+            -1.5,
+            3.61,
+            -0.0
+          ],
+          "half": [
+            3.8,
+            0.1,
+            4.2
+          ]
+        },
+        {
+          "center": [
+            3.6,
+            3.61,
+            -3.35
+          ],
+          "half": [
+            1.6,
+            0.1,
+            0.75
+          ]
+        },
+        {
+          "center": [
+            3.6,
+            3.61,
+            3.35
+          ],
+          "half": [
+            1.6,
+            0.1,
+            0.75
+          ]
+        },
+        {
+          "center": [
+            0.0,
+            3.64,
+            5.03
+          ],
+          "half": [
+            3.1,
+            0.1,
+            0.775
+          ]
+        },
+        {
+          "center": [
+            0.0,
+            4.25,
+            5.73
+          ],
+          "half": [
+            3.1,
+            0.55,
+            0.1
+          ]
+        },
+        {
+          "center": [
+            0.0,
+            5.325,
+            -4.05
+          ],
+          "half": [
+            5.55,
+            1.625,
+            0.19
+          ]
+        },
+        {
+          "center": [
+            5.35,
+            5.325,
+            -0.0
+          ],
+          "half": [
+            0.19,
+            1.625,
+            4.25
+          ]
+        },
+        {
+          "center": [
+            -5.35,
+            5.325,
+            1.65
+          ],
+          "half": [
+            0.19,
+            1.625,
+            2.6
+          ]
+        },
+        {
+          "center": [
+            -3.4,
+            5.325,
+            4.05
+          ],
+          "half": [
+            2.2,
+            1.625,
+            0.19
+          ]
+        },
+        {
+          "center": [
+            3.4,
+            5.325,
+            4.05
+          ],
+          "half": [
+            2.2,
+            1.625,
+            0.19
+          ]
+        }
+      ],
+      "orientedColliders": [
+        {
+          "center": [
+            3.4,
+            1.763,
+            -0.196
+          ],
+          "half": [
+            3.615,
+            0.18,
+            0.905
+          ],
+          "rot": [
+            0.0,
+            1.5708,
+            0.565
+          ]
+        },
+        {
+          "center": [
+            2.355,
+            2.595,
+            -0.461
+          ],
+          "half": [
+            3.535,
+            0.675,
+            0.22
+          ],
+          "rot": [
+            0.0,
+            1.5708,
+            0.565
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sv_tavern_interior",
+      "model": "sv_hero_tavern_v3_interior.glb",
+      "position": {
+        "x": 9.2,
+        "y": 1.56,
+        "z": -3.2
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": -1.5708,
+      "district": "ashenhold_main_street",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 28,
+      "isInterior": true
     },
     {
       "id": "b2_carter_shed",
       "model": "hillside_carter_shed_b2.glb",
       "position": {
-        "x": 7.8,
-        "y": 0.55,
+        "x": 8.4,
+        "y": 0.52,
         "z": 6.8
       },
       "yMode": "fixed",
@@ -479,7 +1356,7 @@
       "district": "ashenhold_main_street",
       "tier": "explorable",
       "buildingClass": "B",
-      "cullDist": 135.0,
+      "cullDist": 165.0,
       "colliders": [
         {
           "center": [
@@ -508,349 +1385,11 @@
       ]
     },
     {
-      "id": "a2_tavern_shell",
-      "model": "hillside_tavern_a2.glb",
+      "id": "sv_east_alley_wall",
+      "model": "sv_hero_buttress_wall_12m.glb",
       "position": {
-        "x": 8.8,
-        "y": 1.56,
-        "z": -3.2
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_main_street",
-      "tier": "explorable",
-      "buildingClass": "A",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            -0.04,
-            -0.0
-          ],
-          "half": [
-            5.25,
-            0.11,
-            4.15
-          ]
-        },
-        {
-          "center": [
-            0.0,
-            3.4,
-            -3.975
-          ],
-          "half": [
-            5.3,
-            3.4,
-            0.225
-          ]
-        },
-        {
-          "center": [
-            -5.075,
-            3.4,
-            -0.0
-          ],
-          "half": [
-            0.225,
-            3.4,
-            4.2
-          ]
-        },
-        {
-          "center": [
-            5.075,
-            3.4,
-            -0.0
-          ],
-          "half": [
-            0.225,
-            3.4,
-            4.2
-          ]
-        },
-        {
-          "center": [
-            -3.675,
-            1.775,
-            3.975
-          ],
-          "half": [
-            1.625,
-            1.775,
-            0.225
-          ]
-        },
-        {
-          "center": [
-            2.875,
-            1.775,
-            3.975
-          ],
-          "half": [
-            2.425,
-            1.775,
-            0.225
-          ]
-        },
-        {
-          "center": [
-            0.0,
-            3.55,
-            1.1
-          ],
-          "half": [
-            5.1,
-            0.12,
-            3.1
-          ]
-        },
-        {
-          "center": [
-            3.2,
-            3.55,
-            -2.9
-          ],
-          "half": [
-            1.7,
-            0.12,
-            0.95
-          ]
-        },
-        {
-          "center": [
-            0.0,
-            3.55,
-            5.12
-          ],
-          "half": [
-            5.2,
-            0.12,
-            0.95
-          ]
-        },
-        {
-          "center": [
-            -3.15,
-            5.175,
-            3.975
-          ],
-          "half": [
-            2.15,
-            1.625,
-            0.225
-          ]
-        },
-        {
-          "center": [
-            3.15,
-            5.175,
-            3.975
-          ],
-          "half": [
-            2.15,
-            1.625,
-            0.225
-          ]
-        },
-        {
-          "center": [
-            0.0,
-            4.2,
-            6.02
-          ],
-          "half": [
-            5.3,
-            0.65,
-            0.11
-          ]
-        },
-        {
-          "center": [
-            -5.18,
-            4.2,
-            5.12
-          ],
-          "half": [
-            0.12,
-            0.65,
-            0.95
-          ]
-        },
-        {
-          "center": [
-            5.18,
-            4.2,
-            5.12
-          ],
-          "half": [
-            0.12,
-            0.65,
-            0.95
-          ]
-        },
-        {
-          "center": [
-            -1.1,
-            4.15,
-            -2.02
-          ],
-          "half": [
-            2.6,
-            0.6,
-            0.09
-          ]
-        }
-      ],
-      "orientedColliders": [
-        {
-          "center": [
-            -1.075,
-            1.68,
-            -2.95
-          ],
-          "half": [
-            3.389,
-            0.14,
-            0.82
-          ],
-          "rot": [
-            0.0,
-            0.0,
-            0.5709
-          ]
-        }
-      ]
-    },
-    {
-      "id": "a2_tavern_interior",
-      "model": "hillside_tavern_a2_interior.glb",
-      "position": {
-        "x": 8.8,
-        "y": 1.56,
-        "z": -3.2
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_main_street",
-      "tier": "explorable",
-      "buildingClass": "A",
-      "cullDist": 28,
-      "isInterior": true,
-      "colliders": [
-        {
-          "center": [
-            2.6,
-            0.55,
-            -0.2
-          ],
-          "half": [
-            1.65,
-            0.55,
-            0.36
-          ]
-        }
-      ]
-    },
-    {
-      "id": "c_trade_nw",
-      "model": "hillside_c_narrow_a.glb",
-      "position": {
-        "x": -9.2,
-        "y": 1.65,
-        "z": -12.6
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.52,
-      "district": "ashenhold_main_street",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.15,
-            -0.0
-          ],
-          "half": [
-            3.4,
-            3.15,
-            3.3
-          ]
-        }
-      ]
-    },
-    {
-      "id": "c_trade_ne",
-      "model": "hillside_c_narrow_b.glb",
-      "position": {
-        "x": 9.4,
-        "y": 1.65,
-        "z": -12.4
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -0.52,
-      "district": "ashenhold_main_street",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.3,
-            -0.0
-          ],
-          "half": [
-            3.5,
-            3.3,
-            3.5
-          ]
-        }
-      ]
-    },
-    {
-      "id": "retain_t0_west",
-      "model": "hillside_terrace_wall_16m.glb",
-      "position": {
-        "x": -16.5,
-        "y": 1.0,
-        "z": 2.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_main_street",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            2.6,
-            -0.0
-          ],
-          "half": [
-            8.0,
-            2.6,
-            1.15
-          ]
-        }
-      ]
-    },
-    {
-      "id": "retain_t0_east",
-      "model": "hillside_terrace_wall_16m.glb",
-      "position": {
-        "x": 16.8,
-        "y": 1.0,
+        "x": 14.8,
+        "y": 0.2,
         "z": 2.0
       },
       "yMode": "fixed",
@@ -858,61 +1397,79 @@
       "yaw": -1.5708,
       "district": "ashenhold_main_street",
       "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 135.0,
+      "buildingClass": "A",
+      "cullDist": 165.0,
       "colliders": [
         {
           "center": [
             0.0,
-            2.6,
+            4.0,
             -0.0
           ],
           "half": [
-            8.0,
-            2.6,
-            1.15
+            6.0,
+            4.1,
+            1.05
           ]
         }
       ]
     },
     {
-      "id": "market_bridge_arch",
-      "model": "hillside_market_bridge_arch.glb",
+      "id": "sv_south_wall_w1",
+      "model": "sv_hero_buttress_wall_12m.glb",
       "position": {
-        "x": 0.0,
-        "y": 1.72,
-        "z": -15.0
+        "x": -22.5,
+        "y": 0.4,
+        "z": 12.4
       },
       "yMode": "fixed",
       "yOffset": 0.0,
       "yaw": 0.0,
-      "district": "ashenhold_market_plaza",
+      "district": "ashenhold_gate",
       "tier": "explorable",
       "buildingClass": "A",
-      "cullDist": 200,
+      "cullDist": 260,
       "colliders": [
         {
           "center": [
-            -5.0,
-            3.0,
+            0.0,
+            4.0,
             -0.0
           ],
           "half": [
-            2.0,
-            3.1,
-            2.7
+            6.0,
+            4.1,
+            1.05
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "sv_south_wall_e1",
+      "model": "sv_hero_buttress_wall_12m.glb",
+      "position": {
+        "x": 22.5,
+        "y": 0.4,
+        "z": 12.4
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": 0.0,
+      "district": "ashenhold_gate",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 260,
+      "colliders": [
         {
           "center": [
-            5.0,
-            3.0,
+            0.0,
+            4.0,
             -0.0
           ],
           "half": [
-            2.0,
-            3.1,
-            2.7
+            6.0,
+            4.1,
+            1.05
           ]
         }
       ]
@@ -930,8 +1487,8 @@
       "yaw": 0.0,
       "district": "ashenhold_market_plaza",
       "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 220,
+      "buildingClass": "A",
+      "cullDist": 240,
       "cylinderColliders": [
         {
           "center": [
@@ -948,17 +1505,17 @@
       "id": "landmark_market_pillar",
       "model": "landmark_market_pillar.glb",
       "position": {
-        "x": -7.2,
+        "x": -6.2,
         "y": 3.5,
-        "z": -23.6
+        "z": -23.4
       },
       "yMode": "fixed",
       "yOffset": 0.0,
       "yaw": 0.35,
       "district": "ashenhold_market_plaza",
       "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 180,
+      "buildingClass": "A",
+      "cullDist": 200,
       "colliders": [
         {
           "center": [
@@ -975,20 +1532,152 @@
       ]
     },
     {
+      "id": "bldg_market_bakery",
+      "model": "bldg_bakery.glb",
+      "position": {
+        "x": 14.8,
+        "y": 3.5,
+        "z": -27.5
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": -1.5708,
+      "district": "ashenhold_market_plaza",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 165.0,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            3.365,
+            0.0
+          ],
+          "half": [
+            5.050000000000001,
+            3.5650000000000004,
+            3.85
+          ]
+        },
+        {
+          "center": [
+            -6.1000000000000005,
+            1.2,
+            0.0
+          ],
+          "half": [
+            1.3,
+            1.2,
+            2.664
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c_market_e_north",
+      "model": "hillside_c_narrow_c.glb",
+      "position": {
+        "x": 15.0,
+        "y": 3.5,
+        "z": -40.2
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": -1.5708,
+      "district": "ashenhold_market_plaza",
+      "tier": "explorable",
+      "buildingClass": "C",
+      "cullDist": 165.0,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            3.05,
+            -0.0
+          ],
+          "half": [
+            3.3,
+            3.05,
+            3.2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sv_east_market_wall_s",
+      "model": "sv_hero_buttress_wall_12m.glb",
+      "position": {
+        "x": 18.8,
+        "y": 3.5,
+        "z": -24.5
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": -1.5708,
+      "district": "ashenhold_market_plaza",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 165.0,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            4.0,
+            -0.0
+          ],
+          "half": [
+            6.0,
+            4.1,
+            1.05
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sv_east_market_wall_n",
+      "model": "sv_hero_buttress_wall_12m.glb",
+      "position": {
+        "x": 18.8,
+        "y": 3.5,
+        "z": -39.5
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": -1.5708,
+      "district": "ashenhold_market_plaza",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 165.0,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            4.0,
+            -0.0
+          ],
+          "half": [
+            6.0,
+            4.1,
+            1.05
+          ]
+        }
+      ]
+    },
+    {
       "id": "a3_apothecary_shell",
       "model": "hillside_apothecary_a3.glb",
       "position": {
-        "x": -14.6,
-        "y": 3.5,
-        "z": -28.0
+        "x": -21.0,
+        "y": 7.0,
+        "z": -40.5
       },
       "yMode": "fixed",
       "yOffset": 0.0,
       "yaw": 1.5708,
-      "district": "ashenhold_market_plaza",
+      "district": "ashenhold_artisan_quarter",
       "tier": "explorable",
       "buildingClass": "A",
-      "cullDist": 135.0,
+      "cullDist": 165.0,
       "colliders": [
         {
           "center": [
@@ -1056,14 +1745,14 @@
       "id": "a3_apothecary_interior",
       "model": "hillside_apothecary_a3_interior.glb",
       "position": {
-        "x": -14.6,
-        "y": 3.5,
-        "z": -28.0
+        "x": -21.0,
+        "y": 7.0,
+        "z": -40.5
       },
       "yMode": "fixed",
       "yOffset": 0.0,
       "yaw": 1.5708,
-      "district": "ashenhold_market_plaza",
+      "district": "ashenhold_artisan_quarter",
       "tier": "explorable",
       "buildingClass": "A",
       "cullDist": 28,
@@ -1084,174 +1773,12 @@
       ]
     },
     {
-      "id": "bldg_market_bakery",
-      "model": "bldg_bakery.glb",
-      "position": {
-        "x": 15.6,
-        "y": 3.5,
-        "z": -27.5
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_market_plaza",
-      "tier": "explorable",
-      "buildingClass": "A",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.365,
-            0.0
-          ],
-          "half": [
-            5.050000000000001,
-            3.5650000000000004,
-            3.85
-          ]
-        },
-        {
-          "center": [
-            -6.1000000000000005,
-            1.2,
-            0.0
-          ],
-          "half": [
-            1.3,
-            1.2,
-            2.664
-          ]
-        }
-      ]
-    },
-    {
-      "id": "c_market_w_north",
-      "model": "hillside_c_narrow_b.glb",
-      "position": {
-        "x": -15.4,
-        "y": 3.5,
-        "z": -40.5
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_market_plaza",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.3,
-            -0.0
-          ],
-          "half": [
-            3.5,
-            3.3,
-            3.5
-          ]
-        }
-      ]
-    },
-    {
-      "id": "c_market_e_north",
-      "model": "hillside_c_narrow_c.glb",
-      "position": {
-        "x": 15.4,
-        "y": 3.5,
-        "z": -40.5
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_market_plaza",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.05,
-            -0.0
-          ],
-          "half": [
-            3.3,
-            3.05,
-            3.2
-          ]
-        }
-      ]
-    },
-    {
-      "id": "c_market_sw_corner",
-      "model": "hillside_c_narrow_c.glb",
-      "position": {
-        "x": -13.6,
-        "y": 3.5,
-        "z": -19.8
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.65,
-      "district": "ashenhold_market_plaza",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.05,
-            -0.0
-          ],
-          "half": [
-            3.3,
-            3.05,
-            3.2
-          ]
-        }
-      ]
-    },
-    {
-      "id": "c_market_se_corner",
-      "model": "hillside_c_narrow_a.glb",
-      "position": {
-        "x": 13.6,
-        "y": 3.5,
-        "z": -19.8
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -0.65,
-      "district": "ashenhold_market_plaza",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.15,
-            -0.0
-          ],
-          "half": [
-            3.4,
-            3.15,
-            3.3
-          ]
-        }
-      ]
-    },
-    {
       "id": "stall_01_bakery",
       "model": "stall_01_bakery.glb",
       "position": {
-        "x": 9.6,
+        "x": 9.0,
         "y": 3.5,
-        "z": -27.4
+        "z": -27.2
       },
       "yMode": "fixed",
       "yOffset": 0.0,
@@ -1259,7 +1786,7 @@
       "district": "ashenhold_market_plaza",
       "tier": "explorable",
       "buildingClass": "B",
-      "cullDist": 135.0,
+      "cullDist": 165.0,
       "colliders": [
         {
           "center": [
@@ -1281,7 +1808,7 @@
       "position": {
         "x": -9.2,
         "y": 3.5,
-        "z": -35.6
+        "z": -28.0
       },
       "yMode": "fixed",
       "yOffset": 0.0,
@@ -1289,7 +1816,7 @@
       "district": "ashenhold_market_plaza",
       "tier": "explorable",
       "buildingClass": "B",
-      "cullDist": 135.0,
+      "cullDist": 165.0,
       "colliders": [
         {
           "center": [
@@ -1309,7 +1836,7 @@
       "id": "stall_04_pottery",
       "model": "stall_04_pottery.glb",
       "position": {
-        "x": 9.6,
+        "x": 9.0,
         "y": 3.5,
         "z": -35.6
       },
@@ -1319,7 +1846,7 @@
       "district": "ashenhold_market_plaza",
       "tier": "explorable",
       "buildingClass": "B",
-      "cullDist": 135.0,
+      "cullDist": 165.0,
       "colliders": [
         {
           "center": [
@@ -1336,40 +1863,10 @@
       ]
     },
     {
-      "id": "stall_06_spices",
-      "model": "stall_06_spices.glb",
-      "position": {
-        "x": -8.4,
-        "y": 3.5,
-        "z": -42.4
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.021,
-      "district": "ashenhold_market_plaza",
-      "tier": "explorable",
-      "buildingClass": "B",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            1.25,
-            0.0
-          ],
-          "half": [
-            2.15,
-            1.25,
-            1.17
-          ]
-        }
-      ]
-    },
-    {
       "id": "stall_07_drapery",
       "model": "stall_07_drapery.glb",
       "position": {
-        "x": 8.4,
+        "x": 8.2,
         "y": 3.5,
         "z": -42.4
       },
@@ -1379,7 +1876,7 @@
       "district": "ashenhold_market_plaza",
       "tier": "explorable",
       "buildingClass": "B",
-      "cullDist": 135.0,
+      "cullDist": 165.0,
       "colliders": [
         {
           "center": [
@@ -1396,10 +1893,40 @@
       ]
     },
     {
+      "id": "stall_06_spices",
+      "model": "stall_06_spices.glb",
+      "position": {
+        "x": -8.0,
+        "y": 3.5,
+        "z": -43.0
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": 1.021,
+      "district": "ashenhold_market_plaza",
+      "tier": "explorable",
+      "buildingClass": "B",
+      "cullDist": 165.0,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            1.25,
+            0.0
+          ],
+          "half": [
+            2.15,
+            1.25,
+            1.17
+          ]
+        }
+      ]
+    },
+    {
       "id": "stall_08_jeweler",
       "model": "stall_08_jeweler.glb",
       "position": {
-        "x": -4.6,
+        "x": -4.4,
         "y": 3.5,
         "z": -24.2
       },
@@ -1409,7 +1936,7 @@
       "district": "ashenhold_market_plaza",
       "tier": "explorable",
       "buildingClass": "B",
-      "cullDist": 135.0,
+      "cullDist": 165.0,
       "colliders": [
         {
           "center": [
@@ -1426,650 +1953,280 @@
       ]
     },
     {
-      "id": "market_north_retaining_stairs",
-      "model": "hillside_retaining_staircase.glb",
+      "id": "crag_west_gate",
+      "model": "sv_hero_crag_outcrop.glb",
       "position": {
-        "x": 0.0,
-        "y": 3.5,
-        "z": -51.5
+        "x": -22.5,
+        "y": -0.5,
+        "z": 6.0
       },
       "yMode": "fixed",
       "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_market_plaza",
+      "yaw": 0.4,
+      "district": "ashenhold_gate",
       "tier": "explorable",
       "buildingClass": "A",
-      "cullDist": 240,
+      "cullDist": 280,
       "colliders": [
         {
           "center": [
             0.0,
-            2.025,
-            -1.5
-          ],
-          "half": [
-            16.0,
-            2.025,
-            1.55
-          ]
-        },
-        {
-          "center": [
-            0.0,
-            2.025,
-            1.7
-          ],
-          "half": [
-            3.6,
-            2.025,
-            1.75
-          ]
-        },
-        {
-          "center": [
-            0.0,
-            4.65,
-            3.32
-          ],
-          "half": [
-            3.6,
-            0.6,
-            0.18
-          ]
-        },
-        {
-          "center": [
-            -9.7,
-            4.65,
-            0.05
-          ],
-          "half": [
-            6.1,
-            0.6,
-            0.2
-          ]
-        },
-        {
-          "center": [
-            9.7,
-            4.65,
-            0.05
-          ],
-          "half": [
-            6.1,
-            0.6,
-            0.2
-          ]
-        }
-      ],
-      "orientedColliders": [
-        {
-          "center": [
-            -7.7,
-            1.885,
-            1.75
-          ],
-          "half": [
-            4.773,
-            0.16,
-            1.45
-          ],
-          "rot": [
-            0.0,
-            0.0,
-            0.4588
-          ]
-        },
-        {
-          "center": [
-            7.7,
-            1.885,
-            1.75
-          ],
-          "half": [
-            4.773,
-            0.16,
-            1.45
-          ],
-          "rot": [
-            0.0,
-            0.0,
-            -0.4588
-          ]
-        }
-      ]
-    },
-    {
-      "id": "retain_market_west_s",
-      "model": "hillside_terrace_wall_16m.glb",
-      "position": {
-        "x": -20.5,
-        "y": 3.5,
-        "z": -26.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_artisan_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 200,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            2.6,
+            4.5,
             -0.0
           ],
           "half": [
-            8.0,
-            2.6,
-            1.15
-          ]
-        }
-      ]
-    },
-    {
-      "id": "retain_market_west_n",
-      "model": "hillside_terrace_wall_16m.glb",
-      "position": {
-        "x": -20.5,
-        "y": 3.5,
-        "z": -42.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_artisan_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 200,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            2.6,
-            -0.0
-          ],
-          "half": [
-            8.0,
-            2.6,
-            1.15
-          ]
-        }
-      ]
-    },
-    {
-      "id": "retain_market_east_s",
-      "model": "hillside_terrace_wall_16m.glb",
-      "position": {
-        "x": 20.5,
-        "y": 3.5,
-        "z": -26.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_residential_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 200,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            2.6,
-            -0.0
-          ],
-          "half": [
-            8.0,
-            2.6,
-            1.15
-          ]
-        }
-      ]
-    },
-    {
-      "id": "retain_market_east_n",
-      "model": "hillside_terrace_wall_16m.glb",
-      "position": {
-        "x": 20.5,
-        "y": 3.5,
-        "z": -42.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_residential_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 200,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            2.6,
-            -0.0
-          ],
-          "half": [
-            8.0,
-            2.6,
-            1.15
-          ]
-        }
-      ]
-    },
-    {
-      "id": "barricade_west_artisan",
-      "model": "hillside_guard_barricade.glb",
-      "position": {
-        "x": -16.2,
-        "y": 7.5,
-        "z": -56.5
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_market_plaza",
-      "tier": "phase3_gate",
-      "buildingClass": "C",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            0.85,
-            -0.0
-          ],
-          "half": [
-            3.1,
-            0.85,
-            0.325
-          ]
-        }
-      ]
-    },
-    {
-      "id": "barricade_east_residential",
-      "model": "hillside_guard_barricade.glb",
-      "position": {
-        "x": 16.2,
-        "y": 7.5,
-        "z": -56.5
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_market_plaza",
-      "tier": "phase3_gate",
-      "buildingClass": "C",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            0.85,
-            -0.0
-          ],
-          "half": [
-            3.1,
-            0.85,
-            0.325
-          ]
-        }
-      ]
-    },
-    {
-      "id": "barricade_north_acropolis",
-      "model": "hillside_guard_barricade.glb",
-      "position": {
-        "x": 0.0,
-        "y": 7.5,
-        "z": -61.8
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_market_plaza",
-      "tier": "phase4_gate",
-      "buildingClass": "C",
-      "cullDist": 135.0,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            0.85,
-            -0.0
-          ],
-          "half": [
-            3.1,
-            0.85,
-            0.325
-          ]
-        }
-      ]
-    },
-    {
-      "id": "retain_t3_center",
-      "model": "hillside_terrace_wall_16m.glb",
-      "position": {
-        "x": 0.0,
-        "y": 7.8,
-        "z": -68.5
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_temple_acropolis",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 240,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            2.6,
-            -0.0
-          ],
-          "half": [
-            8.0,
-            2.6,
-            1.15
-          ]
-        }
-      ]
-    },
-    {
-      "id": "retain_t3_west",
-      "model": "hillside_terrace_wall_16m.glb",
-      "position": {
-        "x": -16.0,
-        "y": 7.8,
-        "z": -68.5
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_temple_acropolis",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 240,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            2.6,
-            -0.0
-          ],
-          "half": [
-            8.0,
-            2.6,
-            1.15
-          ]
-        }
-      ]
-    },
-    {
-      "id": "retain_t3_east",
-      "model": "hillside_terrace_wall_16m.glb",
-      "position": {
-        "x": 16.0,
-        "y": 7.8,
-        "z": -68.5
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_temple_acropolis",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 240,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            2.6,
-            -0.0
-          ],
-          "half": [
-            8.0,
-            2.6,
-            1.15
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wing_w_smithy",
-      "model": "bldg_smithy.glb",
-      "position": {
-        "x": -28.5,
-        "y": 7.0,
-        "z": -44.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.3352,
-      "district": "ashenhold_artisan_quarter",
-      "tier": "phase3_preview",
-      "buildingClass": "C",
-      "cullDist": 180,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.365,
-            0.0
-          ],
-          "half": [
-            4.95,
-            3.5650000000000004,
-            3.9499999999999997
-          ]
-        },
-        {
-          "center": [
-            -6.0,
-            1.3,
-            1.1
-          ],
-          "half": [
-            1.0,
-            1.3,
-            1.1
-          ]
-        },
-        {
-          "center": [
-            -9.0,
-            2.75,
-            1.5
-          ],
-          "half": [
-            0.25,
-            1.5,
-            0.25
-          ]
-        },
-        {
-          "center": [
-            -9.0,
-            -2.75,
-            1.5
-          ],
-          "half": [
-            0.25,
-            1.5,
-            0.25
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wing_w_cooperage",
-      "model": "bldg_cooperage.glb",
-      "position": {
-        "x": -27.5,
-        "y": 7.0,
-        "z": -29.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_artisan_quarter",
-      "tier": "phase3_preview",
-      "buildingClass": "C",
-      "cullDist": 180,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.265,
-            0.0
-          ],
-          "half": [
-            5.3500000000000005,
-            3.4650000000000003,
-            3.85
-          ]
-        },
-        {
-          "center": [
-            6.4,
-            1.2,
-            0.0
-          ],
-          "half": [
-            1.3,
-            1.2,
-            2.664
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wing_w_tannery",
-      "model": "bldg_tannery.glb",
-      "position": {
-        "x": -32.0,
-        "y": 7.2,
-        "z": -59.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.35,
-      "district": "ashenhold_artisan_quarter",
-      "tier": "phase3_preview",
-      "buildingClass": "C",
-      "cullDist": 180,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.265,
-            0.0
-          ],
-          "half": [
-            5.65,
-            3.4650000000000003,
-            3.75
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wing_w_row_a",
-      "model": "bldg_artisan_row_a.glb",
-      "position": {
-        "x": -41.0,
-        "y": 7.4,
-        "z": -36.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_artisan_quarter",
-      "tier": "phase3_preview",
-      "buildingClass": "C",
-      "cullDist": 180,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.58,
-            0.0
-          ],
-          "half": [
-            4.65,
-            4.78,
-            3.65
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wing_w_narrow",
-      "model": "hillside_c_narrow_b.glb",
-      "position": {
-        "x": -26.0,
-        "y": 7.0,
-        "z": -14.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.45,
-      "district": "ashenhold_artisan_quarter",
-      "tier": "phase3_preview",
-      "buildingClass": "C",
-      "cullDist": 180,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.3,
-            -0.0
-          ],
-          "half": [
-            3.5,
-            3.3,
+            4.1,
+            4.6,
             3.5
           ]
         }
       ]
     },
     {
-      "id": "wing_e_weaver",
-      "model": "bldg_weaver_hall.glb",
+      "id": "crag_east_gate",
+      "model": "sv_hero_crag_outcrop.glb",
       "position": {
-        "x": 28.5,
-        "y": 7.5,
-        "z": -44.0
+        "x": 22.8,
+        "y": -0.5,
+        "z": 5.5
       },
       "yMode": "fixed",
       "yOffset": 0.0,
-      "yaw": -1.3352,
-      "district": "ashenhold_residential_quarter",
-      "tier": "phase3_preview",
-      "buildingClass": "C",
-      "cullDist": 180,
+      "yaw": -0.6,
+      "district": "ashenhold_gate",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 280,
       "colliders": [
         {
           "center": [
             0.0,
-            4.98,
-            0.0
+            4.5,
+            -0.0
           ],
           "half": [
-            5.8500000000000005,
-            5.180000000000001,
-            3.9499999999999997
+            4.1,
+            4.6,
+            3.5
           ]
         }
       ]
     },
     {
-      "id": "wing_e_res_tall",
-      "model": "bldg_res_tall_a.glb",
+      "id": "crag_west_mid",
+      "model": "sv_hero_crag_outcrop.glb",
+      "position": {
+        "x": -22.5,
+        "y": 2.5,
+        "z": -18.0
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": 1.1,
+      "district": "ashenhold_artisan_quarter",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 280,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            4.5,
+            -0.0
+          ],
+          "half": [
+            4.1,
+            4.6,
+            3.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crag_east_mid",
+      "model": "sv_hero_crag_outcrop.glb",
+      "position": {
+        "x": 23.5,
+        "y": 2.5,
+        "z": -16.0
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": -0.9,
+      "district": "ashenhold_residential_quarter",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 280,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            4.5,
+            -0.0
+          ],
+          "half": [
+            4.1,
+            4.6,
+            3.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crag_west_north",
+      "model": "sv_hero_crag_outcrop.glb",
+      "position": {
+        "x": -21.5,
+        "y": 6.5,
+        "z": -56.0
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": 0.7,
+      "district": "ashenhold_artisan_quarter",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 320,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            4.5,
+            -0.0
+          ],
+          "half": [
+            4.1,
+            4.6,
+            3.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crag_east_north",
+      "model": "sv_hero_crag_outcrop.glb",
+      "position": {
+        "x": 21.5,
+        "y": 6.5,
+        "z": -56.0
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": -0.8,
+      "district": "ashenhold_residential_quarter",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 320,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            4.5,
+            -0.0
+          ],
+          "half": [
+            4.1,
+            4.6,
+            3.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crag_summit_nw",
+      "model": "sv_hero_crag_outcrop.glb",
+      "position": {
+        "x": -16.5,
+        "y": 11.5,
+        "z": -70.0
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": 0.3,
+      "district": "ashenhold_temple_acropolis",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 360,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            4.5,
+            -0.0
+          ],
+          "half": [
+            4.1,
+            4.6,
+            3.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crag_summit_ne",
+      "model": "sv_hero_crag_outcrop.glb",
+      "position": {
+        "x": 16.5,
+        "y": 11.5,
+        "z": -70.0
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": -0.4,
+      "district": "ashenhold_temple_acropolis",
+      "tier": "explorable",
+      "buildingClass": "A",
+      "cullDist": 360,
+      "colliders": [
+        {
+          "center": [
+            0.0,
+            4.5,
+            -0.0
+          ],
+          "half": [
+            4.1,
+            4.6,
+            3.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sky_west_smithy",
+      "model": "bldg_smithy.glb",
+      "position": {
+        "x": -28.0,
+        "y": 7.0,
+        "z": -28.0
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": 1.5708,
+      "district": "ashenhold_artisan_quarter",
+      "tier": "decorative",
+      "buildingClass": "A",
+      "cullDist": 280
+    },
+    {
+      "id": "sky_west_house",
+      "model": "hillside_c_narrow_b.glb",
+      "position": {
+        "x": -28.0,
+        "y": 7.0,
+        "z": -48.0
+      },
+      "yMode": "fixed",
+      "yOffset": 0.0,
+      "yaw": 1.3352,
+      "district": "ashenhold_artisan_quarter",
+      "tier": "decorative",
+      "buildingClass": "A",
+      "cullDist": 280
+    },
+    {
+      "id": "sky_east_house1",
+      "model": "hillside_c_narrow_a.glb",
       "position": {
         "x": 27.5,
         "y": 7.5,
@@ -2079,1488 +2236,465 @@
       "yOffset": 0.0,
       "yaw": -1.5708,
       "district": "ashenhold_residential_quarter",
-      "tier": "phase3_preview",
-      "buildingClass": "C",
-      "cullDist": 180,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.73,
-            0.0
-          ],
-          "half": [
-            4.45,
-            4.930000000000001,
-            3.75
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wing_e_narrow_1",
-      "model": "hillside_c_narrow_a.glb",
-      "position": {
-        "x": 32.0,
-        "y": 8.0,
-        "z": -58.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -0.35,
-      "district": "ashenhold_residential_quarter",
-      "tier": "phase3_preview",
-      "buildingClass": "C",
-      "cullDist": 180,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.15,
-            -0.0
-          ],
-          "half": [
-            3.4,
-            3.15,
-            3.3
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wing_e_narrow_2",
-      "model": "hillside_c_narrow_c.glb",
-      "position": {
-        "x": 40.5,
-        "y": 8.2,
-        "z": -38.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_residential_quarter",
-      "tier": "phase3_preview",
-      "buildingClass": "C",
-      "cullDist": 180,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.05,
-            -0.0
-          ],
-          "half": [
-            3.3,
-            3.05,
-            3.2
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wing_e_narrow_3",
-      "model": "hillside_c_narrow_a.glb",
-      "position": {
-        "x": 26.0,
-        "y": 7.2,
-        "z": -14.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -0.45,
-      "district": "ashenhold_residential_quarter",
-      "tier": "phase3_preview",
-      "buildingClass": "C",
-      "cullDist": 180,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.15,
-            -0.0
-          ],
-          "half": [
-            3.4,
-            3.15,
-            3.3
-          ]
-        }
-      ]
-    },
-    {
-      "id": "acropolis_temple_a7",
-      "model": "bldg_market_chapel.glb",
-      "position": {
-        "x": -5.2,
-        "y": 12.2,
-        "z": -82.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.08,
-      "district": "ashenhold_temple_acropolis",
-      "tier": "phase4_preview",
+      "tier": "decorative",
       "buildingClass": "A",
-      "cullDist": 320,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            5.9,
-            4.5,
-            7.6
-          ]
-        }
-      ]
+      "cullDist": 280
     },
     {
-      "id": "acropolis_guild_wing",
-      "model": "bldg_mason_hall.glb",
+      "id": "sky_east_house2",
+      "model": "hillside_c_narrow_b.glb",
       "position": {
-        "x": 11.8,
-        "y": 12.2,
-        "z": -84.0
+        "x": 27.5,
+        "y": 7.5,
+        "z": -46.0
       },
       "yMode": "fixed",
       "yOffset": 0.0,
-      "yaw": -0.18,
-      "district": "ashenhold_temple_acropolis",
-      "tier": "phase4_preview",
-      "buildingClass": "C",
-      "cullDist": 320,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            2.5,
-            -1.35
-          ],
-          "half": [
-            6.5,
-            2.5,
-            3.15
-          ]
-        },
-        {
-          "center": [
-            -5.6,
-            2.0,
-            3.85
-          ],
-          "half": [
-            0.45,
-            2.0,
-            0.48
-          ]
-        },
-        {
-          "center": [
-            -2.8,
-            2.0,
-            3.85
-          ],
-          "half": [
-            0.45,
-            2.0,
-            0.48
-          ]
-        },
-        {
-          "center": [
-            0.0,
-            2.0,
-            3.85
-          ],
-          "half": [
-            0.45,
-            2.0,
-            0.48
-          ]
-        },
-        {
-          "center": [
-            2.8,
-            2.0,
-            3.85
-          ],
-          "half": [
-            0.45,
-            2.0,
-            0.48
-          ]
-        },
-        {
-          "center": [
-            5.6,
-            2.0,
-            3.85
-          ],
-          "half": [
-            0.45,
-            2.0,
-            0.48
-          ]
-        }
-      ]
+      "yaw": -1.3352,
+      "district": "ashenhold_residential_quarter",
+      "tier": "decorative",
+      "buildingClass": "A",
+      "cullDist": 280
     },
     {
-      "id": "acropolis_west_flank",
-      "model": "bldg_castle_flank_west.glb",
-      "position": {
-        "x": -21.5,
-        "y": 12.2,
-        "z": -86.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.28,
-      "district": "ashenhold_temple_acropolis",
-      "tier": "phase4_preview",
-      "buildingClass": "C",
-      "cullDist": 280,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            3.465,
-            0.0
-          ],
-          "half": [
-            5.4,
-            3.665,
-            4.05
-          ]
-        }
-      ]
-    },
-    {
-      "id": "retain_t4_center",
-      "model": "hillside_terrace_wall_16m.glb",
-      "position": {
-        "x": 0.0,
-        "y": 13.8,
-        "z": -104.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_castle_approach",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 320,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            2.6,
-            -0.0
-          ],
-          "half": [
-            8.0,
-            2.6,
-            1.15
-          ]
-        }
-      ]
-    },
-    {
-      "id": "retain_t4_west",
-      "model": "hillside_terrace_wall_16m.glb",
-      "position": {
-        "x": -16.0,
-        "y": 13.8,
-        "z": -104.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_castle_approach",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 320,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            2.6,
-            -0.0
-          ],
-          "half": [
-            8.0,
-            2.6,
-            1.15
-          ]
-        }
-      ]
-    },
-    {
-      "id": "retain_t4_east",
-      "model": "hillside_terrace_wall_16m.glb",
-      "position": {
-        "x": 16.0,
-        "y": 13.8,
-        "z": -104.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_castle_approach",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 320,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            2.6,
-            -0.0
-          ],
-          "half": [
-            8.0,
-            2.6,
-            1.15
-          ]
-        }
-      ]
-    },
-    {
-      "id": "castle_barbican_gate",
+      "id": "sky_citadel_barbican",
       "model": "castle_barbican_gate.glb",
       "position": {
         "x": 0.0,
-        "y": 18.0,
-        "z": -114.0
+        "y": 17.5,
+        "z": -94.0
       },
       "yMode": "fixed",
       "yOffset": 0.0,
       "yaw": 0.0,
       "district": "ashenhold_castle_approach",
-      "tier": "landmark_closed",
+      "tier": "decorative",
       "buildingClass": "A",
-      "cullDist": 360,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            9.2,
-            4.5,
-            3.1
-          ]
-        }
-      ]
+      "cullDist": 380
     },
     {
-      "id": "castle_citadel_keep",
+      "id": "sky_citadel_keep",
       "model": "castle_citadel_keep.glb",
       "position": {
         "x": 0.0,
         "y": 21.0,
-        "z": -132.0
+        "z": -118.0
       },
       "yMode": "fixed",
       "yOffset": 0.0,
       "yaw": 0.0,
       "district": "ashenhold_castle_approach",
-      "tier": "landmark_closed",
-      "buildingClass": "C",
+      "tier": "decorative",
+      "buildingClass": "A",
       "cullDist": 420
-    },
-    {
-      "id": "wall_west_0",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": -51.0,
-        "y": 4.0,
-        "z": -2.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_artisan_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 280,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_east_0",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": 51.0,
-        "y": 4.0,
-        "z": -2.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_residential_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 280,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_west_1",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": -51.0,
-        "y": 6.4,
-        "z": -26.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_artisan_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 280,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_east_1",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": 51.0,
-        "y": 6.4,
-        "z": -26.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_residential_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 280,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_west_2",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": -51.0,
-        "y": 8.8,
-        "z": -50.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_artisan_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 280,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_east_2",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": 51.0,
-        "y": 8.8,
-        "z": -50.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_residential_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 280,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_west_3",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": -51.0,
-        "y": 11.2,
-        "z": -74.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_artisan_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 280,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_east_3",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": 51.0,
-        "y": 11.2,
-        "z": -74.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_residential_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 280,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_west_4",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": -51.0,
-        "y": 13.6,
-        "z": -98.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 1.5708,
-      "district": "ashenhold_artisan_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 280,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_east_4",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": 51.0,
-        "y": 13.6,
-        "z": -98.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -1.5708,
-      "district": "ashenhold_residential_quarter",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 280,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_north_0",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": -38.0,
-        "y": 15.5,
-        "z": -114.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_castle_approach",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 320,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_north_1",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": -19.0,
-        "y": 15.5,
-        "z": -114.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_castle_approach",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 320,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_north_2",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": 19.0,
-        "y": 15.5,
-        "z": -114.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_castle_approach",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 320,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "wall_north_3",
-      "model": "perimeter_curtain_wall.glb",
-      "position": {
-        "x": 38.0,
-        "y": 15.5,
-        "z": -114.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.0,
-      "district": "ashenhold_castle_approach",
-      "tier": "explorable",
-      "buildingClass": "C",
-      "cullDist": 320,
-      "colliders": [
-        {
-          "center": [
-            0.0,
-            4.5,
-            0.0
-          ],
-          "half": [
-            12.0,
-            4.5,
-            1.4
-          ]
-        }
-      ]
-    },
-    {
-      "id": "outer_horizon_0",
-      "model": "outer_decorative_horizon.glb",
-      "position": {
-        "x": -66.0,
-        "y": 11.0,
-        "z": -32.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.4,
-      "district": "ashenhold_castle_approach",
-      "tier": "decorative",
-      "buildingClass": "C",
-      "cullDist": 360
-    },
-    {
-      "id": "outer_horizon_1",
-      "model": "outer_decorative_horizon.glb",
-      "position": {
-        "x": -68.0,
-        "y": 15.0,
-        "z": -76.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.9,
-      "district": "ashenhold_castle_approach",
-      "tier": "decorative",
-      "buildingClass": "C",
-      "cullDist": 360
-    },
-    {
-      "id": "outer_horizon_2",
-      "model": "outer_decorative_horizon.glb",
-      "position": {
-        "x": 66.0,
-        "y": 11.5,
-        "z": -32.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -0.4,
-      "district": "ashenhold_castle_approach",
-      "tier": "decorative",
-      "buildingClass": "C",
-      "cullDist": 360
-    },
-    {
-      "id": "outer_horizon_3",
-      "model": "outer_decorative_horizon.glb",
-      "position": {
-        "x": 68.0,
-        "y": 15.5,
-        "z": -76.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -0.9,
-      "district": "ashenhold_castle_approach",
-      "tier": "decorative",
-      "buildingClass": "C",
-      "cullDist": 360
-    },
-    {
-      "id": "outer_horizon_4",
-      "model": "outer_decorative_horizon.glb",
-      "position": {
-        "x": -36.0,
-        "y": 23.0,
-        "z": -142.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": 0.2,
-      "district": "ashenhold_castle_approach",
-      "tier": "decorative",
-      "buildingClass": "C",
-      "cullDist": 360
-    },
-    {
-      "id": "outer_horizon_5",
-      "model": "outer_decorative_horizon.glb",
-      "position": {
-        "x": 36.0,
-        "y": 23.0,
-        "z": -142.0
-      },
-      "yMode": "fixed",
-      "yOffset": 0.0,
-      "yaw": -0.2,
-      "district": "ashenhold_castle_approach",
-      "tier": "decorative",
-      "buildingClass": "C",
-      "cullDist": 360
     }
   ],
   "propBatches": {
-    "prop_cart.glb": [
+    "sv_prop_rubble_pile.glb": [
       {
-        "x": 4.2,
-        "z": 6.4,
-        "yaw": -0.28,
+        "x": -5.4,
+        "z": 17.6,
+        "yaw": 0.4,
+        "scale": 1.15
+      },
+      {
+        "x": 5.8,
+        "z": 17.4,
+        "yaw": -0.8,
+        "scale": 1.05
+      },
+      {
+        "x": -3.2,
+        "z": -12.6,
+        "yaw": 1.1,
+        "scale": 0.95
+      },
+      {
+        "x": 3.5,
+        "z": -12.8,
+        "yaw": -0.5,
+        "scale": 0.9
+      },
+      {
+        "x": -3.8,
+        "z": -49.5,
+        "yaw": 0.2,
+        "scale": 1.1
+      },
+      {
+        "x": 3.8,
+        "z": -49.4,
+        "yaw": 2.4,
+        "scale": 1.0
+      },
+      {
+        "x": -11.4,
+        "z": -38.5,
+        "yaw": 0.9,
+        "scale": 1.05
+      }
+    ],
+    "sv_prop_iron_brazier.glb": [
+      {
+        "x": -3.4,
+        "z": 4.5,
+        "yaw": 0.0,
+        "scale": 0.92,
+        "collider": true
+      },
+      {
+        "x": 3.6,
+        "z": -9.8,
+        "yaw": 0.0,
+        "scale": 0.92,
+        "collider": true
+      },
+      {
+        "x": -5.6,
+        "z": -30.5,
+        "yaw": 0.0,
+        "scale": 0.95,
+        "collider": true
+      },
+      {
+        "x": 5.6,
+        "z": -30.5,
+        "yaw": 0.0,
+        "scale": 0.95,
+        "collider": true
+      },
+      {
+        "x": -5.6,
+        "z": -39.5,
+        "yaw": 0.0,
+        "scale": 0.95,
+        "collider": true
+      },
+      {
+        "x": 5.6,
+        "z": -39.5,
+        "yaw": 0.0,
+        "scale": 0.95,
+        "collider": true
+      }
+    ],
+    "sv_prop_timber_scaffold.glb": [
+      {
+        "x": -6.8,
+        "z": 3.2,
+        "yaw": 1.5707963267948966,
         "scale": 1.0,
         "collider": true
       },
       {
-        "x": -4.6,
-        "z": -5.8,
-        "yaw": 0.35,
+        "x": 11.8,
+        "z": -45.5,
+        "yaw": -0.6283185307179586,
+        "scale": 0.95,
+        "collider": true
+      }
+    ],
+    "prop_barrel.glb": [
+      {
+        "x": 4.4,
+        "z": -1.0,
+        "yaw": 0.3,
+        "scale": 1.02,
+        "collider": true
+      },
+      {
+        "x": 4.4,
+        "z": -5.4,
+        "yaw": 0.9,
         "scale": 0.96,
         "collider": true
       },
       {
-        "x": 6.8,
-        "z": -21.8,
-        "yaw": -0.75,
+        "x": -3.6,
+        "z": 6.2,
+        "yaw": 0.6,
+        "scale": 1.0
+      },
+      {
+        "x": -10.8,
+        "z": -27.5,
+        "yaw": 0.4,
+        "scale": 1.0
+      },
+      {
+        "x": 11.4,
+        "z": -31.0,
+        "yaw": 1.2,
+        "scale": 1.02
+      }
+    ],
+    "prop_crate.glb": [
+      {
+        "x": 4.9,
+        "z": 5.0,
+        "yaw": 0.2,
+        "scale": 1.05,
+        "collider": true
+      },
+      {
+        "x": -3.8,
+        "z": -1.5,
+        "yaw": -0.3,
+        "scale": 0.96,
+        "collider": true
+      },
+      {
+        "x": 11.6,
+        "z": -24.0,
+        "yaw": 0.4,
+        "scale": 1.0
+      },
+      {
+        "x": -6.8,
+        "z": -46.2,
+        "yaw": 0.25,
+        "scale": 1.0
+      }
+    ],
+    "prop_cart.glb": [
+      {
+        "x": 4.6,
+        "z": 8.4,
+        "yaw": -0.35,
+        "scale": 1.0,
+        "collider": true
+      },
+      {
+        "x": 7.6,
+        "z": -22.2,
+        "yaw": 0.72,
         "scale": 0.95,
         "collider": true
       }
     ],
     "prop_trough.glb": [
       {
-        "x": 4.0,
-        "z": 8.6,
-        "yaw": 1.5707963267948966,
-        "scale": 1.0,
-        "collider": true
-      }
-    ],
-    "prop_lantern_post.glb": [
-      {
-        "x": -3.4,
-        "z": 9.2,
-        "yaw": 0.0,
-        "scale": 1.0
-      },
-      {
-        "x": 4.4,
-        "z": 2.4,
-        "yaw": 3.141592653589793,
-        "scale": 1.0
-      },
-      {
-        "x": -4.2,
-        "z": -1.5,
-        "yaw": 0.0,
-        "scale": 1.0
-      },
-      {
-        "x": 3.8,
-        "z": -8.8,
-        "yaw": 3.141592653589793,
-        "scale": 1.0
-      },
-      {
-        "x": -5.6,
-        "z": -21.2,
-        "yaw": 0.3,
-        "scale": 1.0
-      },
-      {
-        "x": 5.6,
-        "z": -21.2,
-        "yaw": 2.8415926535897933,
-        "scale": 1.0
-      },
-      {
-        "x": -10.8,
-        "z": -31.8,
-        "yaw": 0.0,
-        "scale": 1.0
-      },
-      {
-        "x": 11.0,
-        "z": -31.8,
-        "yaw": 3.141592653589793,
-        "scale": 1.0
-      },
-      {
-        "x": -6.8,
-        "z": -46.8,
-        "yaw": 0.4,
-        "scale": 1.0
-      },
-      {
-        "x": 6.8,
-        "z": -46.8,
-        "yaw": 2.741592653589793,
-        "scale": 1.0
-      },
-      {
-        "x": -8.2,
-        "z": -54.5,
-        "yaw": 0.0,
-        "scale": 1.0
-      },
-      {
-        "x": 8.2,
-        "z": -54.5,
-        "yaw": 3.141592653589793,
-        "scale": 1.0
-      }
-    ],
-    "prop_barrel.glb": [
-      {
-        "x": -3.8,
-        "z": 3.4,
-        "yaw": 0.4,
-        "scale": 1.0,
-        "collider": true
-      },
-      {
-        "x": -4.3,
-        "z": 2.8,
-        "yaw": 1.2,
-        "scale": 0.92
-      },
-      {
-        "x": 4.4,
-        "z": -1.2,
-        "yaw": 0.8,
-        "scale": 1.0,
-        "collider": true
-      },
-      {
-        "x": 4.9,
-        "z": -0.6,
-        "yaw": 2.1,
-        "scale": 0.94
-      },
-      {
         "x": -4.6,
-        "z": -7.8,
-        "yaw": 0.5,
+        "z": 18.8,
+        "yaw": 0.12,
         "scale": 1.0,
         "collider": true
-      },
-      {
-        "x": -11.4,
-        "z": -32.8,
-        "yaw": 0.6,
-        "scale": 0.95
-      },
-      {
-        "x": 11.4,
-        "z": -32.6,
-        "yaw": 1.8,
-        "scale": 0.95
-      },
-      {
-        "x": -11.8,
-        "z": -44.2,
-        "yaw": 0.2,
-        "scale": 1.0,
-        "collider": true
-      },
-      {
-        "x": 11.8,
-        "z": -44.2,
-        "yaw": 1.1,
-        "scale": 1.0,
-        "collider": true
-      }
-    ],
-    "prop_crate.glb": [
-      {
-        "x": -4.4,
-        "z": -2.4,
-        "yaw": 0.18,
-        "scale": 1.0,
-        "collider": true
-      },
-      {
-        "x": -5.1,
-        "z": -2.1,
-        "yaw": 0.55,
-        "scale": 0.85
-      },
-      {
-        "x": 4.6,
-        "z": 4.2,
-        "yaw": -0.25,
-        "scale": 0.95,
-        "collider": true
-      },
-      {
-        "x": 11.2,
-        "z": -24.5,
-        "yaw": 0.22,
-        "scale": 0.95,
-        "collider": true
-      },
-      {
-        "x": -11.2,
-        "z": -38.8,
-        "yaw": -0.15,
-        "scale": 0.92
-      },
-      {
-        "x": 10.6,
-        "z": -39.2,
-        "yaw": 0.42,
-        "scale": 0.92
-      }
-    ],
-    "prop_sack.glb": [
-      {
-        "x": -4.2,
-        "z": -6.8,
-        "yaw": 0.4,
-        "scale": 1.0
-      },
-      {
-        "x": 10.4,
-        "z": -25.4,
-        "yaw": -0.5,
-        "scale": 0.95
-      },
-      {
-        "x": -9.8,
-        "z": -33.2,
-        "yaw": 0.9,
-        "scale": 0.95
-      },
-      {
-        "x": -7.2,
-        "z": -44.4,
-        "yaw": 0.2,
-        "scale": 0.92
       }
     ],
     "prop_bench.glb": [
       {
-        "x": -5.2,
-        "z": -31.8,
-        "yaw": -0.55,
+        "x": -5.0,
+        "z": -35.0,
+        "yaw": 1.5707963267948966,
         "scale": 1.0,
         "collider": true
       },
       {
-        "x": 5.2,
-        "z": -31.8,
-        "yaw": 0.55,
-        "scale": 1.0,
-        "collider": true
-      },
-      {
-        "x": -5.2,
-        "z": -38.4,
-        "yaw": -2.55,
-        "scale": 1.0,
-        "collider": true
-      },
-      {
-        "x": 5.2,
-        "z": -38.4,
-        "yaw": 2.55,
-        "scale": 1.0,
-        "collider": true
-      },
-      {
-        "x": -6.2,
-        "z": -56.2,
-        "yaw": 0.0,
-        "scale": 1.0,
-        "collider": true
-      },
-      {
-        "x": 6.2,
-        "z": -56.2,
-        "yaw": 0.0,
+        "x": 5.0,
+        "z": -35.0,
+        "yaw": -1.5707963267948966,
         "scale": 1.0,
         "collider": true
       }
     ],
-    "prop_planter.glb": [
+    "prop_sack.glb": [
       {
-        "x": -3.2,
-        "z": 7.8,
-        "yaw": 0.0,
-        "scale": 1.0
-      },
-      {
-        "x": 4.2,
-        "z": -6.4,
-        "yaw": 0.2,
-        "scale": 1.0
-      },
-      {
-        "x": -4.4,
-        "z": -19.2,
-        "yaw": 0.0,
+        "x": 10.6,
+        "z": -28.8,
+        "yaw": 0.4,
         "scale": 1.05
       },
       {
-        "x": 4.4,
-        "z": -19.2,
-        "yaw": 0.0,
-        "scale": 1.05
-      },
-      {
-        "x": -4.2,
-        "z": -48.2,
-        "yaw": 0.0,
-        "scale": 1.05
-      },
-      {
-        "x": 4.2,
-        "z": -48.2,
-        "yaw": 0.0,
-        "scale": 1.05
-      },
-      {
-        "x": -3.6,
-        "z": -55.2,
-        "yaw": 0.0,
+        "x": -9.8,
+        "z": -42.5,
+        "yaw": -0.5,
         "scale": 1.0
-      },
-      {
-        "x": 3.6,
-        "z": -55.2,
-        "yaw": 0.0,
-        "scale": 1.0
-      }
-    ],
-    "prop_bollard.glb": [
-      {
-        "x": -3.4,
-        "z": 11.4,
-        "yaw": 0.0,
-        "scale": 1.0,
-        "collider": true
-      },
-      {
-        "x": 3.4,
-        "z": 11.4,
-        "yaw": 0.0,
-        "scale": 1.0,
-        "collider": true
-      },
-      {
-        "x": -3.2,
-        "z": -11.5,
-        "yaw": 0.0,
-        "scale": 1.0,
-        "collider": true
-      },
-      {
-        "x": 3.2,
-        "z": -11.5,
-        "yaw": 0.0,
-        "scale": 1.0,
-        "collider": true
       }
     ],
     "prop_amphora.glb": [
       {
-        "x": -10.8,
-        "z": -25.6,
+        "x": 10.2,
+        "z": -37.2,
         "yaw": 0.2,
+        "scale": 1.08
+      },
+      {
+        "x": -6.0,
+        "z": -25.4,
+        "yaw": 1.1,
+        "scale": 1.0
+      }
+    ],
+    "prop_lantern_post.glb": [
+      {
+        "x": -3.2,
+        "z": 10.0,
+        "yaw": 0.0,
         "scale": 1.0
       },
       {
-        "x": 10.6,
-        "z": -33.6,
-        "yaw": 1.1,
-        "scale": 1.05
+        "x": 3.4,
+        "z": 1.5,
+        "yaw": 3.141592653589793,
+        "scale": 1.0
       },
       {
-        "x": 7.6,
-        "z": -40.8,
-        "yaw": 0.7,
+        "x": -3.4,
+        "z": -9.2,
+        "yaw": 0.0,
+        "scale": 1.0
+      },
+      {
+        "x": 5.2,
+        "z": -22.0,
+        "yaw": 3.141592653589793,
         "scale": 1.0
       }
     ],
     "prop_debris_cluster.glb": [
       {
-        "x": -3.9,
-        "z": 1.2,
+        "x": -2.8,
+        "z": 7.8,
         "yaw": 0.4,
-        "scale": 0.9
-      },
-      {
-        "x": 4.1,
-        "z": -7.2,
-        "yaw": 1.3,
-        "scale": 0.9
-      },
-      {
-        "x": -12.6,
-        "z": -34.2,
-        "yaw": 2.0,
         "scale": 1.0
       },
       {
-        "x": 12.4,
-        "z": -38.0,
+        "x": 2.9,
+        "z": -7.5,
+        "yaw": 1.6,
+        "scale": 1.0
+      },
+      {
+        "x": -4.4,
+        "z": -44.0,
         "yaw": 0.8,
         "scale": 1.0
-      }
-    ],
-    "prop_banner_pole.glb": [
+      },
       {
-        "x": -3.8,
-        "z": 18.2,
-        "yaw": 0.0,
+        "x": 4.4,
+        "z": -44.0,
+        "yaw": 2.2,
         "scale": 1.0
-      },
-      {
-        "x": 3.8,
-        "z": 18.2,
-        "yaw": 3.141592653589793,
-        "scale": 1.0
-      },
-      {
-        "x": -11.5,
-        "z": -54.5,
-        "yaw": 0.0,
-        "scale": 1.05
-      },
-      {
-        "x": 11.5,
-        "z": -54.5,
-        "yaw": 3.141592653589793,
-        "scale": 1.05
       }
     ]
   },
   "lights": [
     {
       "position": {
-        "x": -7.8,
-        "y": 2.6,
-        "z": 7.8
-      },
-      "color": "#ff9844",
-      "intensity": 5.5,
-      "distance": 14
-    },
-    {
-      "position": {
-        "x": 8.6,
-        "y": 3.1,
-        "z": -3.2
+        "x": 11.4,
+        "y": 3.2,
+        "z": -1.8
       },
       "color": "#ff9e4a",
-      "intensity": 6.8,
-      "distance": 16
+      "intensity": 10.5,
+      "distance": 14.0,
+      "alwaysOn": true
     },
     {
       "position": {
-        "x": 8.6,
-        "y": 6.6,
-        "z": -3.2
+        "x": -12.5,
+        "y": -1.6,
+        "z": -11.5
       },
-      "color": "#ffaa5c",
-      "intensity": 4.2,
-      "distance": 13
+      "color": "#ff8d38",
+      "intensity": 12.0,
+      "distance": 16.0,
+      "alwaysOn": true
     },
     {
       "position": {
-        "x": 0.0,
-        "y": 5.0,
-        "z": -15.0
+        "x": -12.5,
+        "y": -1.6,
+        "z": -21.5
       },
-      "color": "#ffba68",
-      "intensity": 5.0,
-      "distance": 16
-    },
-    {
-      "position": {
-        "x": -14.6,
-        "y": 5.4,
-        "z": -28.0
-      },
-      "color": "#ffc074",
-      "intensity": 5.2,
-      "distance": 14
+      "color": "#ff8d38",
+      "intensity": 12.0,
+      "distance": 16.0,
+      "alwaysOn": true
     },
     {
       "position": {
         "x": 0.0,
-        "y": 10.2,
-        "z": -53.5
+        "y": 4.6,
+        "z": 13.8
       },
-      "color": "#ffaa54",
-      "intensity": 5.2,
-      "distance": 18
+      "color": "#ffb25a",
+      "intensity": 8.0,
+      "distance": 17.0
+    },
+    {
+      "position": {
+        "x": 0.0,
+        "y": 5.8,
+        "z": -48.2
+      },
+      "color": "#ffaa4f",
+      "intensity": 7.5,
+      "distance": 16.0
+    },
+    {
+      "position": {
+        "x": 0.0,
+        "y": 21.4,
+        "z": -63.8
+      },
+      "color": "#ff923b",
+      "intensity": 11.0,
+      "distance": 18.0,
+      "alwaysOn": true
     }
   ],
   "loreInteractables": [
     {
-      "id": "lore:city_guardhouse_log",
-      "label": "翻阅《南门卫戍室防务日志》",
-      "title": "《灰烬城 · 南门防务日志》",
-      "body": "【灰烬历 312 年 · 山城整修纪要】\n灰烬城依山而建，共分五重高台：\n• 底层（0m）：南城门、卫戍室、商队货仓与双层【余烬旅店】（可沿内梯登上二楼观景廊）；\n• 中层（+3.5m）：穿【市集廊桥拱门】拾级而上，即达凤凰喷泉中央市集与【铁锚药剂堂】；\n• 上层两翼（+7.5m）：登市集北墙双折大石阶可抵达中段观景台，东西工匠区与居民高地将于 Phase 3 启封；\n• 高地与顶层（+12.2m / +18m）：圣伊格尼斯圣堂与领主城堡前庭高踞山巅，将于 Phase 4 开放通行。",
+      "id": "lore:ashenhold_charter",
+      "label": "阅读：灰烬城宪章与四层城防图 [E]",
+      "title": "灰烬城山堡宪章与四层立体防线",
+      "body": "灰烬城依断崖岩骨筑成四重立体防线：地底（-4米）为黑石排水暗渠，可隐秘往返贸易街与市集；底层（0至+3.5米）为南城门、曲折商街、余烬酒馆与拱廊市集；中层（+7.5至+9.5米）由北堡垒平台、西城墙步道与跨街哥特石桥贯通酒馆二层与南门卫塔；顶层（+19.5米）则为悬崖外梯直达的北瞭望塔台。",
       "position": {
-        "x": -8.0,
-        "y": 1.56,
-        "z": 4.3
+        "x": -6.2,
+        "y": 4.8,
+        "z": -23.4
       },
-      "radius": 3.4,
-      "meshKind": "book"
-    },
-    {
-      "id": "lore:city_tavern_ledger",
-      "label": "翻阅《余烬旅店吧台账簿》",
-      "title": "《余烬与酒壶旅店账簿》",
-      "body": "1. 溪谷村铁匠葛伦订购黑麦麦芽酒 3 桶 —— 已结清 18 金币。\n2. 旅店二楼观景阳台新换橡木栏杆，客人可上二楼俯瞰贸易主街与山巅城堡。\n3. 中央市集药商伊琳娜的新铺【铁锚药剂堂】今日开门迎客，就在市集西南角。",
-      "position": {
-        "x": 8.6,
-        "y": 2.66,
-        "z": -0.6
-      },
-      "radius": 3.4,
-      "meshKind": "book"
-    },
-    {
-      "id": "lore:city_warehouse_manifest",
-      "label": "查验《南门商队货仓清单》",
-      "title": "《商队货仓入城清册》",
-      "body": "• 灰木林橡木桶 24 只 —— 待送往西翼工匠区制桶坊；\n• 南境肉桂与藏红花 12 袋 —— 已拨付中央市集香料商索恩；\n• 精炼铁锭 40 块 —— 记入灰砧铁匠铺铸匠布伦南名下。",
-      "position": {
-        "x": -8.4,
-        "y": 2.05,
-        "z": -4.5
-      },
-      "radius": 3.6,
-      "meshKind": "book"
-    },
-    {
-      "id": "lore:city_apothecary_notes",
-      "label": "阅读《铁锚炼金手记》",
-      "title": "《伊琳娜的药剂与草药手记》",
-      "body": "河谷清晨采得的银叶草配上灰烬山泉水，可大幅增强治疗药水效用。旅人若需补给，可直接与柜台旁的我交易。",
-      "position": {
-        "x": -15.6,
-        "y": 4.62,
-        "z": -29.5
-      },
-      "radius": 2.4,
-      "meshKind": "book"
-    },
-    {
-      "id": "lore:city_notice_board",
-      "label": "查看《灰烬城山城导览与市集告示》",
-      "title": "《灰烬城 · 五重山城导览告示》",
-      "body": "欢迎来到依山而筑的灰烬城！\n• 往南下阶可返【城门贸易街】与可进入的【余烬双层旅店】；\n• 广场西南角【铁锚药剂堂】已开放完整室内与药剂交易；\n• 沿广场北侧【双折礼仪大石阶】向上，可登临 +7.5m 中段观景平台俯瞰全城并遥望山巅圣堂与城堡！",
-      "position": {
-        "x": 5.8,
-        "y": 3.5,
-        "z": -23.6
-      },
-      "radius": 3.6,
+      "radius": 3.5,
       "meshKind": "board"
     },
     {
-      "id": "lore:city_overlook_banner_sign",
-      "label": "查看《上层城区整修布告 (Phase 3 / 4)》",
-      "title": "《上层两翼与山巅高地开放预告》",
-      "body": "您已登临 +7.5 米中段观景露台！\n• 西翼【铁匠工坊区】（+7.0m）与东翼【居民高地与屋顶连廊】（+7.5~10.2m）正在按山城重设计计划进入 Phase 3 施工；\n• 北巅【圣伊格尼斯圣堂高地】（+12.2m）与【城堡前庭与瓮城前厅】（+18.0m）将于 Phase 4 正式启封。",
+      "id": "lore:undercroft_journal",
+      "label": "检查：暗渠石匠的潮湿日志 [E]",
+      "title": "黑石排水暗渠修筑志",
+      "body": "旧历二一四年，城防石匠在西城墙之下凿出黑石拱顶暗渠，以泄山洪并设铁栅过滤碎石。城破之时，守军曾借此道绕过过街石桥的封锁，直抵中央市集西南石阶。",
+      "position": {
+        "x": -13.8,
+        "y": -3.1,
+        "z": -16.8
+      },
+      "radius": 3.4,
+      "meshKind": "book"
+    },
+    {
+      "id": "lore:tavern_ledger",
+      "label": "翻阅：余烬与酒杯旅店住客名册 [E]",
+      "title": "余烬与酒杯旅店 · 二层城墙密道记事",
+      "body": "二楼北门外的橡木廊桥直通跨街哥特石桥与西城墙步道，原为战时向守城弓手递送热汤与箭矢的捷径。旅人亦可登楼俯瞰整条灰石商街。",
+      "position": {
+        "x": 8.6,
+        "y": 2.68,
+        "z": -2.6
+      },
+      "radius": 3.2,
+      "meshKind": "book"
+    },
+    {
+      "id": "lore:summit_beacon",
+      "label": "检视：+19.5米北瞭望塔烽火志 [E]",
+      "title": "灰烬边堡最高烽火台",
+      "body": "立于+19.5米悬崖堡垒之巅，整座灰烬城的四层防御体系尽收眼底：脚下是拱廊市集与双折石阶，南望可见跨街石桥与南门双塔。烽火燃起时，三十里外的溪谷村亦能望见黑烟。",
       "position": {
         "x": 0.0,
-        "y": 7.5,
-        "z": -60.2
+        "y": 20.6,
+        "z": -64.2
       },
-      "radius": 3.8,
+      "radius": 3.6,
       "meshKind": "board"
     }
   ]

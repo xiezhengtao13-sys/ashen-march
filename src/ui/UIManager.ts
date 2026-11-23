@@ -1000,12 +1000,12 @@ export class UIManager {
   private renderAshenholdCityMap(): void {
     this.modalPanelEl.innerHTML = `
       <div class="modal-header" data-testid="modal-map">
-        <h2>灰烬城山城舆图 · Ashenhold (约 104 × 144 米 · 五重台地)</h2>
+        <h2>灰烬城山堡舆图 · Ashenhold V3 (四层立体连通 · -4m → +19.5m)</h2>
         <button class="btn" id="btn-close-modal">关闭 [M]</button>
       </div>
       <canvas id="world-map-canvas" width="520" height="520"></canvas>
       <div class="item-desc" style="text-align:center; line-height:1.5;">
-        金色实块：A类完整室内 · 青色方格：B类半开放/商摊 · 红色实框：Phase 2 实机可探索样板区 (0m→+7.5m) · 虚线外框：104×144m 全城规划边界
+        四层无传送贯通：地下暗渠 (-4m) · 底层南门与拱廊市集 (0→+3.5m) · 中层跨街石桥与城墙步道 (+7.5→+9.5m) · 顶层悬崖瞭望塔 (+19.5m)
       </div>
     `;
     this.modalPanelEl.querySelector('#btn-close-modal')?.addEventListener('click', () => this.closeModal());
@@ -1159,15 +1159,14 @@ export class UIManager {
     ctx.font = 'bold 11px serif';
     ctx.textAlign = 'center';
     const labels: Array<[number, number, string]> = [
-      [0, 21, '南城门 (0m)'],
-      [0, 2, 'S形贸易街 · A1卫戍/A2双层酒馆'],
-      [0, -35, '中央市集 (+3.5m) · A3药铺'],
-      [0, -56, '北墙大石阶观景台 (+7.5m)'],
-      [-37, -44, '西翼工匠区 (+7m · P3)'],
-      [37, -44, '东翼居民高地 (+7.5m · P3)'],
-      [0, -84, '圣堂高地 (+12.2m · P4)'],
-      [0, -114, '城堡前庭 (+18m · P4)'],
-      [0, -134, '领主主堡 (+21→53m)'],
+      [0, 21, '南城门与卫塔 (0m / +9.5m)'],
+      [0, 2, '曲街与余烬酒馆 (+1.6m / +5.2m)'],
+      [-26, -15, '黑石暗渠 (-4.0m) / 西城墙 (+9.5m)'],
+      [0, -14, '跨街哥特石桥 (+9.5m)'],
+      [0, -35, '拱廊市集与喷泉 (+3.5m)'],
+      [0, -54, '北堡垒平台 (+7.5m)'],
+      [0, -68, '悬崖瞭望塔顶 (+19.5m)'],
+      [0, -118, '远景山巅主堡'],
     ];
     for (const [lx, lz, text] of labels) {
       const [tx, ty] = toMap(lx, lz);

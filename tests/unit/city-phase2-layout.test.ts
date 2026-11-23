@@ -3,32 +3,38 @@ import { describe, expect, it } from 'vitest';
 import cityLayout from '../../src/data/cityLayout.json';
 import { PhysicsWorld } from '../../src/engine/PhysicsWorld';
 import { getCityGroundHeight } from '../../src/world/city/CityGroundBuilder';
+import { CityMaterialLibrary } from '../../src/world/city/CityMaterialLibrary';
 import { buildAshenholdCity, getCityRegionAt } from '../../src/world/city/CityPhase1Builder';
+import { CityPostFX } from '../../src/world/city/CityPostFX';
 import { InteractableRegistry } from '../../src/world/InteractableRegistry';
 
-describe('Ashenhold Compact Hillside Phase 2: 5-Tier Elevation, 2-Story Tavern, Apothecary Interior & Overlook Stairs', () => {
-  it('enforces 5-tier hillside elevation progression (0m -> 3.5m -> 7.5m -> 12.2m -> 18m -> 21m) and compact bounds', () => {
-    const yGate = getCityGroundHeight(0, 16);
-    const yMarket = getCityGroundHeight(0, -30);
-    const yOverlook = getCityGroundHeight(0, -58);
-    const yWestWing = getCityGroundHeight(-35, -45);
-    const yEastWing = getCityGroundHeight(35, -45);
-    const yAcropolis = getCityGroundHeight(0, -85);
-    const yForecourt = getCityGroundHeight(0, -112);
-    const yKeep = getCityGroundHeight(0, -132);
+/**
+ * Walks the Rapier player capsule smoothly toward target (tx, tz) using real movePlayer steps
+ * without teleporting, returning final feet position.
+ */
+function walkToward(
+  physics: PhysicsWorld,
+  tx: number,
+  tz: number,
+  maxSteps = 260,
+  stepSize = 0.11,
+): { x: number; y: number; z: number } {
+  let pos = physics.getPlayerFeetPosition();
+  for (let i = 0; i < maxSteps; i++) {
+    const dx = tx - pos.x;
+    const dz = tz - pos.z;
+    const dist = Math.hypot(dx, dz);
+    if (dist < 0.35) break;
+    const s = Math.min(stepSize, dist);
+    pos = physics.movePlayer({ x: (dx / dist) * s, y: 0, z: (dz / dist) * s }, false, 1 / 60).position;
+  }
+  return pos;
+}
 
-    expect(yGate).toBeCloseTo(0.0, 0.25);
-    expect(yMarket).toBeCloseTo(3.5, 0.25);
-    expect(yOverlook).toBeCloseTo(7.5, 0.25);
-    expect(yWestWing).toBeCloseTo(7.0, 0.35);
-    expect(yEastWing).toBeCloseTo(7.5, 0.35);
-    expect(yAcropolis).toBeCloseTo(12.2, 0.35);
-    expect(yForecourt).toBeCloseTo(18.0, 0.35);
-    expect(yKeep).toBeCloseTo(21.0, 0.35);
-
-    // Compact 104x144m bounds & interior packs present
-    expect(cityLayout.bounds.explorable.maxX - cityLayout.bounds.explorable.minX).toBeLessThanOrEqual(110);
-    expect(cityLayout.bounds.explorable.maxZ - cityLayout.bounds.explorable.minZ).toBeLessThanOrEqual(155);
+describe('Ashenhold V3 Stormveil Gothic Citadel: 4-Layer Continuous Non-Teleport Verticality & Material Diagnostics', () => {
+  it('enforces compact bounds, vertical layer metadata, and V3 PBR diagnostic material modes', () => {
+    expect(cityLayout.bounds.explorable.maxX - cityLayout.bounds.explorable.minX).toBeLessThanOrEqual(60);
+    expect(cityLayout.bounds.explorable.maxZ - cityLayout.bounds.explorable.minZ).toBeLessThanOrEqual(110);
 
     const interiorPacks = cityLayout.architecture.filter((a) => (a as { isInterior?: boolean }).isInterior);
     expect(interiorPacks.length).toBeGreaterThanOrEqual(2);
@@ -39,15 +45,34 @@ describe('Ashenhold Compact Hillside Phase 2: 5-Tier Elevation, 2-Story Tavern, 
     expect(getCityRegionAt(0, 15)).toBe('ashenhold_gate');
     expect(getCityRegionAt(0, -2)).toBe('ashenhold_main_street');
     expect(getCityRegionAt(0, -35)).toBe('ashenhold_market_plaza');
-    expect(getCityRegionAt(-35, -45)).toBe('ashenhold_artisan_quarter');
-    expect(getCityRegionAt(35, -45)).toBe('ashenhold_residential_quarter');
-    expect(getCityRegionAt(0, -85)).toBe('ashenhold_temple_acropolis');
-    expect(getCityRegionAt(0, -114)).toBe('ashenhold_castle_approach');
+
+    // Verify all 6 V3 Stormveil PBR materials + live diagnostic modes + PostFX toggleability
+    const mats = new CityMaterialLibrary(4);
+    for (const key of [
+      'limestone_weathered',
+      'citadel_masonry',
+      'damp_slate_stone',
+      'aged_oak_timber',
+      'broken_flagstone',
+      'mountain_crag_rock',
+    ]) {
+      expect(mats.getMaterial(key, true)).toBeDefined();
+    }
+    for (const mode of ['albedo', 'normal', 'roughness', 'no_ao', 'no_post', 'final'] as const) {
+      expect(() => mats.setDebugMode(mode)).not.toThrow();
+    }
+    mats.dispose();
+
+    const postFx = new CityPostFX();
+    expect(postFx.options.enabled).toBe(true);
+    postFx.options.enabled = false;
+    expect(postFx.options.enabled).toBe(false);
+    postFx.dispose();
   });
 
-  it('traverses Market Bridge Arch, enters A2 2-Story Tavern & climbs oak stairs to 2F balcony, enters A3 Apothecary, and climbs 4.2m North Retaining Wall Stairs to +7.5m Overlook', async () => {
+  it('walks continuously WITHOUT teleport across all 4 vertical layers: South Gate (0m) -> Undercroft (-4m) -> Market (+3.5m) -> Overlook (+7.5m) -> Bridge (+9.5m) -> Summit (+19.5m)', async () => {
     const physics = new PhysicsWorld();
-    await physics.init({ x: 0, y: 5, z: 58 });
+    await physics.init({ x: 0, y: 0.45, z: 18.4 });
 
     const registry = new InteractableRegistry();
     const cityGroup = new THREE.Group();
@@ -60,61 +85,66 @@ describe('Ashenhold Compact Hillside Phase 2: 5-Tier Elevation, 2-Story Tavern, 
     );
 
     physics.setActiveZone('ashenhold_city');
-    let pos = physics.getPlayerFeetPosition();
 
-    // 1. Enter A2 Double-Story Tavern 1F through front doorway (x = 4.0 -> > 7.5 at z = -4.0)
-    physics.teleportPlayer({ x: 4.0, y: 1.82, z: -4.0 });
-    for (let i = 0; i < 60; i++) {
-      pos = physics.movePlayer({ x: 0.1, y: 0, z: 0 }, false, 1 / 60).position;
-    }
-    expect(pos.x).toBeGreaterThan(7.5);
+    // 1. Start at South Gate Approach (0.0m) and walk continuously North through Gate Arch -> Trade Alley -> South Undercroft Portal
+    physics.teleportPlayer({ x: 0.0, y: getCityGroundHeight(0, 18.4) + 0.3, z: 18.4 });
+    let pos = walkToward(physics, 0.0, 10.0, 140);
+    expect(pos.z).toBeLessThan(11.0);
+    pos = walkToward(physics, 0.0, -7.0, 220);
+    expect(pos.z).toBeLessThan(-6.0);
 
-    // 2. Climb A2 Tavern interior oak staircase smoothly from 1F (y~1.6) up to 2nd Floor Gallery (y >= 4.9)!
-    //    With yaw = -PI/2, local +X climbs along world +Z at x = 11.75 from z = -7.0 -> z = -1.2
-    physics.teleportPlayer({ x: 11.75, y: 1.82, z: -6.9 });
-    for (let i = 0; i < 95; i++) {
-      pos = physics.movePlayer({ x: 0, y: 0, z: 0.085 }, false, 1 / 60).position;
-    }
-    expect(pos.z).toBeGreaterThan(-1.8);
-    expect(pos.y).toBeGreaterThan(4.8);
+    // 2. Descend South Undercroft Stone Stairway continuously into -4.0m Vaulted Stone Cistern! (ZERO TELEPORT)
+    pos = walkToward(physics, -3.2, -7.0, 80);
+    pos = walkToward(physics, -12.3, -7.0, 180);
+    expect(pos.x).toBeLessThan(-11.0);
+    expect(pos.y).toBeLessThan(-3.2);
 
-    // 3. Climb Gateward Grand Steps UNDER Market Covered Bridge-Arch (z = -10.5 -> z < -21, y rises to ~3.5m)
-    physics.teleportPlayer({ x: 0.0, y: getCityGroundHeight(0, -10.5) + 0.35, z: -10.5 });
-    for (let i = 0; i < 120; i++) {
-      pos = physics.movePlayer({ x: 0, y: 0, z: -0.12 }, false, 1 / 60).position;
-    }
-    expect(pos.z).toBeLessThan(-21.0);
-    expect(pos.y).toBeGreaterThan(3.25);
+    // 3. Walk North through the -4.0m Damp Vaulted Cistern -> climb North Undercroft Stairway up into +3.5m Market Plaza!
+    pos = walkToward(physics, -12.1, -24.5, 220);
+    expect(pos.y).toBeLessThan(-3.2);
+    pos = walkToward(physics, -9.3, -37.2, 220);
+    expect(pos.z).toBeLessThan(-35.5);
+    expect(pos.y).toBeGreaterThan(3.1);
 
-    // 4. Enter A3 Iron Anchor Apothecary interior through open front stone arch (x = -10.4 -> < -13.4 at z = -28.0)
-    physics.teleportPlayer({ x: -10.4, y: 3.75, z: -28.0 });
-    for (let i = 0; i < 50; i++) {
-      pos = physics.movePlayer({ x: -0.1, y: 0, z: 0 }, false, 1 / 60).position;
-    }
-    expect(pos.x).toBeLessThan(-13.4);
+    // 4. Walk across Market Plaza (+3.5m) -> climb Market North Bastion West Switchback Stair to +7.5m Overlook!
+    pos = walkToward(physics, -11.6, -46.8, 160);
+    pos = walkToward(physics, -11.6, -49.35, 80);
+    pos = walkToward(physics, -3.6, -49.35, 160);
+    pos = walkToward(physics, -3.6, -53.2, 80);
+    expect(pos.y).toBeGreaterThan(7.1);
 
-    // 5. Climb the 4.2m North Retaining Wall West Grand Staircase smoothly from Market (+3.5m) to +7.5m Overlook!
-    //    West stair lies at z = -49.75 climbing along +X from x = -12.0 -> x = -2.5
-    physics.teleportPlayer({ x: -12.2, y: 3.85, z: -49.75 });
-    for (let i = 0; i < 130; i++) {
-      pos = physics.movePlayer({ x: 0.095, y: 0, z: 0 }, false, 1 / 60).position;
-    }
-    expect(pos.x).toBeGreaterThan(-3.5);
-    expect(pos.y).toBeGreaterThan(7.25);
+    // 5. Climb West Rampart Steps (+7.5m -> +9.5m) -> walk South along West Battlement -> cross Overhead Gothic Bridge (+9.5m)!
+    pos = walkToward(physics, -13.5, -55.0, 180);
+    pos = walkToward(physics, -13.5, -47.5, 140);
+    expect(pos.y).toBeGreaterThan(9.1);
+    pos = walkToward(physics, -13.5, -14.5, 380);
+    pos = walkToward(physics, 0.0, -14.5, 180);
+    expect(pos.y).toBeGreaterThan(9.1);
+    expect(Math.abs(pos.x)).toBeLessThan(1.0);
 
-    // 6. Phase 4 North Barricade at z = -61.8 blocks premature passage off the +7.5m Overlook
-    physics.teleportPlayer({ x: 0.0, y: 7.85, z: -59.0 });
-    for (let i = 0; i < 60; i++) {
-      pos = physics.movePlayer({ x: 0, y: 0, z: -0.14 }, false, 1 / 60).position;
-    }
-    expect(pos.z).toBeGreaterThan(-61.6);
+    // 6. Return along Bridge -> West Market Rampart -> North Overlook (+7.5m) -> climb Cliffside Outer Stairway Flight 1 & Flight 2 to +19.5m Watchtower Summit!
+    pos = walkToward(physics, -13.5, -14.5, 180);
+    pos = walkToward(physics, -13.5, -55.0, 440);
+    pos = walkToward(physics, 10.6, -55.0, 280);
+    pos = walkToward(physics, 10.6, -57.2, 80);
+    // Flight 1 (+7.5m -> +13.5m)
+    pos = walkToward(physics, -10.8, -57.2, 280);
+    expect(pos.y).toBeGreaterThan(13.0);
+    // Mid-Cliff Landing -> Flight 2 (+13.5m -> +19.5m)
+    pos = walkToward(physics, -10.8, -61.2, 80);
+    pos = walkToward(physics, 9.0, -61.2, 280);
+    expect(pos.y).toBeGreaterThan(19.0);
+    // Step onto +19.5m Citadel Watchtower Summit Platform!
+    pos = walkToward(physics, 9.0, -65.0, 90);
+    pos = walkToward(physics, 0.0, -65.0, 140);
+    expect(pos.y).toBeGreaterThan(19.0);
+    expect(pos.z).toBeLessThan(-63.0);
 
-    // Data-driven lore interactables registered
-    expect(registry.get('lore:city_guardhouse_log')).toBeDefined();
-    expect(registry.get('lore:city_tavern_ledger')).toBeDefined();
-    expect(registry.get('lore:city_apothecary_notes')).toBeDefined();
-    expect(registry.get('lore:city_warehouse_manifest')).toBeDefined();
-    expect(registry.get('lore:city_overlook_banner_sign')).toBeDefined();
+    // Data-driven 4-layer lore points registered
+    expect(registry.get('lore:ashenhold_charter')).toBeDefined();
+    expect(registry.get('lore:undercroft_journal')).toBeDefined();
+    expect(registry.get('lore:tavern_ledger')).toBeDefined();
+    expect(registry.get('lore:summit_beacon')).toBeDefined();
 
     built.dispose();
     physics.dispose();

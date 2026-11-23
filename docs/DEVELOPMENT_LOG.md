@@ -103,5 +103,21 @@
   - 实装 `< 28m` 室内家具距离剔除 (`CityInterior_*`) 与五重台地等高线 `[M]` 灰烬城舆图 (`UIManager.ts`)。
   - **实测对比与回归**：相比旧版平坦城市，南门与市集同机位视锥三角面分别由 `816k / 656k` 降至 `514k (-37%) / 499k (-24%)`，室内视角仅 `108–113 Draw Calls / 242k–384k Tris`；`npm run typecheck`、`npm test`（9 套件 23 用例，含实机 Rapier 攀登 A2 二楼楼梯与 4.2m 北墙大石阶验证）、`npm run build` 与 `npm run test:e2e`（Playwright 2/2，0 控制台/页面报错）全量通过。
 
+## 2026-11-23 — Ashenhold Visual Fidelity V3 (`feature/ashenhold-art-direction-v3`)：史东薇尔式山城美术与四层无传送立体关卡重制
+- **参考技术源码审计与美术定调 (`docs/ART_DIRECTION_V3.md`)**：直接审计 `realcodebear/saltline-fable-5.2/index.html`（只读研究，零复制受保护代码/资产），严格区分已验证技术（Packed ORM、世界空间双频 3D 噪声宏观风化、雨痕/湿润粗糙度响应、连续积水地面梯度、LDR 单 Pass FXAA + 对比度自适应锐化 + 抖动）与 Ashenhold 原创西幻山城迁移方案；确立 *Grounded Gothic Medieval Fantasy — Weathered Mountain Citadel* 风格与晴朗 13:00 日光基调，先采集 `feature/ashenhold-hillside-redesign` 固定六机位 A–F 基线 (`docs/screenshots/v3/before_camA..F.png`)。
+- **多尺度无黑描边 PBR 材质、风化着色器与线性 HDR 后处理 (`scripts/city/texgen_v3.c`, `generate_textures_v3.py`, `CityMaterialLibrary.ts`, `CityPostFX.ts`, `GameApp.ts`)**：
+  - 生成 6 套无缝 512×512 Packed ORM（`R=AO, G=Roughness, B=Metal`）山城核心 PBR 纹理（18 张 PNG：`limestone_weathered`、`citadel_masonry`、`damp_slate_stone`、`aged_oak_timber`、`broken_flagstone`、`mountain_crag_rock`），彻底消除旧版 Albedo 烘焙粗黑卡通砖缝。
+  - `CityMaterialLibrary.ts` 新增 `injectGothicWeathering`（世界空间双频宏观风化、竖直雨痕、向上面苔藓地衣、底层墙脚与 `-4m` 暗渠物理湿润降粗糙度、`<10m` 近距微粒、纯间接光 AO）及 6 档实时诊断模式（`albedo` / `normal` / `roughness` / `no_ao` / `no_post` / `final`）；同步升级 `streetMaterial` 为碎石板 + 山岩 + 连续湿润/积水渐变。
+  - 新增 `CityPostFX.ts`：渲染至 `HalfFloatType` 线性 HDR 目标，执行与 Three.js 一致的 Khronos PBR Neutral ToneMapping + Linear-to-sRGB，随后施加可独立开关的 FXAA、强边缘回退对比度自适应微锐化与 8-bit 抖动（`no_post` 与 `final` 曝光色温完全一致）。
+- **史东薇尔式逐块 3D 凹凸砌石 Hero Assets 与四层零传送立体样板区 (`scripts/city/stormveil_kit.py`, `build_v3_layout.py`, `CityRoadNetwork.ts`, `CityPhase1Builder.ts`, `npcs.json`, `UIManager.ts`)**：
+  - 彻底摒弃重要石墙平盒体拼接，在 Blender 4.0 `bmesh` 中构建并导出 12 个逐块 3D 凹凸错缝砌石、多级阶梯扶壁、风化尖拱、锻铁笼灯、细木常春藤蔓与残破垛口 Hero GLB（含 `bl_ramp` 通用斜坡碰撞体与 `CityRoadNetwork.ts` `-4m` 暗渠与南北梯口精准地形挖槽）：`sv_hero_gate_tower.glb`、`sv_hero_gothic_bridge.glb`、`sv_hero_market_bastion.glb`、`sv_hero_summit_ascent.glb`、`sv_hero_undercroft.glb`、`sv_hero_tavern_v3.glb`（+ `<28m` 距离剔除内饰）及扶壁墙/山岩/碎石/火盆/木脚手架。
+  - 实现**四层全程零传送步行贯通**：`-4.0m` 黑石拱顶排水暗渠（铁格栅水沟暖光倒影）→ `0.0m` 南门与曲折石巷 → `+1.7/+5.2m` 真开窗透光双层酒馆 → `+3.5m` 哥特拱廊市集 → `+7.5m` 北堡垒观景台 → `+9.5m` 西城墙步道与实体可通行跨街哥特石桥（连通酒馆二层与南门卫塔）→ `+19.5m` 悬崖外梯直达北瞭望塔顶；`[M]` 地图同步升级为四层立体山堡舆图。
+- **全量实机验证与诚实遥测**：
+  - `npm run typecheck` 通过（0 错误）；`npm run build` 打包成功。
+  - `npm test` (Vitest)：**9/9 套件、23/23 用例全绿**，含 Rapier 全路径零传送四层连续步行测试（`0m → -4.0m → +3.5m → +7.5m → +9.5m 跨街石桥 → +19.5m 瞭望塔顶`）及 6 档诊断模式单测。
+  - `npm run test:e2e` (Playwright + headless Chrome WebGL2 SwiftShader)：**2/2 全部通过 (`6.8m`，0 控制台/页面报错)**——完整验证原开放世界/古代墓穴/IndexedDB 存档无回归，以及灰烬城 V3 全程零 `teleport()` 的真实 `KeyW` 连续步行：`0.0m` 南城门 → `-3.93m` 黑石暗渠 → `+3.55m` 拱廊市集（与商会总管索恩真实交易扣减金币）→ `+7.59m` 北堡垒观景台 → `+19.58m` 悬崖瞭望塔顶 → 材质诊断接口与 `[M]` 舆图。
+  - 采集并归档全部 15 张实机截图至 `docs/screenshots/v3/`（6 组固定机位 A–F Before/After、6 档材质诊断图、3 张四层垂直补充视图；云端 CPU SwiftShader 1280×720 High 档实测：机位 F `no_post` 主通道仅 `50 DC / 123,044 Tris`，含 2048 阴影 + PostFX 累计 `195 DC / 371,014 Tris`；全城视野 `447–489 DC / 627k–657k Tris / 2.7–6.2s` CPU 软件帧耗时）。
+
+
 
 

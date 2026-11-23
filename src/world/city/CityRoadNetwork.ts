@@ -390,6 +390,42 @@ export function sampleCityNetwork(x: number, z: number): GroundSample {
     }
   }
 
+  // 5. V3 Stormveil Sub-Level (-4.0m) Undercroft Vault Trench & South/North Stairwell Cutouts
+  // Ensures zero terrain trimesh pokes into the vaulted stone drainage cistern or its two stairwells.
+  // 5a. Main Vaulted Cistern Footprint: x in [-15.4, -9.6], z in [-25.8, -5.2]
+  if (x >= -16.4 && x <= -8.6 && z >= -26.8 && z <= -4.4) {
+    const wx = smoothstep(-16.4, -15.2, x) * (1 - smoothstep(-9.8, -8.6, x));
+    const wz = smoothstep(-26.8, -25.4, z) * (1 - smoothstep(-5.6, -4.4, z));
+    const w = wx * wz;
+    if (w > 0.001) {
+      height = height * (1 - w) + Math.min(height, -4.55) * w;
+      plazaWeight *= 1 - w;
+    }
+  }
+  // 5b. South Undercroft Stairwell Cutout: x in [-12.5, -3.5], z around -7.0 (width ~3.0m)
+  if (x >= -13.0 && x <= -3.2 && z >= -9.0 && z <= -5.0) {
+    const t = clamp((x + 12.3) / 9.0, 0, 1);
+    const stairFloorY = -4.0 + t * 5.35 - 0.55;
+    const wz = 1 - smoothstep(1.25, 2.0, Math.abs(z + 7.0));
+    const wx = smoothstep(-13.0, -12.0, x) * (1 - smoothstep(-4.2, -3.2, x));
+    const w = wx * wz;
+    if (w > 0.001) {
+      height = Math.min(height, height * (1 - w) + stairFloorY * w);
+    }
+  }
+  // 5c. North Undercroft Stairwell Cutout: (-12.1, -24.5, -4.0m) -> (-9.3, -36.8, +3.5m)
+  if (z >= -37.4 && z <= -23.8 && x >= -15.0 && x <= -6.8) {
+    const u = clamp((-24.5 - z) / 12.3, 0, 1);
+    const cx = -12.1 + u * 2.8;
+    const stairFloorY = -4.0 + u * 7.5 - 0.55;
+    const wx = 1 - smoothstep(1.25, 2.1, Math.abs(x - cx));
+    const wz = smoothstep(-23.8, -24.8, z) * (1 - smoothstep(-36.2, -37.2, z));
+    const w = wx * wz;
+    if (w > 0.001) {
+      height = Math.min(height, height * (1 - w) + stairFloorY * w);
+    }
+  }
+
   return {
     height,
     roadDist: minRoadDist,
