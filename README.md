@@ -2,6 +2,13 @@
 
 > 一款运行于桌面浏览器的原创 3D 西方奇幻单人动作角色扮演游戏（ARPG）框架，受《上古卷轴》系列开放探索与系统驱动设计理念启发，采用程序化生成、轻量化渲染与纯客户端数据驱动架构构建。
 
+## ▶ 一键在线游玩（浏览器直玩）
+
+[![立即在线游玩 - Ashen March](https://img.shields.io/badge/▶_立即在线游玩-Ashen_March_灰烬边境-d9a043?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/)
+
+- **在线试玩地址**：https://xiezhengtao13-sys.github.io/ashen-march/
+- **零安装直玩**：由 GitHub Actions 自动构建并托管于 GitHub Pages，点击上方按钮即可在桌面浏览器（支持 WebGL2）中直接运行，存档自动保存于浏览器本地 IndexedDB。
+
 ## 核心特性
 
 - **第一人称 3D 自由探索**：真实 Rapier 3D 物理碰撞、重力、斜坡行走与可进入建筑/地下城。
