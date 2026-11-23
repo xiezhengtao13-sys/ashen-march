@@ -25,4 +25,10 @@
 - 实现 `QuestSystem`：事件自动推进主线《失落的守望者》三阶段及双结局（交还圣物/保留圣物），以及《灰木林的威胁》《边境物资筹备》两条完整支线与奖励发放。
 - 实现 `DialogueSystem`：支持基于任务阶段、物品持有、剧情标记的条件分支与动作执行（接取任务、交付完成、打开商店）。
 - 测试验证：`npm run typecheck` 通过，`npm test` 11/11 通过，`npm run build` 成功。
-- 下一步：进入 Stage 4（古代墓穴独立地下城与 IndexedDB 版本化存档系统）。
+
+## 2026-11-23 — Stage 4: 古代墓穴地下城与 IndexedDB 存档系统
+- 实现 `DungeonBuilder` (`src/world/DungeonBuilder.ts`)：在独立空间平面 (`y = -500`) 构建古代墓穴入口大厅、柱廊长廊、侧翼藏宝室与圣坛 Boss 室，接入完整 Rapier 碰撞体与地面/墓穴传送门。
+- 实现 `WorldSpawner` (`src/world/WorldSpawner.ts`)：统一生成配置宝箱与拾取物，落实 Boss 击败前置锁定逻辑（击败墓穴守卫·阿卡索尔前圣物箱不可开启）以及世界掉落与读档状态同步。
+- 实现 `SaveSystem` (`src/save/SaveSystem.ts`)：基于浏览器原生 IndexedDB 实现多槽位保存与读取，支持完整玩家/背包/任务/世界标记恢复，并内建 `v1 -> v2` Schema 迁移。
+- 测试验证：`npm run typecheck` 通过，`npm test` 14/14 通过（含 `fake-indexeddb` 端到端存档校验），`npm run build` 成功。
+- 下一步：进入 Stage 5（昼夜循环、粒子与程序化音效、完整 RPG UI、GameApp 整合与浏览器实测验收）。
