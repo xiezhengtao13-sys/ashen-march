@@ -24,6 +24,14 @@ export class QuestSystem {
       this.handleProgressEvent('kill', archetypeId, 1);
     });
 
+    this.state.events.on('dialogue:talked', ({ npcId }) => {
+      this.handleProgressEvent('talk', npcId, 1);
+    });
+
+    this.state.events.on('location:discovered', ({ regionId }) => {
+      this.handleProgressEvent('visit', regionId, 1);
+    });
+
     this.state.events.on('item:collected', ({ itemId }) => {
       this.syncCollectObjectives(itemId);
     });

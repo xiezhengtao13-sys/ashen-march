@@ -108,32 +108,36 @@ function getStreetCrossSectionOffset(dx: number): number {
  * 5-Tier Terraced Hillside Pads (0m -> +3.5m -> +7.5m -> +12.2m -> +18.0m / +21.0m).
  */
 export const CITY_PLAZA_PADS: CityPlazaPad[] = [
-  // Tier 0: South Gate Outer & Inner Apron
-  { id: 'tier0_gate_approach', cx: 0, cz: 17.5, halfX: 9.5, halfZ: 7.0, elevation: 0.0, cornerRadius: 2.0, feather: 2.2 },
-  // Tier 1: Compact Central Market Terrace (26m x 28m tight hub)
+  // Cell 01: South Gate & Bent-Axis Barbican Courtyard (0.0m)
+  { id: 'tier0_gate_approach', cx: 0, cz: 23.5, halfX: 16.5, halfZ: 13.5, elevation: 0.0, cornerRadius: 2.5, feather: 2.2 },
+  // Cell 03: Compact Central Market Terrace (28m x 30m enclosed hub, +3.5m)
   { id: 'tier1_market_plaza', cx: 0, cz: -35.0, halfX: 16.5, halfZ: 15.0, elevation: 3.5, cornerRadius: 3.0, feather: 2.0 },
-  // Tier 1 Focal Point: Phoenix Fountain Octagonal Dais
+  // Cell 03 Focal Point: Market Cistern Fountain Octagonal Dais (+3.85m)
   { id: 'tier1_fountain_dais', cx: 0, cz: -35.0, halfX: 4.5, halfZ: 4.5, elevation: 3.85, cornerRadius: 3.2, feather: 1.0 },
-  // Tier 2 Center: Mid-Terrace Overlook atop 4.0m Market North Retaining Wall
+  // Mid-Terrace Overlook atop 4.0m Market North Bastion Wall (+7.5m)
   { id: 'tier2_mid_overlook', cx: 0, cz: -58.5, halfX: 18.0, halfZ: 6.0, elevation: 7.5, cornerRadius: 2.0, feather: 1.8 },
-  // Tier 2 West Wing: Artisan Quarter Terrace (+7.0m)
-  { id: 'tier2_west_artisan', cx: -35.5, cz: -46.0, halfX: 14.5, halfZ: 28.0, elevation: 7.0, cornerRadius: 3.0, feather: 2.2 },
-  // Tier 2 East Wing: Residential Heights Terrace (+7.5m)
-  { id: 'tier2_east_residential', cx: 35.5, cz: -46.0, halfX: 14.5, halfZ: 28.0, elevation: 7.5, cornerRadius: 3.0, feather: 2.2 },
-  // Tier 3: Temple & Guild Acropolis (+12.2m)
-  { id: 'tier3_temple_acropolis', cx: 0, cz: -85.0, halfX: 22.0, halfZ: 13.5, elevation: 12.2, cornerRadius: 3.0, feather: 2.2 },
-  // Tier 4: Citadel Forecourt (+18.0m)
-  { id: 'tier4_castle_forecourt', cx: 0, cz: -112.0, halfX: 19.0, halfZ: 9.0, elevation: 18.0, cornerRadius: 2.5, feather: 2.2 },
-  // Tier 4 Crag: Sovereign Citadel Keep Plateau (+21.0m)
-  { id: 'tier4_citadel_keep', cx: 0, cz: -132.0, halfX: 23.0, halfZ: 10.0, elevation: 21.0, cornerRadius: 3.0, feather: 2.6 },
+  // Cell 04: West Artisan & Forge Quarter Terrace (+7.0m)
+  { id: 'tier2_west_artisan', cx: -33.5, cz: -44.0, halfX: 15.0, halfZ: 27.5, elevation: 7.0, cornerRadius: 3.0, feather: 2.0 },
+  // Cell 05: East Residential Heights Terrace (+7.5m)
+  { id: 'tier2_east_residential', cx: 33.5, cz: -44.0, halfX: 15.0, halfZ: 27.5, elevation: 7.5, cornerRadius: 3.0, feather: 2.0 },
+  // Cell 06: Cathedral & Bell Tower Acropolis (+12.2m, north of Watchtower z=-70)
+  { id: 'tier3_temple_acropolis', cx: 0, cz: -87.0, halfX: 25.0, halfZ: 13.5, elevation: 12.2, cornerRadius: 3.0, feather: 2.0 },
+  // Cell 07: Lord's Castle Outer Bailey Courtyard (+18.0m)
+  { id: 'tier4_castle_forecourt', cx: 0, cz: -116.5, halfX: 24.5, halfZ: 10.5, elevation: 18.0, cornerRadius: 2.5, feather: 2.0 },
+  // Cell 07: Sovereign Citadel Inner Keep & Great Hall Plateau (+21.0m)
+  { id: 'tier4_citadel_keep', cx: 0, cz: -135.5, halfX: 24.5, halfZ: 10.5, elevation: 21.0, cornerRadius: 3.0, feather: 2.4 },
 ];
 
 /**
- * Authoritative Compact Hillside Road & Stair Network (used for ground splatting, path guidance, and [M] Map).
+ * Authoritative 8-Cell Interconnected Hillside Road & Stair Network.
  */
 export const CITY_ROAD_SEGMENTS: CityRoadSegment[] = [
-  // Main Axis: South Gate -> S-Curved Trade Street -> Market Bridge Steps -> Central Market
-  { id: 'main_gate', route: 'main', a: { x: 0, z: 22, y: 0.0, halfWidth: 4.0 }, b: { x: 0, z: 10.5, y: 0.0, halfWidth: 3.5 } },
+  // Cell 01 Bent-Axis Barbican: Outer Gate (-6.2, 36 -> 22) -> Courtyard Turn -> Inner Gate (0, 22 -> 10.5)
+  { id: 'barbican_outer_gate', route: 'main', a: { x: -6.2, z: 36.5, y: 0.0, halfWidth: 3.6 }, b: { x: -6.2, z: 22.0, y: 0.0, halfWidth: 3.6 } },
+  { id: 'barbican_courtyard_turn', route: 'main', a: { x: -6.2, z: 22.0, y: 0.0, halfWidth: 3.8 }, b: { x: 0.0, z: 22.0, y: 0.0, halfWidth: 4.0 } },
+  { id: 'main_gate', route: 'main', a: { x: 0, z: 22.5, y: 0.0, halfWidth: 4.0 }, b: { x: 0, z: 10.5, y: 0.0, halfWidth: 3.5 } },
+
+  // Cell 02 S-Curved Trade Street -> Market Bridge Steps -> Cell 03 Central Market
   { id: 'main_trade_s1', route: 'main', a: { x: 0, z: 10.5, y: 0.0, halfWidth: 3.1 }, b: { x: 1.6, z: 3.0, y: 0.52, halfWidth: 2.9 } },
   { id: 'main_trade_s2', route: 'main', a: { x: 1.6, z: 3.0, y: 0.52, halfWidth: 2.9 }, b: { x: -1.4, z: -6.5, y: 1.32, halfWidth: 2.9 } },
   { id: 'main_trade_s3', route: 'main', a: { x: -1.4, z: -6.5, y: 1.32, halfWidth: 2.9 }, b: { x: 0, z: -11.5, y: 1.7, halfWidth: 3.0 } },
@@ -145,7 +149,8 @@ export const CITY_ROAD_SEGMENTS: CityRoadSegment[] = [
     stepped: true,
     stepCount: 10,
   },
-  // Market North Switchback Ceremonial Stairs (Tier 1 +3.5m -> Tier 2 Mid-Terrace Overlook +7.5m)
+
+  // Cell 03 -> Mid-Terrace Overlook (+7.5m)
   {
     id: 'main_switchback_west',
     route: 'main',
@@ -162,66 +167,74 @@ export const CITY_ROAD_SEGMENTS: CityRoadSegment[] = [
     stepped: true,
     stepCount: 16,
   },
-  // Phase 4 Main Axis Continuation: Mid-Terrace (+7.5m) -> Temple Acropolis (+12.2m) -> Citadel Forecourt (+18.0m)
+
+  // Cell 06 -> Cell 07 Royal Causeway & Inner Keep Steps (+12.2m -> +18.0m -> +21.0m)
   {
-    id: 'main_acropolis_stairs',
+    id: 'main_royal_causeway',
     route: 'castle',
-    a: { x: 0, z: -61.0, y: 7.5, halfWidth: 3.2 },
-    b: { x: 0, z: -72.0, y: 12.2, halfWidth: 3.4 },
+    a: { x: 0, z: -96.5, y: 12.2, halfWidth: 3.6 },
+    b: { x: 0, z: -108.0, y: 18.0, halfWidth: 3.8 },
+    stepped: true,
+    stepCount: 22,
+  },
+  { id: 'castle_bailey_walk', route: 'castle', a: { x: 0, z: -108.0, y: 18.0, halfWidth: 4.5 }, b: { x: 0, z: -122.0, y: 18.0, halfWidth: 4.5 } },
+  {
+    id: 'castle_keep_steps',
+    route: 'castle',
+    a: { x: 0, z: -122.0, y: 18.0, halfWidth: 3.8 },
+    b: { x: 0, z: -127.5, y: 21.0, halfWidth: 3.8 },
+    stepped: true,
+    stepCount: 12,
+  },
+
+  // Cell 04 West Wing Artisan Quarter Routes
+  {
+    id: 'artisan_forge_ramp',
+    route: 'artisan',
+    a: { x: -15.2, z: -35.0, y: 3.5, halfWidth: 2.4 },
+    b: { x: -24.5, z: -35.0, y: 7.0, halfWidth: 2.4 },
+    stepped: true,
+    stepCount: 14,
+  },
+  { id: 'artisan_smithy_lane', route: 'artisan', a: { x: -24.5, z: -22.0, y: 7.0, halfWidth: 2.6 }, b: { x: -26.5, z: -62.0, y: 7.0, halfWidth: 2.6 } },
+  {
+    id: 'artisan_temple_stairs',
+    route: 'artisan',
+    a: { x: -25.0, z: -62.0, y: 7.0, halfWidth: 2.4 },
+    b: { x: -18.5, z: -76.5, y: 12.2, halfWidth: 2.4 },
+    stepped: true,
+    stepCount: 20,
+  },
+
+  // Cell 05 East Wing Residential Heights Routes
+  {
+    id: 'res_weaver_steps',
+    route: 'residential',
+    a: { x: 15.2, z: -35.0, y: 3.5, halfWidth: 2.4 },
+    b: { x: 24.5, z: -35.0, y: 7.5, halfWidth: 2.4 },
+    stepped: true,
+    stepCount: 15,
+  },
+  { id: 'res_heights_walk', route: 'residential', a: { x: 24.5, z: -20.0, y: 7.5, halfWidth: 2.4 }, b: { x: 26.5, z: -62.0, y: 7.5, halfWidth: 2.4 } },
+  {
+    id: 'res_return_steps',
+    route: 'residential',
+    a: { x: 23.5, z: -16.0, y: 7.5, halfWidth: 2.1 },
+    b: { x: 14.5, z: -6.5, y: 1.2, halfWidth: 2.1 },
     stepped: true,
     stepCount: 18,
   },
   {
-    id: 'main_royal_causeway',
-    route: 'castle',
-    a: { x: 0, z: -96.0, y: 12.2, halfWidth: 3.5 },
-    b: { x: 0, z: -108.0, y: 18.0, halfWidth: 3.6 },
-    stepped: true,
-    stepCount: 22,
-  },
-
-  // West Wing Artisan Loop (Phase 3 ready)
-  {
-    id: 'artisan_forge_ramp',
-    route: 'artisan',
-    a: { x: -15.5, z: -36.0, y: 3.5, halfWidth: 2.5 },
-    b: { x: -29.0, z: -42.0, y: 7.0, halfWidth: 2.4 },
-    stepped: true,
-    stepCount: 12,
-  },
-  { id: 'artisan_smithy_lane', route: 'artisan', a: { x: -29.0, z: -42.0, y: 7.0, halfWidth: 2.3 }, b: { x: -42.0, z: -58.0, y: 7.4, halfWidth: 2.1 } },
-  { id: 'artisan_copper_alley', route: 'artisan', a: { x: -42.0, z: -58.0, y: 7.4, halfWidth: 2.0 }, b: { x: -38.0, z: -22.0, y: 6.4, halfWidth: 2.0 } },
-  {
-    id: 'artisan_return_steps',
-    route: 'artisan',
-    a: { x: -38.0, z: -22.0, y: 6.4, halfWidth: 2.0 },
-    b: { x: -4.0, z: -7.5, y: 1.4, halfWidth: 2.0 },
-    stepped: true,
-    stepCount: 16,
-  },
-
-  // East Wing Residential Heights Loop (Phase 3 ready)
-  {
-    id: 'res_weaver_steps',
+    id: 'res_temple_stairs',
     route: 'residential',
-    a: { x: 15.5, z: -36.0, y: 3.5, halfWidth: 2.3 },
-    b: { x: 30.0, z: -42.0, y: 7.5, halfWidth: 2.2 },
+    a: { x: 25.0, z: -62.0, y: 7.5, halfWidth: 2.4 },
+    b: { x: 18.5, z: -76.5, y: 12.2, halfWidth: 2.4 },
     stepped: true,
-    stepCount: 14,
-  },
-  { id: 'res_heights_walk', route: 'residential', a: { x: 30.0, z: -42.0, y: 7.5, halfWidth: 2.1 }, b: { x: 42.0, z: -60.0, y: 8.2, halfWidth: 1.9 } },
-  { id: 'res_lantern_lane', route: 'residential', a: { x: 42.0, z: -60.0, y: 8.2, halfWidth: 1.9 }, b: { x: 36.0, z: -20.0, y: 6.6, halfWidth: 1.9 } },
-  {
-    id: 'res_return_steps',
-    route: 'residential',
-    a: { x: 36.0, z: -20.0, y: 6.6, halfWidth: 1.9 },
-    b: { x: 4.0, z: -4.0, y: 1.1, halfWidth: 2.0 },
-    stepped: true,
-    stepCount: 16,
+    stepCount: 18,
   },
 
-  // Mid-Terrace Cross-Bridge Shortcut (+7.5m connecting West & East wings)
-  { id: 'alley_mid_bridge', route: 'alley', a: { x: -24.0, z: -58.5, y: 7.5, halfWidth: 2.2 }, b: { x: 24.0, z: -58.5, y: 7.5, halfWidth: 2.2 } },
+  // Mid-Terrace Cross-Overlook Link (+7.5m connecting West & East wings)
+  { id: 'alley_mid_bridge', route: 'alley', a: { x: -24.5, z: -55.0, y: 7.2, halfWidth: 2.2 }, b: { x: 24.5, z: -55.0, y: 7.5, halfWidth: 2.2 } },
 ];
 
 function roundedBoxSdf(px: number, pz: number, cx: number, cz: number, hx: number, hz: number, r: number): number {
@@ -264,26 +277,25 @@ function sampleHillsideTerraceBase(x: number, z: number): number {
   } else if (z >= -53.2) {
     // Crisp 4.0m step behind North Retaining Wall!
     spineY = 3.5 + smoothstep(-50.2, -53.2, z) * 4.0; // -> 7.5m Mid-Terrace Overlook
-  } else if (z >= -63.0) {
-    spineY = 7.5;
-  } else if (z >= -72.0) {
-    spineY = 7.5 + smoothstep(-63.0, -72.0, z) * 4.7; // -> 12.2m Temple Acropolis
-  } else if (z >= -97.0) {
+  } else if (z >= -69.5) {
+    spineY = 7.5; // Overlook & Cliffside Watchtower Ascent base
+  } else if (z >= -73.5) {
+    spineY = 7.5 + smoothstep(-69.5, -73.5, z) * 4.7; // -> 12.2m Temple Acropolis
+  } else if (z >= -99.5) {
     spineY = 12.2;
   } else if (z >= -106.5) {
-    spineY = 12.2 + smoothstep(-97.0, -106.5, z) * 5.8; // -> 18.0m Citadel Forecourt
-  } else if (z >= -121.0) {
+    spineY = 12.2 + smoothstep(-99.5, -106.5, z) * 5.8; // -> 18.0m Castle Outer Bailey
+  } else if (z >= -124.0) {
     spineY = 18.0;
-  } else if (z >= -125.0) {
-    spineY = 18.0 + smoothstep(-121.0, -125.0, z) * 3.0; // -> 21.0m Citadel Keep Crag
+  } else if (z >= -127.0) {
+    spineY = 18.0 + smoothstep(-124.0, -127.0, z) * 3.0; // -> 21.0m Citadel Keep Crag
   } else {
     spineY = 21.0;
   }
 
   // East & West Upper Wing Hillside Shelves (+7.0m West Artisan, +7.5m East Residential)
-  // Flanking shelves rise crisply outside |x| > 18.5 along z in [-78, -14]
-  const wingZMask = smoothstep(-10.0, -17.0, z) * (1 - smoothstep(-74.0, -82.0, z));
-  const wingXMask = smoothstep(17.5, 22.0, absX) * (1 - smoothstep(49.5, 55.0, absX));
+  const wingZMask = smoothstep(-9.0, -15.0, z) * (1 - smoothstep(-72.0, -79.0, z));
+  const wingXMask = smoothstep(17.2, 21.0, absX) * (1 - smoothstep(49.5, 55.0, absX));
   const wingTargetY = x < 0 ? 7.0 : 7.5;
   let y = spineY;
   if (wingZMask > 0.001 && wingXMask > 0.001) {
@@ -291,20 +303,20 @@ function sampleHillsideTerraceBase(x: number, z: number): number {
     y = y * (1 - blend) + Math.max(y, wingTargetY) * blend;
   }
 
-  // Natural mountain ridges rising outside the compact 104m x 144m city perimeter walls
-  const outerX = smoothstep(52.0, 82.0, absX);
-  const outerNorth = smoothstep(-132.0, -158.0, z);
-  const outerSouth = smoothstep(24.0, 44.0, z);
+  // Natural mountain ridges rising outside the city perimeter walls
+  const outerX = smoothstep(51.0, 82.0, absX);
+  const outerNorth = smoothstep(-145.0, -166.0, z);
+  const outerSouth = smoothstep(38.5, 55.0, z);
   const cragNoise = (noise2(x * 0.055, z * 0.055) - 0.35) * 6.5;
-  y += outerX * (5.5 + smoothstep(10, -110, z) * 9.0 + cragNoise);
-  y += outerNorth * (7.5 + cragNoise * 0.8);
+  y += outerX * (6.0 + smoothstep(15, -130, z) * 10.0 + cragNoise);
+  y += outerNorth * (8.5 + cragNoise * 0.8);
   y -= outerSouth * 2.2;
 
   return y;
 }
 
 /**
- * Unified 5-Tier Hillside Height & Road-Splat Sampler.
+ * Unified 8-Cell Hillside Height & Road-Splat Sampler.
  */
 export function sampleCityNetwork(x: number, z: number): GroundSample {
   let height = sampleHillsideTerraceBase(x, z);
@@ -313,19 +325,17 @@ export function sampleCityNetwork(x: number, z: number): GroundSample {
   let stepWeight = 0;
   let curbOffset = 0;
 
-  // 1. Level Tier 0 Gatehouse Approach & S-Curved Gateward Trade Street
-  if (z >= -19.8 && z <= 25.0 && Math.abs(x) <= 17.0) {
-    const roadX = getCityRoadCenterX(z);
+  // 1. Level Tier 0 Barbican, Gatehouse Approach & S-Curved Gateward Trade Street
+  if (z >= -19.8 && z <= 38.5 && Math.abs(x) <= 18.5) {
+    const roadX = z > 22.0 ? smoothstep(21.0, 24.5, z) * -6.2 : getCityRoadCenterX(z);
     const dx = Math.abs(x - roadX);
     const streetBaseY = getCityStreetBaseY(z);
-    const cOff = z <= -11.2 ? 0.0 : getStreetCrossSectionOffset(dx);
+    const cOff = z <= -11.2 || z >= 21.5 ? 0.0 : getStreetCrossSectionOffset(dx);
 
-    // Building footprint pads beside Tier 0 street stay flush with adjacent curb
-    const padBlend = 1 - smoothstep(13.5, 17.0, Math.abs(x));
+    const padBlend = 1 - smoothstep(15.5, 18.5, Math.abs(x));
     const microCobble =
-      dx < 3.1 && z > -11.2 ? (noise2(x * 0.65, z * 0.65) - 0.5) * 0.018 : 0;
+      dx < 3.4 && z > -11.2 ? (noise2(x * 0.65, z * 0.65) - 0.5) * 0.018 : 0;
 
-    // Smoothly ramp under Market Bridge Steps (z in [-11.5, -19.5]) with gentle visual step ribs
     let stepRib = 0;
     if (z <= -11.5 && z >= -19.5 && dx <= 3.3) {
       stepWeight = 1;
@@ -336,6 +346,12 @@ export function sampleCityNetwork(x: number, z: number): GroundSample {
     const targetY = streetBaseY + cOff + microCobble + stepRib;
     height = height * (1 - padBlend) + targetY * padBlend;
 
+    // Barbican courtyard flagstone weight (z in [15.8, 30.5])
+    if (z >= 15.8 && z <= 30.5 && Math.abs(x) <= 15.2) {
+      plazaWeight = Math.max(plazaWeight, 0.72);
+      minRoadDist = Math.min(minRoadDist, 0.0);
+    }
+
     const rDist = dx - 2.95;
     if (rDist < minRoadDist) {
       minRoadDist = rDist;
@@ -343,7 +359,7 @@ export function sampleCityNetwork(x: number, z: number): GroundSample {
     }
   }
 
-  // 2. Flatten Compact Central Market Plaza (+3.5m) & Phoenix Fountain Octagonal Dais (+3.85m)
+  // 2. Flatten Compact Central Market Plaza (+3.5m) & Fountain Octagonal Dais (+3.85m)
   const marketSdf = roundedBoxSdf(x, z, 0, -35.0, 15.8, 14.5, 2.8);
   if (marketSdf < 2.2) {
     const w = 1 - smoothstep(-0.4, 2.2, marketSdf);
@@ -361,7 +377,7 @@ export function sampleCityNetwork(x: number, z: number): GroundSample {
     minRoadDist = Math.min(minRoadDist, daisSdf);
   }
 
-  // 3. Mid-Terrace Overlook (+7.5m) & Upper Tier Plazas (Temple +12.2m, Forecourt +18.0m)
+  // 3. Upper Tier Plazas (Mid Overlook +7.5m, Artisan +7.0m, Residential +7.5m, Temple +12.2m, Castle +18.0m/+21.0m)
   for (const pad of CITY_PLAZA_PADS) {
     if (pad.id === 'tier0_gate_approach' || pad.id === 'tier1_market_plaza' || pad.id === 'tier1_fountain_dais') {
       continue;
@@ -370,14 +386,12 @@ export function sampleCityNetwork(x: number, z: number): GroundSample {
     if (sdf < pad.feather) {
       const w = 1 - smoothstep(-0.3, pad.feather, sdf);
       height = height * (1 - w) + pad.elevation * w;
-      if (pad.id === 'tier2_mid_overlook' || pad.id === 'tier3_temple_acropolis' || pad.id === 'tier4_castle_forecourt') {
-        plazaWeight = Math.max(plazaWeight, 1 - smoothstep(-0.4, 0.6, sdf));
-        minRoadDist = Math.min(minRoadDist, sdf);
-      }
+      plazaWeight = Math.max(plazaWeight, (1 - smoothstep(-0.4, 0.8, sdf)) * 0.85);
+      minRoadDist = Math.min(minRoadDist, sdf);
     }
   }
 
-  // 4. Evaluate Road Segments for Cobblestone Splatting (plus smooth ramps for Phase 3/4 routes)
+  // 4. Evaluate Road & Stepped Stair Segments for Cobblestone Splatting + Smooth Terrain Ramps under Stairs
   for (const seg of CITY_ROAD_SEGMENTS) {
     const { dist, t } = segmentProjection(x, z, seg);
     const halfW = seg.a.halfWidth + (seg.b.halfWidth - seg.a.halfWidth) * t;
@@ -388,10 +402,25 @@ export function sampleCityNetwork(x: number, z: number): GroundSample {
         stepWeight = Math.max(stepWeight, 1 - smoothstep(0, 0.6, Math.max(0, edgeDist)));
       }
     }
+    // Depress terrain slightly beneath V5 inter-cell stone stair flights so sculpted steps never clip grass/dirt
+    if (
+      seg.id === 'artisan_forge_ramp' ||
+      seg.id === 'artisan_temple_stairs' ||
+      seg.id === 'res_weaver_steps' ||
+      seg.id === 'res_return_steps' ||
+      seg.id === 'res_temple_stairs' ||
+      seg.id === 'main_royal_causeway' ||
+      seg.id === 'castle_keep_steps'
+    ) {
+      if (edgeDist < 1.2) {
+        const w = 1 - smoothstep(-0.2, 1.2, edgeDist);
+        const segY = seg.a.y + (seg.b.y - seg.a.y) * t - 0.32;
+        height = Math.min(height, height * (1 - w) + segY * w);
+      }
+    }
   }
 
-  // 5. V3 Stormveil Sub-Level (-4.0m) Undercroft Vault Trench & South/North Stairwell Cutouts
-  // Ensures zero terrain trimesh pokes into the vaulted stone drainage cistern or its two stairwells.
+  // 5. Cell 08 Sub-Level (-4.0m) Undercroft & Cellar Stairwell Cutouts
   // 5a. Main Vaulted Cistern Footprint: x in [-15.4, -9.6], z in [-25.8, -5.2]
   if (x >= -16.4 && x <= -8.6 && z >= -26.8 && z <= -4.4) {
     const wx = smoothstep(-16.4, -15.2, x) * (1 - smoothstep(-9.8, -8.6, x));
@@ -402,7 +431,7 @@ export function sampleCityNetwork(x: number, z: number): GroundSample {
       plazaWeight *= 1 - w;
     }
   }
-  // 5b. South Undercroft Stairwell Cutout: x in [-12.5, -3.5], z around -7.0 (width ~3.0m)
+  // 5b. Trade Street South Undercroft Stairwell Cutout: x in [-12.5, -3.5], z around -7.0
   if (x >= -13.0 && x <= -3.2 && z >= -9.0 && z <= -5.0) {
     const t = clamp((x + 12.3) / 9.0, 0, 1);
     const stairFloorY = -4.0 + t * 5.35 - 0.55;
@@ -413,7 +442,7 @@ export function sampleCityNetwork(x: number, z: number): GroundSample {
       height = Math.min(height, height * (1 - w) + stairFloorY * w);
     }
   }
-  // 5c. North Undercroft Stairwell Cutout: (-12.1, -24.5, -4.0m) -> (-9.3, -36.8, +3.5m)
+  // 5c. Market SW Undercroft Stairwell Cutout: (-12.1, -24.5, -4.0m) -> (-9.3, -36.8, +3.5m)
   if (z >= -37.4 && z <= -23.8 && x >= -15.0 && x <= -6.8) {
     const u = clamp((-24.5 - z) / 12.3, 0, 1);
     const cx = -12.1 + u * 2.8;
@@ -425,7 +454,6 @@ export function sampleCityNetwork(x: number, z: number): GroundSample {
       height = Math.min(height, height * (1 - w) + stairFloorY * w);
     }
   }
-
   return {
     height,
     roadDist: minRoadDist,
@@ -436,14 +464,82 @@ export function sampleCityNetwork(x: number, z: number): GroundSample {
 }
 
 /**
- * Maps world (x, z) coordinates to the 5-Tier Hillside Ashenhold RegionId for HUD compass & discovery.
+ * Returns true if a terrain triangle centroid (x, z) falls inside an open stone stairwell
+ * or underground cistern tunnel portal mouth where sculpted GLB steps/vaults replace the surface sheet.
  */
-export function getCityRegionFromCoords(x: number, z: number): RegionId {
+export function isCityTerrainHole(x: number, z: number): boolean {
+  // 1. Cell 01 West Barbican Undercroft Stairway: (-12.5, 0.0, 27.2) <-> (-12.5, -4.0, 16.5)
+  if (x >= -13.7 && x <= -11.3 && z >= 16.0 && z <= 27.15) return true;
+  // 2. Cell 02 Warehouse Courtyard Wine Cellar Stairway: (13.6, 0.35, 2.8) <-> (13.6, -4.0, 11.4)
+  if (x >= 12.5 && x <= 14.7 && z >= 2.85 && z <= 12.0) return true;
+  // 3. Cell 07 Enclosed East Castle Armory 4-Flight Secret Cliff Shaft (+18m <-> -4m)
+  if (x >= 13.5 && x <= 20.2 && z >= -123.0 && z <= -113.1) return true;
+  // 4. Cell 08 Central Cistern East Tunnel Archway under West Retaining Wall (z = -21.0)
+  if (x >= -10.2 && x <= -8.2 && z >= -22.8 && z <= -19.2) return true;
+  // 5. Cell 08 Central Cistern South Tunnel Archway under West Trade Foundations (x = -12.5, z = -5.0)
+  if (x >= -14.3 && x <= -10.7 && z >= -6.0 && z <= -4.0) return true;
+  return false;
+}
+
+export type CitySurfaceMaterial =
+  | 'stone_flagstone'
+  | 'stone_stair'
+  | 'wood_plank'
+  | 'dirt'
+  | 'grass'
+  | 'shallow_water';
+
+/**
+ * Classifies exact surface material beneath player feet for procedural FootstepAudioSystem.
+ */
+export function getCitySurfaceMaterial(x: number, y: number, z: number): CitySurfaceMaterial {
+  // Underground drainage channel water vs damp slate floor
+  if (y < -0.55) {
+    if (Math.abs(x + 12.5) < 0.65 && z >= -25.5 && z <= -6.0 && y < -3.85) {
+      return 'shallow_water';
+    }
+    return 'stone_flagstone';
+  }
+  // Market fountain basin water
+  if (Math.hypot(x, z + 35.0) < 3.45 && y >= 3.7 && y <= 5.2) {
+    return 'shallow_water';
+  }
+  // Timber-floored interiors & balconies (Ember Tavern 1F/2F, Market Shop 2F, Weaver Townhouse, Smithy 2F Loft)
+  if (
+    (x >= 4.2 && x <= 13.8 && z >= -8.6 && z <= 2.2 && y >= 1.4 && y <= 8.5) ||
+    (x >= 13.2 && x <= 18.2 && z >= -31.5 && z <= -22.5 && y >= 7.0 && y <= 10.5) ||
+    (x >= 24.5 && x <= 33.5 && z >= -33.5 && z <= -23.0 && y >= 7.3 && y <= 13.5) ||
+    (x >= -38.5 && x <= -28.0 && z >= -41.0 && z <= -31.0 && y >= 9.8 && y <= 13.5)
+  ) {
+    return 'wood_plank';
+  }
+  // Elevated stone bridges, ramparts, and stairs above terrain
+  const sample = sampleCityNetwork(x, z);
+  if (y > sample.height + 0.65) {
+    return 'stone_flagstone';
+  }
+  if (sample.stepWeight > 0.35) {
+    return 'stone_stair';
+  }
+  if (sample.plazaWeight > 0.25 || sample.roadDist <= 0.45) {
+    return 'stone_flagstone';
+  }
+  if (sample.roadDist <= 2.8) {
+    return 'dirt';
+  }
+  return 'grass';
+}
+
+/**
+ * Maps world (x, z, y) coordinates to the 8-Cell Hillside Ashenhold RegionId for HUD compass & discovery.
+ */
+export function getCityRegionFromCoords(x: number, z: number, y?: number): RegionId {
+  if (y !== undefined && y < -0.55) return 'ashenhold_undercroft';
   if (z >= 9.0) return 'ashenhold_gate';
-  if (z <= -100.0) return 'ashenhold_castle_approach';
-  if (z <= -70.0 && Math.abs(x) <= 26.0) return 'ashenhold_temple_acropolis';
-  if (x <= -21.0 && z <= -12.0 && z >= -86.0) return 'ashenhold_artisan_quarter';
-  if (x >= 21.0 && z <= -12.0 && z >= -86.0) return 'ashenhold_residential_quarter';
-  if (z <= -17.5 && z >= -64.0) return 'ashenhold_market_plaza';
+  if (z <= -103.5) return 'ashenhold_castle_approach';
+  if (z <= -69.5 && Math.abs(x) <= 29.0) return 'ashenhold_temple_acropolis';
+  if (x <= -17.5 && z <= -12.0 && z >= -75.0) return 'ashenhold_artisan_quarter';
+  if (x >= 17.5 && z <= -10.0 && z >= -75.0) return 'ashenhold_residential_quarter';
+  if (z <= -17.5 && z >= -69.5) return 'ashenhold_market_plaza';
   return 'ashenhold_main_street';
 }

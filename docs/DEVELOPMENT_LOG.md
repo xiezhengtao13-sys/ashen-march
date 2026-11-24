@@ -128,3 +128,17 @@
   - 实现零 `bmesh.ops` 全局扫描的 `O(1)` 12 顶点缺角倒棱条石、8 顶点开背草边凸肚石（每石仅 10 三角面且带随机 UV 相位偏移）、28° 倾角层理裂解山崖（取代圆角方块山体）、哥特十字肋架拱顶、S 形路缘石与雨水铁箅、劈柴火盆与锻铁六角笼灯（彻底清除全城肉粉/橘色发光方块），并重制哥特八角铁链喷泉、宪章柱与 6 座粗麻木构摊位（共导出 23 个精修 GLB）。
   - 执行完整的 **Iteration 1 → 逐图挑刺复盘 → Iteration 2** 实机迭代：在 Iteration 2 中消除 `limestone_weathered` 规则斜纹与白骨牌跳色、将 `damp_slate_stone` 重构为层状劈裂青灰板岩、加深 `broken_flagstone` 泥苔暗缝与多岩性色差、将台阶斜向白压条改为水平阶梯压顶条石，并实装 `-4m` 地底暗渠入口裁剪、室内静态合并与南北道具阴影裁剪。
   - **实测对比（`1280×720`, `High`, `13:00`）**：在视觉雕刻细节显著提升的同时，Total Triangles 在主要视野全面下降（`Cam A` `627k → 436k` **-30.5%**，`Cam B` `653k → 521k` **-20.2%**，`Cam E` `548k → 439k` **-19.8%**，`Cam G` `619k → 507k` **-18.1%**，`Cam C` `633k → 537k` **-15.3%**），驻留纹理由 `80` 降至 `58–76`；同步输出 `Raw → Tonemap → Tonemap+FXAA → Final` 四阶段渲染管线对比图与 PBR 通道诊断图。
+
+## 2026-11-24 — Ashenhold Interconnected City V5 (`feature/ashenhold-interconnected-city-v5`)：八大互联箱庭完整主城、空间音频与 RPG 闭环
+- **开发方向转向完整关卡与沉浸感建设 (`docs/INTERCONNECTED_CITY_V5.md`)**：完整保留 V4 的 1024/512 HBAO Packed ORM 材质库与 BMesh 雕刻几何品质，不重做着色器管线，聚焦构建 **8 个高墙与山崖围合的高密度箱庭（Cells 01–08）** 与 **21 道互联门户（Portals P01–P21）**。
+- **八箱庭立体关卡、双层室内穿行捷径与全开放领主城堡 (`scripts/city/v5_interconnected_kit.py`, `build_v5_layout.py`, `CityRoadNetwork.ts`, `CityGroundBuilder.ts`)**：
+  - `Cell 01` 折轴南外门（`x=-6.2, z=31.2`）配合瓮城迎面照壁挡墙彻底阻断一眼看穿全城；新增可进入西卫兵室、双层东防御塔（直通 `+9.5m` 城墙步道）与西侧暗渠石阶。
+  - `Cell 02–05` 新增西侧三层悬挑药剂堂、东货仓后院与酒窖阶梯、**双层市集行会烘焙商铺（1F 市集 → 2F 东翼居民区室内穿行捷径）**、**双层铁炉大师锻坊（1F 双烟囱熔炉 → 2F 阁楼直通西城墙步道）**、木匠制桶院、**双层织坊跨巷木天桥（`+11.0m`）**、拱门水井内院与居民小屋。
+  - `Cell 06–08` 建成圣伊格尼斯大圣堂、**四层可攀登大钟楼（`+24.2m` 敞轩青铜大钟可交互敲响）**、`+19.5m` 高架石廊桥、公会抄本馆，以及**真正可自由探索的领主城堡**（外瓮城门楼、外庭院、西营房、东军械库内藏 **`+18m ↔ -4m` 四折悬崖秘梯**、双层领主议事大殿与 `+30.5m` 内堡瞭望塔冠）与 90m 地底暗渠及王室秘库；`CityGroundBuilder.ts` 采用精准阶梯井三角洞口裁剪（`isCityTerrainHole`）消除全部地下门户地形阻挡。
+- **Cell & Portal 裁剪、程序化空间音频与鲜活 RPG 生态 (`CityPortalVisibility.ts`, `CityCellManager.ts`, `AmbientAudioManager.ts`, `SpatialAudioEmitter.ts`, `FootstepAudioSystem.ts`, `NPCSystem.ts`, `QuestSystem.ts`, `UIManager.ts`)**：
+  - 实现带边界迟滞防抖的箱庭可见性管理、固定 6 点光源动态池与 `setCellDebug(true/false)` 3D 线框诊断。
+  - 新增纯 WebAudio 程序化 8 区环境音床、8 类室内外混响、18 个门户跨墙低通遮挡 3D 声源、6 材质脚步/起跳/落地音效及 `[Esc]` 四滑块混音器。
+  - 布置 16 名鲜活城市 NPC（含打铁、锯木、抄本、巡逻与漫步礼让）、9 处可读文献、5 座持久化宝箱、跨箱庭支线《灰烬城宪章与秘道》（`side_city_citadel_accord`）及 `[M]` 八箱庭舆图。
+- **全量验证与实机性能遥测**：
+  - `npm run typecheck` 通过（0 错误）；`npm test` **11/11 套件、31/31 用例全绿**（含 120+ 路点无传送走遍全部 8 箱庭、2F 室内捷径、`+24.4m` 钟楼、`+30.7m` 内堡塔冠与 `+18m→-4m→0m` 四折秘梯闭环）；`npm run build` 构建通过；`npm run test:e2e` **Playwright 2/2 全绿**（0 控制台/页面报错）。
+  - 采集 12 张 `1280×720 High` 实机截图与 `docs/screenshots/v5/v5_telemetry.json`（云端 SwiftShader CPU 软件渲染实测：全城体量扩大逾 3 倍后，依靠门户裁剪，南瓮城 `Main Pass 201 DC / 209k Tris`、铁匠工坊 `101 DC / 81k Tris`、居民巷 `45 DC / 155k Tris`、圣堂高地 `95 DC / 246k Tris`、领主大殿室内 `49 DC / 109k Tris`、地底王室秘库 `33 DC / 123k Tris`）。

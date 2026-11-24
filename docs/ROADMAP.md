@@ -95,3 +95,10 @@
 - [x] **Step 2 多尺度 1024/512 PBR 贴图与 BMesh 雕刻重构**：编写 `scripts/city/texgen_v4.c` 生成 7 套 1024/512 双尺度法线 + 8 向 HBAO Packed ORM 材质（彻底消除整石假砖缝、灯芯绒斜纹与油亮细胞板岩，补齐 `iron_forged_v4` 锤击金属度贴图）；编写 `scripts/city/v4_sculpt_helpers.py`（`O(1)` 缺角倒棱条石、草边凸肚石、28° 层理裂解山崖、哥特十字肋拱、劈柴火盆与锻铁六角笼灯）导出 23 个精修 GLB
 - [x] **Step 3 & 4 两轮可追踪实机视觉迭代与可见性裁剪**：完成 `Iteration 1 → 挑刺复盘 → Iteration 2` 全流程；实现 40° 西南斜射日光、36m 紧致阴影视锥、世界空间室内天光遮蔽、台地垂壁三平面投影、`-4m` 地底暗渠入口裁剪、室内静态合并与南北道具批次拆分（总面数与 Draw Calls 较 V3 下降 12%–30%）
 - [x] **Step 5–7 管线四阶段验证、全量自动化测试与独立 PR 预览发布**：输出 `Raw → Tonemap → Tonemap+FXAA → Final` 四阶段与 PBR 通道诊断图、8 维度 1–5 诚实评分表，通过 TypeScript / Vitest 10 套件 / Vite Build / Playwright E2E 全量验证并发布独立分支预览与 PR
+
+## Ashenhold — Interconnected City V5 (`feature/ashenhold-interconnected-city-v5`)：八大互联箱庭完整关卡建设与沉浸感升级
+- [x] **Stage A — 八箱庭与 21 门户可见性架构 (`cityCells.json`, `cityPortals.json`, `CityPortalVisibility.ts`, `CityCellManager.ts`)**：实现带迟滞防抖（Hysteresis）、双门户共线深度裁剪、高处受控远景（Vista Mode）、6 点光源动态池与 `setCellDebug(true/false)` 3D 线框诊断的完整箱庭系统
+- [x] **Stage B — 八大高密度箱庭几何、双层室内捷径与零传送立体连通 (`v5_interconnected_kit.py`, `build_v5_layout.py`, `CityGroundBuilder.ts`)**：保留 V4 美术品质，建成 `Cell 01` 折轴南门瓮城与双层东防御塔、`Cell 02` 曲街药剂堂/货仓后院/酒窖梯、`Cell 03` 双层行会商铺（1F→2F 通东翼）、`Cell 04` 双层铁炉大师锻坊（1F→2F 通西城墙）与木匠院、`Cell 05` 双层织坊跨巷天桥与水井内院、`Cell 06` 圣伊格尼斯大圣堂/四层可攀登钟楼（`+24.2m` 青铜大钟）/`+19.5m` 高架廊桥/公会馆、`Cell 07` 全开放领主城堡外庭/军械库四折悬崖秘梯（`+18m↔-4m`）/双层领主议事大殿/`+30.5m` 内堡塔冠、`Cell 08` 90m 地底暗渠网络与王室秘库
+- [x] **Stage C — 程序化空间音频、室内混响与六材质脚步声 (`AmbientAudioManager.ts`, `SpatialAudioEmitter.ts`, `FootstepAudioSystem.ts`)**：实现 8 区域音床平滑淡变、8 类室内外混响切换、18 个带门户跨墙低通遮挡的 3D 声源、6 类地面材质脚步/跳跃/落地合成及 `[Esc]` 四通道混音器
+- [x] **Stage D–F — 城市生活 NPC、跨箱庭任务、全路径无传送测试与独立 PR 发布**：配置 16 名鲜活 NPC、9 处文献、5 座持久化宝箱、支线《灰烬城宪章与秘道》与 `[M]` 八箱庭舆图；通过 `tsc`、Vitest 11 套件（31/31，含全 8 箱庭 `-4m↔+30.5m` 零传送闭环步行测试）、Playwright E2E（2/2）与 12 张实机截图验收，并创建独立分支预览与 PR（保留 V4 基线、不合并 `main`）
+

@@ -1,0 +1,374 @@
+{
+  "capturedAt": "2026-11-24T22:33:19.666Z",
+  "viewport": "1280x720",
+  "qualityPreset": "high",
+  "rendererBackend": "SwiftShader (CPU Software)",
+  "errors": [],
+  "shots": [
+    {
+      "shot": "v5_cell01_barbican",
+      "desc": "Cell 01 Bent-Axis Outer Gate looking into Barbican Courtyard (Traverse Wall, Guardhouse, East Defense Tower)",
+      "activeCellId": "cell_01_barbican_gate",
+      "visibleCells": [
+        "cell_01_barbican_gate",
+        "cell_02_trade_street"
+      ],
+      "vistaCells": [],
+      "visibleBuildings": 9,
+      "culledBuildings": 0,
+      "visibleProps": 0,
+      "visibleNpcs": 4,
+      "cellSwitchMs": 0,
+      "ambientZone": "amb_gate_barbican",
+      "reverb": "outdoor_courtyard",
+      "activeAudioNodes": 0,
+      "rendererBackend": "SwiftShader (CPU Software)",
+      "shadowPass": {
+        "drawCalls": 70,
+        "triangles": 144676
+      },
+      "mainPass": {
+        "drawCalls": 201,
+        "triangles": 209635
+      },
+      "postPass": {
+        "drawCalls": 1,
+        "triangles": 2
+      },
+      "total": {
+        "drawCalls": 272,
+        "triangles": 354313
+      }
+    },
+    {
+      "shot": "v5_cell02_trade_street",
+      "desc": "Cell 02 S-Curved Trade Street, 2F Ember Tavern, 3F Apothecary Overhang & Overhead Gothic Bridge (+9.5m)",
+      "activeCellId": "cell_02_trade_street",
+      "visibleCells": [
+        "cell_02_trade_street",
+        "cell_03_market_plaza",
+        "cell_05_residential_heights",
+        "cell_04_artisan_quarter"
+      ],
+      "vistaCells": [],
+      "visibleBuildings": 19,
+      "culledBuildings": 0,
+      "visibleProps": 0,
+      "visibleNpcs": 10,
+      "cellSwitchMs": 0,
+      "ambientZone": "amb_trade_street",
+      "reverb": "outdoor_alley",
+      "activeAudioNodes": 0,
+      "rendererBackend": "SwiftShader (CPU Software)",
+      "shadowPass": {
+        "drawCalls": 124,
+        "triangles": 213186
+      },
+      "mainPass": {
+        "drawCalls": 404,
+        "triangles": 321615
+      },
+      "postPass": {
+        "drawCalls": 1,
+        "triangles": 2
+      },
+      "total": {
+        "drawCalls": 529,
+        "triangles": 534803
+      }
+    },
+    {
+      "shot": "v5_cell03_market_plaza",
+      "desc": "Cell 03 Enclosed Central Market Plaza, Fountain, 2F Guild/Bakery Emporium & Citadel Skyline",
+      "activeCellId": "cell_03_market_plaza",
+      "visibleCells": [
+        "cell_03_market_plaza",
+        "cell_04_artisan_quarter",
+        "cell_05_residential_heights",
+        "cell_08_undercroft_cellars",
+        "cell_06_temple_acropolis"
+      ],
+      "vistaCells": [],
+      "visibleBuildings": 22,
+      "culledBuildings": 0,
+      "visibleProps": 0,
+      "visibleNpcs": 10,
+      "cellSwitchMs": 0,
+      "ambientZone": "amb_market_plaza",
+      "reverb": "outdoor_courtyard",
+      "activeAudioNodes": 0,
+      "rendererBackend": "SwiftShader (CPU Software)",
+      "shadowPass": {
+        "drawCalls": 152,
+        "triangles": 255144
+      },
+      "mainPass": {
+        "drawCalls": 280,
+        "triangles": 380947
+      },
+      "postPass": {
+        "drawCalls": 1,
+        "triangles": 2
+      },
+      "total": {
+        "drawCalls": 433,
+        "triangles": 636093
+      }
+    },
+    {
+      "shot": "v5_cell04_artisan_forge",
+      "desc": "Cell 04 West Artisan Quarter & Enterable 2-Story Ironforge Master Smithy (+7.0m -> +10.5m)",
+      "activeCellId": "cell_04_artisan_quarter",
+      "visibleCells": [
+        "cell_04_artisan_quarter"
+      ],
+      "vistaCells": [],
+      "visibleBuildings": 3,
+      "culledBuildings": 0,
+      "visibleProps": 0,
+      "visibleNpcs": 2,
+      "cellSwitchMs": 0,
+      "ambientZone": "amb_artisan_quarter",
+      "reverb": "semi_open_yard",
+      "activeAudioNodes": 0,
+      "rendererBackend": "SwiftShader (CPU Software)",
+      "shadowPass": {
+        "drawCalls": 40,
+        "triangles": 48246
+      },
+      "mainPass": {
+        "drawCalls": 101,
+        "triangles": 80935
+      },
+      "postPass": {
+        "drawCalls": 1,
+        "triangles": 2
+      },
+      "total": {
+        "drawCalls": 142,
+        "triangles": 129183
+      }
+    },
+    {
+      "shot": "v5_cell05_residential_heights",
+      "desc": "Cell 05 Stepped Residential Alley, Stone Well, 2F Weaver Townhouse & Overhead Alley Skybridge (+11.0m)",
+      "activeCellId": "cell_05_residential_heights",
+      "visibleCells": [
+        "cell_05_residential_heights",
+        "cell_03_market_plaza"
+      ],
+      "vistaCells": [],
+      "visibleBuildings": 13,
+      "culledBuildings": 0,
+      "visibleProps": 0,
+      "visibleNpcs": 6,
+      "cellSwitchMs": 0,
+      "ambientZone": "amb_residential",
+      "reverb": "outdoor_alley",
+      "activeAudioNodes": 0,
+      "rendererBackend": "SwiftShader (CPU Software)",
+      "shadowPass": {
+        "drawCalls": 98,
+        "triangles": 119262
+      },
+      "mainPass": {
+        "drawCalls": 45,
+        "triangles": 155299
+      },
+      "postPass": {
+        "drawCalls": 1,
+        "triangles": 2
+      },
+      "total": {
+        "drawCalls": 144,
+        "triangles": 274563
+      }
+    },
+    {
+      "shot": "v5_cell06_temple_acropolis",
+      "desc": "Cell 06 Temple Forecourt, Cathedral of St. Ignis & Climbable 4-Tier Bell Tower (+24.2m)",
+      "activeCellId": "cell_06_temple_acropolis",
+      "visibleCells": [
+        "cell_06_temple_acropolis",
+        "cell_04_artisan_quarter",
+        "cell_07_lord_castle"
+      ],
+      "vistaCells": [],
+      "visibleBuildings": 8,
+      "culledBuildings": 0,
+      "visibleProps": 0,
+      "visibleNpcs": 6,
+      "cellSwitchMs": 0,
+      "ambientZone": "amb_temple_heights",
+      "reverb": "high_cliff",
+      "activeAudioNodes": 0,
+      "rendererBackend": "SwiftShader (CPU Software)",
+      "shadowPass": {
+        "drawCalls": 76,
+        "triangles": 233996
+      },
+      "mainPass": {
+        "drawCalls": 95,
+        "triangles": 246292
+      },
+      "postPass": {
+        "drawCalls": 1,
+        "triangles": 2
+      },
+      "total": {
+        "drawCalls": 172,
+        "triangles": 480290
+      }
+    },
+    {
+      "shot": "v5_cell06_belfry_overlook",
+      "desc": "Cell 06 +24.2m Open Belfry High Overlook across Viaduct, Temple, Market & Barbican",
+      "activeCellId": "cell_06_temple_acropolis",
+      "visibleCells": [
+        "cell_06_temple_acropolis",
+        "cell_03_market_plaza",
+        "cell_04_artisan_quarter",
+        "cell_07_lord_castle",
+        "cell_05_residential_heights",
+        "cell_02_trade_street",
+        "cell_01_barbican_gate"
+      ],
+      "vistaCells": [
+        "cell_03_market_plaza",
+        "cell_04_artisan_quarter",
+        "cell_05_residential_heights",
+        "cell_07_lord_castle",
+        "cell_02_trade_street",
+        "cell_01_barbican_gate"
+      ],
+      "visibleBuildings": 30,
+      "culledBuildings": 0,
+      "visibleProps": 0,
+      "visibleNpcs": 16,
+      "cellSwitchMs": 0,
+      "ambientZone": "amb_temple_heights",
+      "reverb": "cathedral_stone",
+      "activeAudioNodes": 0,
+      "rendererBackend": "SwiftShader (CPU Software)",
+      "shadowPass": {
+        "drawCalls": 82,
+        "triangles": 282430
+      },
+      "mainPass": {
+        "drawCalls": 533,
+        "triangles": 585967
+      },
+      "postPass": {
+        "drawCalls": 1,
+        "triangles": 2
+      },
+      "total": {
+        "drawCalls": 616,
+        "triangles": 868399
+      }
+    },
+    {
+      "shot": "v5_cell07_lord_castle",
+      "desc": "Cell 07 Explorable Castle Outer Bailey, Armory, Royal Steps & Sovereign Great Hall (+43.5m Spire)",
+      "activeCellId": "cell_07_lord_castle",
+      "visibleCells": [
+        "cell_07_lord_castle"
+      ],
+      "vistaCells": [],
+      "visibleBuildings": 1,
+      "culledBuildings": 0,
+      "visibleProps": 0,
+      "visibleNpcs": 2,
+      "cellSwitchMs": 0,
+      "ambientZone": "amb_lord_castle",
+      "reverb": "high_cliff",
+      "activeAudioNodes": 0,
+      "rendererBackend": "SwiftShader (CPU Software)",
+      "shadowPass": {
+        "drawCalls": 31,
+        "triangles": 97512
+      },
+      "mainPass": {
+        "drawCalls": 61,
+        "triangles": 118596
+      },
+      "postPass": {
+        "drawCalls": 1,
+        "triangles": 2
+      },
+      "total": {
+        "drawCalls": 93,
+        "triangles": 216110
+      }
+    },
+    {
+      "shot": "v5_cell07_great_hall_interior",
+      "desc": "Cell 07 Sovereign Great Hall Interior (+21.1m): Nave Pillars, Blazing War-Hearth, 2F Gallery & Throne Dais",
+      "activeCellId": "cell_07_lord_castle",
+      "visibleCells": [
+        "cell_07_lord_castle"
+      ],
+      "vistaCells": [],
+      "visibleBuildings": 1,
+      "culledBuildings": 0,
+      "visibleProps": 0,
+      "visibleNpcs": 2,
+      "cellSwitchMs": 0,
+      "ambientZone": "amb_lord_castle",
+      "reverb": "great_hall_stone",
+      "activeAudioNodes": 0,
+      "rendererBackend": "SwiftShader (CPU Software)",
+      "shadowPass": {
+        "drawCalls": 31,
+        "triangles": 97512
+      },
+      "mainPass": {
+        "drawCalls": 49,
+        "triangles": 109484
+      },
+      "postPass": {
+        "drawCalls": 1,
+        "triangles": 2
+      },
+      "total": {
+        "drawCalls": 81,
+        "triangles": 206998
+      }
+    },
+    {
+      "shot": "v5_cell08_undercroft_vault",
+      "desc": "Cell 08 Underground Royal Treasury Vault (-4.0m) at base of 4-Flight Armory Secret Cliff Shaft",
+      "activeCellId": "cell_08_undercroft_cellars",
+      "visibleCells": [
+        "cell_08_undercroft_cellars",
+        "cell_07_lord_castle"
+      ],
+      "vistaCells": [],
+      "visibleBuildings": 3,
+      "culledBuildings": 0,
+      "visibleProps": 0,
+      "visibleNpcs": 2,
+      "cellSwitchMs": 0,
+      "ambientZone": "amb_undercroft",
+      "reverb": "damp_undercroft_tunnel",
+      "activeAudioNodes": 0,
+      "rendererBackend": "SwiftShader (CPU Software)",
+      "shadowPass": {
+        "drawCalls": 32,
+        "triangles": 97524
+      },
+      "mainPass": {
+        "drawCalls": 33,
+        "triangles": 123196
+      },
+      "postPass": {
+        "drawCalls": 1,
+        "triangles": 2
+      },
+      "total": {
+        "drawCalls": 66,
+        "triangles": 220722
+      }
+    }
+  ]
+}

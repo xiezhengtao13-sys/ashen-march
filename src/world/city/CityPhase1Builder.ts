@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import type { RegionId, Vec3 } from '../../core/types';
 import cityLayoutRaw from '../../data/cityLayout.json';
 import type { PhysicsWorld } from '../../engine/PhysicsWorld';
+import type { NPCInstance } from '../../npc/NPCSystem';
 import type { InteractableRegistry } from '../InteractableRegistry';
 import { CityAssetLoader, type PropInstanceTransform } from './CityAssetLoader';
+import { CityCellManager } from './CityCellManager';
 import { buildCityGroundMesh, getCityGroundHeight } from './CityGroundBuilder';
 import { CityMaterialLibrary } from './CityMaterialLibrary';
 import { getCityRegionFromCoords } from './CityRoadNetwork';
@@ -16,6 +18,7 @@ interface CityArchEntry {
   yOffset?: number;
   yaw: number;
   district?: string;
+  cellId?: string;
   tier?: string;
   buildingClass?: string;
   isInterior?: boolean;
@@ -39,26 +42,58 @@ interface CityLoreEntry {
   meshKind?: 'book' | 'board';
 }
 
+export interface CityChestEntry {
+  id: string;
+  label: string;
+  position: Vec3;
+  gold: number;
+  items: Array<{ itemId: string; quantity: number }>;
+}
+
+interface CityBellEntry {
+  id: string;
+  label: string;
+  position: Vec3;
+  radius?: number;
+}
+
 const cityLayout = cityLayoutRaw as unknown as {
+  spawnPoint: Vec3;
   portals: {
     toRavendale: { position: Vec3; targetPosition: Vec3; targetYaw: number; label: string };
   };
   architecture: CityArchEntry[];
   propBatches: Record<string, Array<{ x: number; z: number; yaw: number; scale: number; yOffset?: number; collider?: boolean }>>;
-  lights: Array<{ position: Vec3; color: string; intensity: number; distance: number }>;
+  lights: Array<{ id?: string; cellId?: string; position: Vec3; color: string; intensity: number; distance: number; alwaysOn?: boolean }>;
   loreInteractables?: CityLoreEntry[];
+  cityChests?: CityChestEntry[];
+  bellInteractables?: CityBellEntry[];
 };
 
 export interface CityBuildCallbacks {
   onExitCity: () => void;
   onLoreRead: (title: string, body: string) => void;
+  onChestOpen?: (chest: CityChestEntry) => boolean;
+  isChestOpened?: (chestId: string) => boolean;
+  onRingBell?: () => void;
 }
 
 export interface BuiltAshenholdCity {
   materials: CityMaterialLibrary;
+  cellManager: CityCellManager;
   groundVertices: Float32Array;
   groundIndices: Uint32Array;
-  update: (elapsed: number, dt: number, timeOfDay?: number, playerPos?: Vec3) => void;
+  syncChestStates: () => void;
+  update: (
+    elapsed: number,
+    dt: number,
+    timeOfDay?: number,
+    playerPos?: Vec3,
+    lookDir?: Vec3,
+    cityNpcs?: NPCInstance[],
+    fovDeg?: number,
+    aspect?: number,
+  ) => void;
   dispose: () => void;
 }
 
@@ -116,11 +151,11 @@ function createSmokeTexture(): THREE.CanvasTexture | null {
   }
 }
 
-export function getCityRegionAt(zOrX: number, zOpt?: number): RegionId {
+export function getCityRegionAt(zOrX: number, zOpt?: number, yOpt?: number): RegionId {
   if (zOpt === undefined) {
     return getCityRegionFromCoords(0, zOrX);
   }
-  return getCityRegionFromCoords(zOrX, zOpt);
+  return getCityRegionFromCoords(zOrX, zOpt, yOpt);
 }
 
 export async function buildAshenholdCity(
@@ -133,36 +168,39 @@ export async function buildAshenholdCity(
   const materials = new CityMaterialLibrary(options.maxAnisotropy ?? 8);
   materials.setMetalEnvironment(options.metalEnvMap ?? null);
   const loader = new CityAssetLoader(materials);
+  const cellManager = new CityCellManager(parent, { loader, skipAssetFetch: options.skipAssetFetch });
 
-  // 1. Chunked 200x240m Cobblestone, Gutter, Plaza, Terrace Steps & Foothill Ground + Trimesh Physics
+  // 1. Chunked 8-Cell Hillside Terrain + Rapier Trimesh Physics
   const ground = buildCityGroundMesh(materials.streetMaterial);
   parent.add(ground.mesh);
+  cellManager.registerGroundChunks(ground.chunks);
   for (const chunk of ground.chunks) {
     physics.addTerrainTrimesh(chunk.vertices, chunk.indices, 'ashenhold_city');
   }
 
-  // Far outer horizon earth apron outside city envelope
-  const skirtGeo = new THREE.PlaneGeometry(420, 420, 4, 4);
+  const skirtGeo = new THREE.PlaneGeometry(460, 460, 4, 4);
   skirtGeo.rotateX(-Math.PI / 2);
   const skirtMat = new THREE.MeshStandardMaterial({ color: 0x4b573b, roughness: 0.96, metalness: 0.0 });
   const skirt = new THREE.Mesh(skirtGeo, skirtMat);
-  skirt.position.set(0, -1.2, -90);
+  skirt.position.set(0, -5.2, -90);
   skirt.receiveShadow = true;
   parent.add(skirt);
 
-  // Resolve final world positions for all Phase 1 + Phase 2 architecture & stalls
   const resolvedArch = cityLayout.architecture.map((arch) => {
     const baseY =
       arch.yMode === 'ground'
         ? getCityGroundHeight(arch.position.x, arch.position.z) + (arch.yOffset ?? 0)
         : arch.position.y;
+    const worldPos = { x: arch.position.x, y: baseY, z: arch.position.z };
+    const cellId = arch.cellId ?? cellManager.classifyPositionToCell(worldPos, arch.district, arch.model);
     return {
       ...arch,
-      worldPos: { x: arch.position.x, y: baseY, z: arch.position.z },
+      worldPos,
+      resolvedCellId: cellId,
     };
   });
 
-  // 2. Register Local-to-World Building, Stall, Arch & Closed Barbican Colliders
+  // 2. Register Exact Rapier Static Box, Cylinder & Oriented Ramp Colliders Across All 8 Cells
   for (const arch of resolvedArch) {
     if (arch.tier === 'decorative') continue;
     const pos = arch.worldPos;
@@ -204,14 +242,26 @@ export async function buildAshenholdCity(
     }
   }
 
-  // 3. Register Selective Solid Prop Colliders (Carts, Troughs, Benches, Bollards, Stone Wells, Barrels, Crates)
+  // 3. Register Props & Partition into Owning Cells
+  const SHADOW_CASTING_PROPS = new Set([
+    'prop_cart.glb',
+    'prop_lantern_post.glb',
+    'sv_prop_timber_scaffold.glb',
+    'sv_prop_iron_brazier.glb',
+  ]);
   const propTransformsByModel = new Map<string, PropInstanceTransform[]>();
+
   for (const [modelName, entries] of Object.entries(cityLayout.propBatches)) {
     const list: PropInstanceTransform[] = [];
+    const castShadow = SHADOW_CASTING_PROPS.has(modelName);
     for (const entry of entries) {
       const groundY = getCityGroundHeight(entry.x, entry.z);
       const y = groundY + (entry.yOffset ?? 0);
-      list.push({ x: entry.x, y, z: entry.z, yaw: entry.yaw, scale: entry.scale });
+      const tf: PropInstanceTransform = { x: entry.x, y, z: entry.z, yaw: entry.yaw, scale: entry.scale };
+      list.push(tf);
+
+      const propCell = cellManager.classifyPositionToCell({ x: entry.x, y, z: entry.z });
+      cellManager.registerProp(propCell, modelName, tf, castShadow);
 
       if (entry.collider) {
         if (modelName === 'prop_cart.glb') {
@@ -222,12 +272,7 @@ export async function buildAshenholdCity(
             'ashenhold_city',
           );
         } else if (modelName === 'prop_trough.glb') {
-          physics.addStaticBox(
-            { x: 0.96, y: 0.45, z: 0.45 },
-            { x: entry.x, y: y + 0.45, z: entry.z },
-            entry.yaw,
-            'ashenhold_city',
-          );
+          physics.addStaticBox({ x: 0.96, y: 0.45, z: 0.45 }, { x: entry.x, y: y + 0.45, z: entry.z }, entry.yaw, 'ashenhold_city');
         } else if (modelName === 'prop_bench.glb') {
           physics.addStaticBox(
             { x: 0.88 * entry.scale, y: 0.3, z: 0.24 * entry.scale },
@@ -235,10 +280,6 @@ export async function buildAshenholdCity(
             entry.yaw,
             'ashenhold_city',
           );
-        } else if (modelName === 'prop_well_stone.glb') {
-          physics.addStaticCylinder(0.8, 1.18 * entry.scale, { x: entry.x, y: y + 0.8, z: entry.z }, 'ashenhold_city');
-        } else if (modelName === 'prop_bollard.glb') {
-          physics.addStaticCylinder(0.45, 0.24, { x: entry.x, y: y + 0.45, z: entry.z }, 'ashenhold_city');
         } else {
           physics.addStaticCylinder(
             0.46 * entry.scale,
@@ -252,7 +293,7 @@ export async function buildAshenholdCity(
     propTransformsByModel.set(modelName, list);
   }
 
-  // 4. Reflective Water Surfaces: Gate Horse Trough + Two-Tier Central Market Phoenix Fountain!
+  // 4. Reflective Water Surfaces Parented into Owning Cell Groups
   const troughEntry = (cityLayout.propBatches['prop_trough.glb'] ?? [])[0];
   if (troughEntry) {
     const troughY = getCityGroundHeight(troughEntry.x, troughEntry.z);
@@ -260,7 +301,7 @@ export async function buildAshenholdCity(
     troughWater.rotation.x = -Math.PI / 2;
     troughWater.rotation.z = troughEntry.yaw;
     troughWater.position.set(troughEntry.x, troughY + 0.76, troughEntry.z);
-    parent.add(troughWater);
+    (cellManager.getCellGroup('cell_01_barbican_gate') ?? parent).add(troughWater);
   }
 
   const fountainArch = resolvedArch.find((a) => a.id === 'landmark_market_fountain');
@@ -272,13 +313,21 @@ export async function buildAshenholdCity(
     const upperWater = new THREE.Mesh(new THREE.CircleGeometry(1.42, 12), materials.waterTroughMaterial);
     upperWater.rotation.x = -Math.PI / 2;
     upperWater.position.set(fountainArch.worldPos.x, fBaseY + 2.94, fountainArch.worldPos.z);
-    parent.add(lowerWater, upperWater);
+    (cellManager.getCellGroup('cell_03_market_plaza') ?? parent).add(lowerWater, upperWater);
   }
 
-  const undercroftGroup = new THREE.Group();
-  undercroftGroup.name = 'CityZone_UndercroftSublevel';
-  parent.add(undercroftGroup);
+  // Smithy quench trough water (Cell 04) & Residential courtyard well water (Cell 05)
+  const quenchWater = new THREE.Mesh(new THREE.PlaneGeometry(0.66, 1.42), materials.waterTroughMaterial);
+  quenchWater.rotation.x = -Math.PI / 2;
+  quenchWater.position.set(-33.5, 7.78, -32.4);
+  (cellManager.getCellGroup('cell_04_artisan_quarter') ?? parent).add(quenchWater);
 
+  const wellWater = new THREE.Mesh(new THREE.CircleGeometry(0.86, 8), materials.waterTroughMaterial);
+  wellWater.rotation.x = -Math.PI / 2;
+  wellWater.position.set(37.2, 8.22, -47.2);
+  (cellManager.getCellGroup('cell_05_residential_heights') ?? parent).add(wellWater);
+
+  const undercroftGroup = cellManager.getCellGroup('cell_08_undercroft_cellars') ?? parent;
   const undercroftArch = resolvedArch.find((a) => a.model === 'sv_hero_undercroft.glb');
   if (undercroftArch) {
     const drainWater = new THREE.Mesh(new THREE.PlaneGeometry(0.98, 20.4), materials.waterTroughMaterial);
@@ -287,235 +336,46 @@ export async function buildAshenholdCity(
     undercroftGroup.add(drainWater);
   }
 
-  // 5. Spatial Visibility Zones, Room-Level Interior Culling, Sub-Level Portal Culling & Prop Partitioning
-  const visibilityRules: Array<{ target: THREE.Object3D; test: (p: Vec3) => boolean }> = [
-    {
-      // Sub-level (-4m) Undercroft: visible underground (y < -0.35) OR within 11.5m of South/North stairwell portals!
-      target: undercroftGroup,
-      test: (p) => {
-        if (p.y < -0.35) return true;
-        const dsx = p.x - -4.2;
-        const dsz = p.z - -7.5;
-        if (dsx * dsx + dsz * dsz <= 132.25) return true;
-        const dnx = p.x - -9.6;
-        const dnz = p.z - -36.2;
-        return dnx * dnx + dnz * dnz <= 132.25;
-      },
-    },
-  ];
-
-  if (!options.skipAssetFetch && typeof fetch !== 'undefined') {
-    const INSTANCED_ARCH_MODELS = new Set([
-      'perimeter_curtain_wall.glb',
-      'city_retaining_wall.glb',
-      'hillside_terrace_wall_16m.glb',
-      'outer_decorative_horizon.glb',
-      'sv_hero_buttress_wall_12m.glb',
-      'sv_hero_crag_outcrop.glb',
-    ]);
-
-    const instancedArch = new Map<string, PropInstanceTransform[]>();
-    const interiorEntries: Array<(typeof resolvedArch)[number]> = [];
-    const districtBuckets = new Map<
-      string,
-      {
-        entries: import('./CityAssetLoader').StaticBatchEntry[];
-        parentGroup: THREE.Group;
-        test?: (p: Vec3) => boolean;
-      }
-    >();
-
-    const ensureBucket = (key: string, parentGroup: THREE.Group, test?: (p: Vec3) => boolean) => {
-      let b = districtBuckets.get(key);
-      if (!b) {
-        b = { entries: [], parentGroup, test };
-        districtBuckets.set(key, b);
-      }
-      return b;
+  // 5. Register Architecture & Room-Level Interiors into CityCellManager
+  for (const arch of resolvedArch) {
+    const batchEntry = {
+      filename: arch.model,
+      x: arch.worldPos.x,
+      y: arch.worldPos.y,
+      z: arch.worldPos.z,
+      yaw: arch.yaw,
+      castShadow: !arch.isInterior && arch.resolvedCellId !== 'cell_08_undercroft_cellars' && arch.tier !== 'decorative',
+      receiveShadow: true,
     };
 
-    for (const arch of resolvedArch) {
-      if (arch.isInterior) {
-        interiorEntries.push(arch);
-        continue;
-      }
-      if (arch.model === 'sv_hero_undercroft.glb') {
-        const b = ensureBucket('undercroft_mesh', undercroftGroup);
-        b.entries.push({
-          filename: arch.model,
-          x: arch.worldPos.x,
-          y: arch.worldPos.y,
-          z: arch.worldPos.z,
-          yaw: arch.yaw,
-          castShadow: false,
-          receiveShadow: true,
-        });
-        continue;
-      }
-      if (INSTANCED_ARCH_MODELS.has(arch.model)) {
-        const list = instancedArch.get(arch.model) ?? [];
-        list.push({ x: arch.worldPos.x, y: arch.worldPos.y, z: arch.worldPos.z, yaw: arch.yaw, scale: 1 });
-        instancedArch.set(arch.model, list);
-        continue;
-      }
-
-      const isVistaHero =
-        arch.model === 'sv_hero_market_bastion.glb' ||
-        arch.model === 'landmark_market_fountain.glb' ||
-        arch.model === 'castle_barbican_gate.glb' ||
-        arch.model === 'castle_citadel_keep.glb' ||
-        arch.district === 'ashenhold_temple_acropolis';
-
-      if (isVistaHero) {
-        const b = ensureBucket('vista_landmarks', parent);
-        b.entries.push({
-          filename: arch.model,
-          x: arch.worldPos.x,
-          y: arch.worldPos.y,
-          z: arch.worldPos.z,
-          yaw: arch.yaw,
-          castShadow: arch.model !== 'castle_citadel_keep.glb' && arch.tier !== 'decorative',
-          receiveShadow: true,
-        });
-      } else if (arch.district === 'ashenhold_gate' || arch.district === 'ashenhold_main_street') {
-        const b = ensureBucket('gate_and_alley', parent, (p) => p.z >= -52.0 || p.y >= 6.8);
-        b.entries.push({
-          filename: arch.model,
-          x: arch.worldPos.x,
-          y: arch.worldPos.y,
-          z: arch.worldPos.z,
-          yaw: arch.yaw,
-          castShadow: arch.tier !== 'decorative',
-          receiveShadow: true,
-        });
-      } else if (arch.district === 'ashenhold_market_plaza') {
-        // Side market stalls & east shops are occluded by Tavern/Bridge when standing south of z = +7.5!
-        const b = ensureBucket('market_plaza_stalls', parent, (p) => p.z <= 7.5 || p.y >= 6.5);
-        b.entries.push({
-          filename: arch.model,
-          x: arch.worldPos.x,
-          y: arch.worldPos.y,
-          z: arch.worldPos.z,
-          yaw: arch.yaw,
-          castShadow: arch.tier !== 'decorative',
-          receiveShadow: true,
-        });
-      } else {
-        // Upper flank quarters (Apothecary shell & decorative flank houses) occluded from lower South Gate!
-        const b = ensureBucket('upper_flank_quarters', parent, (p) => p.z <= -6.0 || p.y >= 6.5);
-        b.entries.push({
-          filename: arch.model,
-          x: arch.worldPos.x,
-          y: arch.worldPos.y,
-          z: arch.worldPos.z,
-          yaw: arch.yaw,
-          castShadow: arch.tier !== 'decorative',
-          receiveShadow: true,
-        });
-      }
+    if (arch.isInterior) {
+      const extent = arch.cullDist ?? 28;
+      cellManager.registerInterior(arch.resolvedCellId, arch.id, batchEntry, extent * 0.65, -2.5, 11.5);
+    } else {
+      cellManager.registerArchitecture(arch.resolvedCellId, batchEntry);
     }
-
-    const archBatchPromises = [...districtBuckets.entries()].map(async ([key, bucket]) => {
-      const grp = await loader.createDistrictStaticBatch(`CityBatch_${key}`, bucket.entries, bucket.parentGroup);
-      if (bucket.test) {
-        visibilityRules.push({ target: grp, test: bucket.test });
-      }
-    });
-
-    // Room-Level Enclosed Interior Culling (merged static batch + tight doorway/window AABB bounds!)
-    const interiorPromises = interiorEntries.map(async (arch) => {
-      const grp = await loader.createDistrictStaticBatch(
-        `CityInterior_${arch.id}`,
-        [
-          {
-            filename: arch.model,
-            x: arch.worldPos.x,
-            y: arch.worldPos.y,
-            z: arch.worldPos.z,
-            yaw: arch.yaw,
-            castShadow: false,
-            receiveShadow: true,
-          },
-        ],
-        parent,
-      );
-      const ax = arch.worldPos.x;
-      const ay = arch.worldPos.y;
-      const az = arch.worldPos.z;
-      visibilityRules.push({
-        target: grp,
-        test: (p) => Math.abs(p.x - ax) <= 9.2 && Math.abs(p.z - az) <= 9.8 && p.y >= ay - 1.2 && p.y <= ay + 6.2,
-      });
-    });
-
-    const instArchPromises = [...instancedArch.entries()].map(async ([modelName, transforms]) => {
-      const castShadow =
-        modelName === 'city_retaining_wall.glb' ||
-        modelName === 'hillside_terrace_wall_16m.glb' ||
-        modelName === 'sv_hero_buttress_wall_12m.glb';
-      await loader.createInstancedPropBatch(modelName, transforms, parent, castShadow);
-    });
-
-    // Partition props into South (Gate/Alley, z >= -18) & North (Market/Bastion, z < -18) zones + cull small-prop shadows!
-    const propsSouthGroup = new THREE.Group();
-    propsSouthGroup.name = 'CityProps_SouthZone';
-    const propsNorthGroup = new THREE.Group();
-    propsNorthGroup.name = 'CityProps_NorthZone';
-    parent.add(propsSouthGroup, propsNorthGroup);
-    visibilityRules.push(
-      { target: propsSouthGroup, test: (p) => p.z >= -38.0 || p.y >= 7.0 },
-      { target: propsNorthGroup, test: (p) => p.z <= 4.0 || p.y >= 7.0 },
-    );
-
-    const SHADOW_CASTING_PROPS = new Set([
-      'prop_cart.glb',
-      'prop_lantern_post.glb',
-      'sv_prop_timber_scaffold.glb',
-      'sv_prop_iron_brazier.glb',
-    ]);
-
-    const propPromises: Promise<unknown>[] = [];
-    for (const [modelName, transforms] of propTransformsByModel.entries()) {
-      const southList = transforms.filter((t) => t.z >= -18.0);
-      const northList = transforms.filter((t) => t.z < -18.0);
-      const castShadow = SHADOW_CASTING_PROPS.has(modelName);
-      if (southList.length > 0) {
-        propPromises.push(loader.createInstancedPropBatch(modelName, southList, propsSouthGroup, castShadow));
-      }
-      if (northList.length > 0) {
-        propPromises.push(loader.createInstancedPropBatch(modelName, northList, propsNorthGroup, castShadow));
-      }
-    }
-
-    await Promise.all([...archBatchPromises, ...interiorPromises, ...instArchPromises, ...propPromises]);
   }
 
-  // 6. Selective Local Warm Point Lights (<= 6 GPU light budget) & Soft Lantern Glow Sprites
-  const lightRefs: Array<{ light: THREE.PointLight; base: number; phase: number; alwaysOn: boolean }> = [];
-  const glowTex = createRadialGlowTexture();
-  const glowGroup = new THREE.Group();
-  parent.add(glowGroup);
-  const glowSprites: THREE.Sprite[] = [];
+  await cellManager.bootstrapInitialCells(cityLayout.spawnPoint ?? { x: -6.2, y: 0.35, z: 34.8 }, true);
 
+  // 6. Register Virtual Warm Point Lights Across All 8 Cells (Pooled onto <= 6 Active GPU Lights)
   for (let i = 0; i < cityLayout.lights.length; i++) {
-    const lCfg = cityLayout.lights[i] as {
-      position: Vec3;
-      color: string;
-      intensity: number;
-      distance: number;
-      alwaysOn?: boolean;
-    };
-    const light = new THREE.PointLight(lCfg.color, lCfg.intensity, lCfg.distance, 1.55);
-    light.position.set(lCfg.position.x, lCfg.position.y, lCfg.position.z);
-    parent.add(light);
-    lightRefs.push({
-      light,
-      base: lCfg.intensity,
-      phase: i * 1.37,
+    const lCfg = cityLayout.lights[i];
+    const cellId = lCfg.cellId ?? cellManager.classifyPositionToCell(lCfg.position);
+    cellManager.registerVirtualLight({
+      id: lCfg.id ?? `vlight_${i}`,
+      cellId,
+      position: lCfg.position,
+      color: lCfg.color,
+      intensity: lCfg.intensity,
+      distance: lCfg.distance,
       alwaysOn: Boolean(lCfg.alwaysOn) || lCfg.position.y < 0.0,
+      phase: i * 1.37,
     });
   }
 
+  const glowTex = createRadialGlowTexture();
+  const glowSprites: THREE.Sprite[] = [];
   if (glowTex) {
     const glowMat = new THREE.SpriteMaterial({
       map: glowTex,
@@ -532,34 +392,24 @@ export async function buildAshenholdCity(
       const sp = new THREE.Sprite(glowMat);
       sp.position.set(bulbX, p.y + 2.48 * p.scale, bulbZ);
       sp.scale.set(0.85, 0.85, 0.85);
-      glowGroup.add(sp);
-      glowSprites.push(sp);
-    }
-
-    for (const w of propTransformsByModel.get('prop_lantern_wall.glb') ?? []) {
-      const bulbX = w.x - Math.sin(w.yaw) * 0.6;
-      const bulbZ = w.z - Math.cos(w.yaw) * 0.6;
-      const sp = new THREE.Sprite(glowMat);
-      sp.position.set(bulbX, w.y - 0.2, bulbZ);
-      sp.scale.set(0.8, 0.8, 0.8);
-      glowGroup.add(sp);
+      const cid = cellManager.classifyPositionToCell(sp.position);
+      (cellManager.getCellGroup(cid) ?? parent).add(sp);
       glowSprites.push(sp);
     }
   }
 
-  // 7. Lean Distance-Culled Chimney Smoke Wisps (2 puffs/chimney = 8 sprites instead of 24!)
+  // 7. Distance-Culled Chimney Smoke Wisps (Tavern, Market Bakery & Twin Artisan Forge Chimneys!)
   const smokePuffs: SmokePuff[] = [];
-  const smokeGroup = new THREE.Group();
-  parent.add(smokeGroup);
   const smokeTex = createSmokeTexture();
   if (smokeTex) {
-    const chimneyOrigins: Vec3[] = [
-      { x: -9.6, y: 10.7, z: 8.6 },
-      { x: 9.0, y: 12.1, z: -7.2 },
-      { x: -16.4, y: 14.5, z: -31.0 },
-      { x: -28.5, y: 18.2, z: -44.0 },
+    const chimneyOrigins: Array<{ pos: Vec3; cellId: string }> = [
+      { pos: { x: 11.8, y: 12.6, z: -6.0 }, cellId: 'cell_02_trade_street' },
+      { pos: { x: 17.2, y: 14.2, z: -24.8 }, cellId: 'cell_03_market_plaza' },
+      { pos: { x: -39.2, y: 22.8, z: -33.0 }, cellId: 'cell_04_artisan_quarter' },
+      { pos: { x: -39.2, y: 21.2, z: -36.5 }, cellId: 'cell_04_artisan_quarter' },
     ];
-    for (const origin of chimneyOrigins) {
+    for (const { pos: origin, cellId } of chimneyOrigins) {
+      const cellGrp = cellManager.getCellGroup(cellId) ?? parent;
       for (let i = 0; i < 2; i++) {
         const smMat = new THREE.SpriteMaterial({
           map: smokeTex,
@@ -569,7 +419,7 @@ export async function buildAshenholdCity(
         });
         const sp = new THREE.Sprite(smMat);
         sp.position.set(origin.x, origin.y, origin.z);
-        smokeGroup.add(sp);
+        cellGrp.add(sp);
         smokePuffs.push({
           sprite: sp,
           origin,
@@ -578,13 +428,12 @@ export async function buildAshenholdCity(
         });
       }
     }
-    visibilityRules.push({ target: smokeGroup, test: (p) => p.y >= -0.5 });
   }
 
-  // 8. Carved Stone Return Portal Milestone + Data-Driven Lore & Municipal Notices
+  // 8. Return Portal Milestone, Lore Books/Boards, Interactive Belfry Bell & 5 Reward Chests
   const portalPos = cityLayout.portals.toRavendale.position;
   const milestoneGroup = new THREE.Group();
-  milestoneGroup.position.set(portalPos.x + 2.9, getCityGroundHeight(portalPos.x + 2.9, portalPos.z), portalPos.z);
+  milestoneGroup.position.set(portalPos.x - 1.8, getCityGroundHeight(portalPos.x - 1.8, portalPos.z), portalPos.z);
   const stonePost = new THREE.Mesh(
     new THREE.BoxGeometry(0.46, 1.55, 0.38),
     materials.getMaterial('stone_trim', false),
@@ -595,10 +444,10 @@ export async function buildAshenholdCity(
     new THREE.BoxGeometry(1.15, 0.28, 0.09),
     materials.getMaterial('planks_oak', false),
   );
-  signPlank.position.set(-0.32, 1.28, 0);
-  signPlank.rotation.y = 0.18;
+  signPlank.position.set(0.32, 1.28, 0);
+  signPlank.rotation.y = -0.18;
   milestoneGroup.add(stonePost, signPlank);
-  parent.add(milestoneGroup);
+  (cellManager.getCellGroup('cell_01_barbican_gate') ?? parent).add(milestoneGroup);
 
   registry.register({
     id: 'portal:city_exit',
@@ -612,7 +461,7 @@ export async function buildAshenholdCity(
     onInteract: callbacks.onExitCity,
   });
 
-  const makeBoardMesh = (x: number, y: number, z: number): THREE.Group => {
+  const makeBoardMesh = (x: number, y: number, z: number, targetParent: THREE.Object3D): THREE.Group => {
     const g = new THREE.Group();
     g.position.set(x, y, z);
     const postA = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.9, 0.14), materials.getMaterial('timber_oak', false));
@@ -627,21 +476,23 @@ export async function buildAshenholdCity(
     );
     parchment.position.y = 1.35;
     g.add(postA, postB, board, parchment);
-    parent.add(g);
+    targetParent.add(g);
     return g;
   };
 
   for (const lore of cityLayout.loreInteractables ?? []) {
+    const cid = cellManager.classifyPositionToCell(lore.position);
+    const targetParent = cellManager.getCellGroup(cid) ?? parent;
     let loreMesh: THREE.Object3D;
     if (lore.meshKind === 'board') {
-      loreMesh = makeBoardMesh(lore.position.x, lore.position.y, lore.position.z);
+      loreMesh = makeBoardMesh(lore.position.x, lore.position.y, lore.position.z, targetParent);
     } else {
       const book = new THREE.Mesh(
         new THREE.BoxGeometry(0.46, 0.08, 0.34),
         new THREE.MeshStandardMaterial({ color: 0x6f2d21, roughness: 0.72 }),
       );
       book.position.set(lore.position.x, lore.position.y, lore.position.z);
-      parent.add(book);
+      targetParent.add(book);
       loreMesh = book;
     }
     registry.register({
@@ -657,36 +508,115 @@ export async function buildAshenholdCity(
     });
   }
 
+  const cityChestVisuals: Array<{ id: string; lidMesh: THREE.Mesh }> = [];
+  for (const chest of cityLayout.cityChests ?? []) {
+    const cid = cellManager.classifyPositionToCell(chest.position);
+    const targetParent = cellManager.getCellGroup(cid) ?? parent;
+    const chestGroup = new THREE.Group();
+    chestGroup.position.set(chest.position.x, chest.position.y, chest.position.z);
+    const boxMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.92, 0.56, 0.62),
+      materials.getMaterial('aged_oak_timber', false),
+    );
+    boxMesh.position.y = 0.28;
+    boxMesh.castShadow = true;
+    const lidMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.96, 0.16, 0.66),
+      materials.getMaterial('iron_forged', false),
+    );
+    lidMesh.position.y = 0.62;
+    chestGroup.add(boxMesh, lidMesh);
+    targetParent.add(chestGroup);
+    cityChestVisuals.push({ id: chest.id, lidMesh });
+
+    const alreadyOpened = callbacks.isChestOpened?.(chest.id) ?? false;
+    if (alreadyOpened) {
+      lidMesh.rotation.x = -0.65;
+      lidMesh.position.set(0, 0.76, -0.22);
+    }
+    registry.register({
+      id: chest.id,
+      kind: 'chest',
+      label: chest.label,
+      zone: 'ashenhold_city',
+      position: { ...chest.position },
+      radius: 3.2,
+      enabled: !alreadyOpened,
+      mesh: chestGroup,
+      onInteract: () => {
+        const ok = callbacks.onChestOpen ? callbacks.onChestOpen(chest) : true;
+        if (ok) {
+          lidMesh.rotation.x = -0.65;
+          lidMesh.position.set(0, 0.76, -0.22);
+          registry.setEnabled(chest.id, false);
+        }
+      },
+    });
+  }
+
+  for (const bell of cityLayout.bellInteractables ?? []) {
+    const cid = cellManager.classifyPositionToCell(bell.position);
+    const targetParent = cellManager.getCellGroup(cid) ?? parent;
+    const rope = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.035, 0.035, 2.4, 6),
+      materials.getMaterial('cloth_ochre', false),
+    );
+    rope.position.set(bell.position.x, bell.position.y + 1.2, bell.position.z);
+    targetParent.add(rope);
+    registry.register({
+      id: bell.id,
+      kind: 'lore',
+      label: bell.label,
+      zone: 'ashenhold_city',
+      position: { ...bell.position },
+      radius: bell.radius ?? 3.8,
+      enabled: true,
+      mesh: rope,
+      onInteract: () => callbacks.onRingBell?.(),
+    });
+  }
+
   return {
     materials,
+    cellManager,
     groundVertices: ground.vertices,
     groundIndices: ground.indices,
-    update: (elapsed: number, dt: number, timeOfDay = 12.0, playerPos?: Vec3) => {
+    syncChestStates: () => {
+      for (const cv of cityChestVisuals) {
+        const opened = callbacks.isChestOpened?.(cv.id) ?? false;
+        cv.lidMesh.rotation.x = opened ? -0.65 : 0;
+        cv.lidMesh.position.set(0, opened ? 0.76 : 0.62, opened ? -0.22 : 0);
+        registry.setEnabled(cv.id, !opened);
+      }
+    },
+    update: (
+      elapsed: number,
+      dt: number,
+      timeOfDay = 12.0,
+      playerPos?: Vec3,
+      lookDir?: Vec3,
+      cityNpcs?: NPCInstance[],
+      fovDeg = 68,
+      aspect = 16 / 9,
+    ) => {
       const solarY = Math.sin(((timeOfDay - 6) / 24) * Math.PI * 2);
       const nightBlend = 1.0 - THREE.MathUtils.smoothstep(solarY, -0.08, 0.45);
       materials.setDayNightGlow(nightBlend);
-      const lightScale = THREE.MathUtils.lerp(0.22, 1.35, nightBlend);
+
       const glowOpacity = THREE.MathUtils.lerp(0.24, 0.88, nightBlend);
       for (const sp of glowSprites) {
         sp.material.opacity = glowOpacity;
       }
-      for (const lr of lightRefs) {
-        const flicker = Math.sin(elapsed * 7.8 + lr.phase) * 0.12 + Math.sin(elapsed * 13.1 + lr.phase) * 0.06;
-        const scale = lr.alwaysOn ? THREE.MathUtils.lerp(1.05, 1.35, nightBlend) : lightScale;
-        lr.light.intensity = Math.max(0, (lr.base + flicker) * scale);
-      }
 
       if (playerPos) {
-        for (const rule of visibilityRules) {
-          rule.target.visible = rule.test(playerPos);
-        }
+        cellManager.update(elapsed, nightBlend, playerPos, lookDir, cityNpcs, fovDeg, aspect);
       }
 
       for (const puff of smokePuffs) {
         if (playerPos) {
           const dx = puff.origin.x - playerPos.x;
           const dz = puff.origin.z - playerPos.z;
-          const inRange = dx * dx + dz * dz <= 3025;
+          const inRange = playerPos.y >= -0.5 && dx * dx + dz * dz <= 4225;
           puff.sprite.visible = inRange;
           if (!inRange) continue;
         }
@@ -703,6 +633,7 @@ export async function buildAshenholdCity(
       }
     },
     dispose: () => {
+      cellManager.dispose();
       materials.dispose();
       glowTex?.dispose();
       smokeTex?.dispose();

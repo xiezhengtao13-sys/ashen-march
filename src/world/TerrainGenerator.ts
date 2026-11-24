@@ -131,13 +131,14 @@ export function getRegionAt(x: number, z: number): RegionId {
 }
 
 export function getRegionDisplayName(regionId: RegionId): string {
-  if (regionId === 'ashenhold_gate') return '灰烬城 · 南城门';
-  if (regionId === 'ashenhold_main_street') return '灰烬城 · 城门贸易街';
+  if (regionId === 'ashenhold_gate') return '灰烬城 · 南城门与瓮城';
+  if (regionId === 'ashenhold_main_street') return '灰烬城 · 贸易街与酒馆';
   if (regionId === 'ashenhold_market_plaza') return '灰烬城 · 中央市集';
-  if (regionId === 'ashenhold_artisan_quarter') return '灰烬城 · 西翼工匠区';
-  if (regionId === 'ashenhold_residential_quarter') return '灰烬城 · 东翼居民高地';
-  if (regionId === 'ashenhold_temple_acropolis') return '灰烬城 · 圣堂高地';
-  if (regionId === 'ashenhold_castle_approach') return '灰烬城 · 城堡前庭';
+  if (regionId === 'ashenhold_artisan_quarter') return '灰烬城 · 西侧工匠区';
+  if (regionId === 'ashenhold_residential_quarter') return '灰烬城 · 东侧居民高地';
+  if (regionId === 'ashenhold_temple_acropolis') return '灰烬城 · 圣堂与钟楼高地';
+  if (regionId === 'ashenhold_castle_approach') return '灰烬城 · 领主城堡';
+  if (regionId === 'ashenhold_undercroft') return '灰烬城 · 地下暗渠与地窖';
   const found = worldConfig.regions.find((r) => r.id === regionId);
   return found ? found.name : '灰烬边境';
 }

@@ -379,6 +379,9 @@ export class PlayerController {
 
     const result = this.physics.movePlayer({ x: moveX, y: 0, z: moveZ }, jumpNow, dt);
     this.state.player.position = result.position;
+    this.lastHorizontalSpeed = len > 0.001 ? baseSpeed : 0;
+    this.lastGrounded = result.grounded;
+    if (jumpNow) this.justJumped = true;
 
     let bobOffset = 0;
     if (len > 0.001 && result.grounded) {
@@ -392,6 +395,20 @@ export class PlayerController {
       result.position.z,
     );
     this.camera.rotation.set(this.state.player.pitch, this.state.player.yaw, 0, 'YXZ');
+  }
+
+  private lastHorizontalSpeed = 0;
+  private lastGrounded = true;
+  private justJumped = false;
+
+  getMovementAudioState(): { speed: number; grounded: boolean; jumped: boolean } {
+    const jumped = this.justJumped;
+    this.justJumped = false;
+    return {
+      speed: this.lastHorizontalSpeed,
+      grounded: this.lastGrounded,
+      jumped,
+    };
   }
 
   dispose(): void {

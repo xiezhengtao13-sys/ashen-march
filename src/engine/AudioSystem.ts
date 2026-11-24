@@ -1,34 +1,37 @@
+import { AmbientAudioManager, type AudioVolumeSettings } from '../audio/AmbientAudioManager';
+
 /**
- * Procedural WebAudio synthesizer for zero-dependency game sound effects.
+ * Procedural WebAudio synthesizer for zero-dependency game sound effects,
+ * sharing the unified Master/Ambient/SFX/Music bus graph with AmbientAudioManager.
  */
 export class AudioSystem {
-  private ctx: AudioContext | null = null;
-  muted = false;
+  readonly ambient = new AmbientAudioManager();
 
-  private ensureContext(): AudioContext | null {
-    if (this.muted || typeof window === 'undefined') return null;
-    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioCtx) return null;
-    if (!this.ctx) {
-      try {
-        this.ctx = new AudioCtx();
-      } catch {
-        return null;
-      }
+  get muted(): boolean {
+    return this.ambient.isMuted();
+  }
+
+  set muted(val: boolean) {
+    if (val !== this.ambient.isMuted()) {
+      this.ambient.toggleMute();
     }
-    if (this.ctx.state === 'suspended') {
-      void this.ctx.resume().catch(() => {});
-    }
-    return this.ctx;
   }
 
   toggleMute(): boolean {
-    this.muted = !this.muted;
-    return this.muted;
+    return this.ambient.toggleMute();
+  }
+
+  getVolumes(): AudioVolumeSettings {
+    return this.ambient.getVolumes();
+  }
+
+  setVolume(channel: 'master' | 'ambient' | 'sfx' | 'music', value: number): void {
+    this.ambient.setVolume(channel, value);
   }
 
   playTone(freq: number, endFreq: number, duration: number, type: OscillatorType = 'sine', gainVal = 0.12): void {
-    const ctx = this.ensureContext();
+    if (this.ambient.isMuted()) return;
+    const ctx = this.ambient.ensureContext();
     if (!ctx) return;
 
     const now = ctx.currentTime;
@@ -42,7 +45,7 @@ export class AudioSystem {
     gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.ambient.sfxBus ?? ctx.destination);
     osc.start(now);
     osc.stop(now + duration);
   }

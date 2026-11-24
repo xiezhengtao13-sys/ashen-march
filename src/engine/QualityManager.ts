@@ -20,6 +20,17 @@ export interface PassStats {
   triangles: number;
 }
 
+export interface CityRuntimeTelemetrySlice {
+  activeCellId: string;
+  activeCellName: string;
+  activeCells: string[];
+  visibleBuildings: number;
+  visibleNpcs: number;
+  activeAudioNodes: number;
+  activeAmbientZone: string;
+  cellSwitchMs: number;
+}
+
 export interface PerformanceTelemetry {
   preset: QualityPreset;
   rendererBackend: string;
@@ -33,6 +44,7 @@ export interface PerformanceTelemetry {
   total: PassStats;
   geometries: number;
   textures: number;
+  city?: CityRuntimeTelemetrySlice;
 }
 
 export const QUALITY_CONFIGS: Record<QualityPreset, QualityConfig> = {
@@ -137,12 +149,17 @@ export class QualityManager {
   private mainPass: PassStats = { drawCalls: 0, triangles: 0 };
   private shadowPass: PassStats = { drawCalls: 0, triangles: 0 };
   private postPass: PassStats = { drawCalls: 0, triangles: 0 };
+  private citySlice: CityRuntimeTelemetrySlice | undefined;
   private backendCache: string | null = null;
 
   recordPassBreakdown(shadow: PassStats, main: PassStats, post: PassStats): void {
     this.shadowPass = shadow;
     this.mainPass = main;
     this.postPass = post;
+  }
+
+  recordCitySlice(slice: CityRuntimeTelemetrySlice | undefined): void {
+    this.citySlice = slice;
   }
 
   private detectBackend(renderer: THREE.WebGLRenderer): string {
@@ -179,6 +196,7 @@ export class QualityManager {
         : { drawCalls: fallbackCalls, triangles: fallbackTris },
       geometries: renderer.info.memory.geometries,
       textures: renderer.info.memory.textures,
+      ...(this.citySlice ? { city: { ...this.citySlice } } : {}),
     };
   }
 }

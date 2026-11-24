@@ -44,6 +44,10 @@ export interface UIActions {
   getQualityPreset?: () => QualityPreset;
   getTelemetry?: () => PerformanceTelemetry;
   onToggleCityZone?: () => void;
+  getAudioVolumes?: () => { master: number; ambient: number; sfx: number; music: number; muted: boolean };
+  onSetAudioVolume?: (channel: 'master' | 'ambient' | 'sfx' | 'music', value: number) => void;
+  onPlayFoley?: (kind: 'book' | 'trade' | 'equip') => void;
+  onToggleCellDebug?: () => boolean;
 }
 
 const COMPASS_LABELS = [
@@ -393,6 +397,7 @@ export class UIManager {
 
   openLore(title: string, body: string): void {
     this.loreContent = { title, body };
+    this.actions.onPlayFoley?.('book');
     this.openPanel('lore');
   }
 
@@ -547,6 +552,7 @@ export class UIManager {
     this.modalPanelEl.querySelectorAll('[data-buy-id]').forEach((btn) => {
       btn.addEventListener('click', () => {
         this.inventory.buyItem(btn.getAttribute('data-buy-id')!);
+        this.actions.onPlayFoley?.('trade');
         this.refreshHUD();
         this.renderShop();
       });
@@ -554,6 +560,7 @@ export class UIManager {
     this.modalPanelEl.querySelectorAll('[data-sell-id]').forEach((btn) => {
       btn.addEventListener('click', () => {
         this.inventory.sellItem(btn.getAttribute('data-sell-id')!);
+        this.actions.onPlayFoley?.('trade');
         this.actions.onEquipmentChanged?.();
         this.refreshHUD();
         this.renderShop();
@@ -1000,12 +1007,12 @@ export class UIManager {
   private renderAshenholdCityMap(): void {
     this.modalPanelEl.innerHTML = `
       <div class="modal-header" data-testid="modal-map">
-        <h2>灰烬城山堡舆图 · Ashenhold V3 (四层立体连通 · -4m → +19.5m)</h2>
+        <h2>灰烬城山堡舆图 · Ashenhold V5 (八大互联箱庭 · -4m → +30.5m)</h2>
         <button class="btn" id="btn-close-modal">关闭 [M]</button>
       </div>
       <canvas id="world-map-canvas" width="520" height="520"></canvas>
       <div class="item-desc" style="text-align:center; line-height:1.5;">
-        四层无传送贯通：地下暗渠 (-4m) · 底层南门与拱廊市集 (0→+3.5m) · 中层跨街石桥与城墙步道 (+7.5→+9.5m) · 顶层悬崖瞭望塔 (+19.5m)
+        八区无传送贯通：南门曲轴瓮城 (0m) · 贸易街与酒馆 (+1.6m) · 中央市集 (+3.5m) · 西翼工匠区 (+7m) · 东翼居民高地 (+7.5→+11m) · 圣堂钟楼 (+12.2→+24.2m) · 领主城堡 (+18→+30.5m) · 地下暗渠与秘库 (-4m)
       </div>
     `;
     this.modalPanelEl.querySelector('#btn-close-modal')?.addEventListener('click', () => this.closeModal());
@@ -1016,10 +1023,9 @@ export class UIManager {
     if (!ctx) return;
 
     const size = 520;
-    // Map compact hillside x in [-76, 76] (152m) and z in [-148, +32] (180m)
     const toMap = (wx: number, wz: number): [number, number] => [
-      ((wx + 76) / 152) * size,
-      ((wz + 148) / 180) * size,
+      ((wx + 66) / 132) * size,
+      ((wz + 152) / 196) * size,
     ];
 
     const grad = ctx.createRadialGradient(size / 2, size / 2, 40, size / 2, size / 2, size * 0.72);
@@ -1028,53 +1034,72 @@ export class UIManager {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, size, size);
 
-    // Outer mountain ridges shading
-    ctx.fillStyle = 'rgba(72, 84, 58, 0.18)';
+    ctx.fillStyle = 'rgba(72, 84, 58, 0.16)';
     ctx.fillRect(0, 0, size, size);
 
-    // Compact 104x144m city wall perimeter fill
-    const [exL, exT] = toMap(-52, -124);
-    const [exR, exB] = toMap(52, 14);
-    const [apL, apT] = toMap(-15, 14);
-    const [apR, apB] = toMap(15, 26);
-    ctx.fillStyle = '#d9cba9';
+    // Full 8-Cell Explorable Envelope Fill
+    const [exL, exT] = toMap(-50, -146);
+    const [exR, exB] = toMap(50, 12);
+    const [apL, apT] = toMap(-22, 12);
+    const [apR, apB] = toMap(22, 37);
+    ctx.fillStyle = '#dacba9';
     ctx.fillRect(exL, exT, exR - exL, exB - exT);
     ctx.fillRect(apL, apT, apR - apL, apB - apT);
 
-    // 5-Tier Elevation Contour Terrace Bands (0m -> +3.5m -> +7.5m -> +12.2m -> +18.0m -> +21.0m)
     const tierFills: Record<string, string> = {
-      tier0_gate_approach: 'rgba(196, 180, 148, 0.55)',
-      tier1_market_plaza: 'rgba(182, 162, 128, 0.65)',
-      tier1_fountain_dais: 'rgba(165, 145, 112, 0.75)',
+      tier0_gate_approach: 'rgba(196, 180, 148, 0.62)',
+      tier1_market_plaza: 'rgba(182, 162, 128, 0.70)',
+      tier1_fountain_dais: 'rgba(165, 145, 112, 0.80)',
       tier2_mid_overlook: 'rgba(162, 138, 102, 0.75)',
-      tier2_west_artisan: 'rgba(155, 124, 104, 0.45)',
-      tier2_east_residential: 'rgba(128, 148, 118, 0.42)',
-      tier3_temple_acropolis: 'rgba(142, 122, 112, 0.58)',
-      tier4_castle_forecourt: 'rgba(118, 102, 92, 0.62)',
-      tier4_citadel_keep: 'rgba(92, 80, 72, 0.72)',
+      tier2_west_artisan: 'rgba(168, 122, 92, 0.58)',
+      tier2_east_residential: 'rgba(122, 152, 114, 0.55)',
+      tier3_temple_acropolis: 'rgba(146, 124, 116, 0.68)',
+      tier4_castle_forecourt: 'rgba(124, 106, 96, 0.72)',
+      tier4_citadel_keep: 'rgba(98, 82, 74, 0.82)',
     };
     for (const pad of CITY_PLAZA_PADS) {
       const [px0, pz0] = toMap(pad.cx - pad.halfX, pad.cz - pad.halfZ);
       const [px1, pz1] = toMap(pad.cx + pad.halfX, pad.cz + pad.halfZ);
       ctx.fillStyle = tierFills[pad.id] ?? '#c7b899';
       ctx.fillRect(px0, pz0, px1 - px0, pz1 - pz0);
-      ctx.strokeStyle = 'rgba(78, 58, 38, 0.25)';
+      ctx.strokeStyle = 'rgba(78, 58, 38, 0.32)';
       ctx.lineWidth = 1;
       ctx.strokeRect(px0, pz0, px1 - px0, pz1 - pz0);
     }
+
+    // Dashed Cell 08 Underground Tunnel Network (-4.0m)
+    ctx.save();
+    ctx.strokeStyle = 'rgba(42, 98, 138, 0.72)';
+    ctx.lineWidth = 3.0;
+    ctx.setLineDash([5, 4]);
+    const drawTunnel = (ax: number, az: number, bx: number, bz: number) => {
+      const [x1, y1] = toMap(ax, az);
+      const [x2, y2] = toMap(bx, bz);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    };
+    drawTunnel(-12.5, 27.0, -12.5, -25.0);
+    drawTunnel(-12.5, 13.0, 13.6, 13.0);
+    drawTunnel(13.6, 13.0, 13.6, 3.0);
+    drawTunnel(-12.5, -21.0, 2.0, -21.0);
+    drawTunnel(2.0, -21.0, 2.0, -121.0);
+    drawTunnel(2.0, -121.0, 15.5, -121.0);
+    ctx.restore();
 
     // All Hillside Road & Stair Segments
     for (const seg of CITY_ROAD_SEGMENTS) {
       const [ax, az] = toMap(seg.a.x, seg.a.z);
       const [bx, bz] = toMap(seg.b.x, seg.b.z);
-      ctx.lineWidth = Math.max(4, seg.a.halfWidth * 2 * (size / 152));
-      ctx.strokeStyle = seg.route === 'main' ? '#b39e7a' : 'rgba(168, 150, 120, 0.65)';
+      ctx.lineWidth = Math.max(4, seg.a.halfWidth * 2 * (size / 132));
+      ctx.strokeStyle = seg.route === 'main' ? '#b39e7a' : 'rgba(168, 150, 120, 0.72)';
       ctx.beginPath();
       ctx.moveTo(ax, az);
       ctx.lineTo(bx, bz);
       ctx.stroke();
 
-      ctx.lineWidth = seg.route === 'main' ? 2.0 : 1.3;
+      ctx.lineWidth = seg.route === 'main' ? 2.0 : 1.4;
       ctx.strokeStyle = seg.route === 'main' ? '#7a441e' : '#5c4b36';
       ctx.setLineDash(seg.route === 'main' ? [] : [4, 3]);
       ctx.beginPath();
@@ -1084,7 +1109,7 @@ export class UIManager {
       ctx.setLineDash([]);
     }
 
-    // Structures from cityLayout (differentiate A-class Interiors, B-class Semi-Interiors/Stalls, Landmarks)
+    // Structures from cityLayout
     for (const a of cityLayout.architecture as Array<{
       id: string;
       model: string;
@@ -1102,75 +1127,33 @@ export class UIManager {
         ctx.fill();
       } else if (a.model.startsWith('stall_')) {
         ctx.fillStyle = '#c4542d';
-        ctx.fillRect(bx - 4, bz - 4, 8, 8);
-      } else if (a.tier === 'decorative') {
-        ctx.fillStyle = 'rgba(100, 94, 86, 0.42)';
-        ctx.fillRect(bx - 6, bz - 5, 12, 10);
-      } else if (a.tier === 'landmark_closed') {
-        ctx.fillStyle = '#4c4642';
-        ctx.strokeStyle = '#241e1c';
-        ctx.lineWidth = 1.5;
-        const rw = a.model === 'castle_citadel_keep.glb' ? 36 : 18;
-        const rh = a.model === 'castle_citadel_keep.glb' ? 22 : 11;
-        ctx.fillRect(bx - rw / 2, bz - rh / 2, rw, rh);
-        ctx.strokeRect(bx - rw / 2, bz - rh / 2, rw, rh);
-      } else if (a.buildingClass === 'A' && !a.model.includes('retaining') && !a.model.includes('bridge')) {
+        ctx.fillRect(bx - 3.5, bz - 3.5, 7, 7);
+      } else if (a.buildingClass === 'A' && !a.model.includes('wall') && !a.model.includes('crag') && !a.model.includes('undercroft')) {
         ctx.fillStyle = '#b87616';
         ctx.strokeStyle = '#fff3d6';
-        ctx.lineWidth = 1.4;
-        ctx.fillRect(bx - 8, bz - 7, 16, 14);
-        ctx.strokeRect(bx - 8, bz - 7, 16, 14);
-      } else if (a.buildingClass === 'B') {
-        ctx.fillStyle = '#2c7e96';
-        ctx.fillRect(bx - 6, bz - 5, 12, 10);
-      } else if (!a.model.includes('wall') && !a.model.includes('barricade')) {
-        ctx.fillStyle = 'rgba(105, 88, 70, 0.78)';
-        ctx.fillRect(bx - 6, bz - 5, 12, 10);
+        ctx.lineWidth = 1.2;
+        ctx.fillRect(bx - 7, bz - 6, 14, 12);
+        ctx.strokeRect(bx - 7, bz - 6, 14, 12);
       }
     }
 
-    // Solid Red Box: Phase-2 Currently Explorable Compact Hillside Slice (0m -> +7.5m Overlook)
-    const [sL, sT] = toMap(-17, -62);
-    const [sR, sB] = toMap(17, 24);
-    ctx.save();
-    ctx.strokeStyle = '#a8281c';
-    ctx.lineWidth = 2.2;
-    ctx.strokeRect(sL, sT, sR - sL, sB - sT);
-
-    // Dashed Outer Box: Full 104x144m Hillside City Perimeter
-    ctx.strokeStyle = '#6c3824';
-    ctx.lineWidth = 1.6;
-    ctx.setLineDash([6, 4]);
-    ctx.beginPath();
-    ctx.moveTo(exL, exT);
-    ctx.lineTo(exR, exT);
-    ctx.lineTo(exR, exB);
-    ctx.lineTo(apR, exB);
-    ctx.lineTo(apR, apB);
-    ctx.lineTo(apL, apB);
-    ctx.lineTo(apL, exB);
-    ctx.lineTo(exL, exB);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-
-    // Elevation & District Labels
+    // 8-Cell Labels
     ctx.fillStyle = '#24160d';
-    ctx.font = 'bold 11px serif';
+    ctx.font = 'bold 10.5px serif';
     ctx.textAlign = 'center';
     const labels: Array<[number, number, string]> = [
-      [0, 21, '南城门与卫塔 (0m / +9.5m)'],
-      [0, 2, '曲街与余烬酒馆 (+1.6m / +5.2m)'],
-      [-26, -15, '黑石暗渠 (-4.0m) / 西城墙 (+9.5m)'],
-      [0, -14, '跨街哥特石桥 (+9.5m)'],
-      [0, -35, '拱廊市集与喷泉 (+3.5m)'],
-      [0, -54, '北堡垒平台 (+7.5m)'],
-      [0, -68, '悬崖瞭望塔顶 (+19.5m)'],
-      [0, -118, '远景山巅主堡'],
+      [-1, 28, 'Cell 01 · 南门与曲轴瓮城 (0m)'],
+      [0, 1, 'Cell 02 · 贸易街与酒馆 (+1.6m)'],
+      [0, -35, 'Cell 03 · 中央市集 (+3.5m)'],
+      [-34, -40, 'Cell 04 · 工匠锻坊 (+7m)'],
+      [35, -40, 'Cell 05 · 居民高地 (+7.5→+11m)'],
+      [0, -86, 'Cell 06 · 大圣堂与钟楼 (+12.2→+24.2m)'],
+      [0, -134, 'Cell 07 · 领主城堡议事厅 (+18→+30.5m)'],
+      [-24, -12, 'Cell 08 · 暗渠网 (-4m)'],
     ];
     for (const [lx, lz, text] of labels) {
       const [tx, ty] = toMap(lx, lz);
-      ctx.fillText(text, tx, ty - 6);
+      ctx.fillText(text, tx, ty - 4);
     }
 
     // Player live marker
@@ -1210,6 +1193,13 @@ export class UIManager {
     const slotMap = new Map(this.saveSlotsCache.map((s) => [s.slotId, s]));
     const currentQuality = this.actions.getQualityPreset?.() ?? 'high';
     const telemetry = this.actions.getTelemetry?.();
+    const vols = this.actions.getAudioVolumes?.() ?? {
+      master: 0.82,
+      ambient: 0.78,
+      sfx: 0.85,
+      music: 0.45,
+      muted: false,
+    };
 
     const slotsHtml = slotIds
       .map((slotId) => {
@@ -1231,6 +1221,14 @@ export class UIManager {
       })
       .join('');
 
+    const volRow = (ch: 'master' | 'ambient' | 'sfx' | 'music', label: string, val: number) => `
+      <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+        <span style="width:74px; color:var(--text-muted);">${label}</span>
+        <input type="range" min="0" max="100" value="${Math.round(val * 100)}" data-audio-slider="${ch}" style="flex:1; accent-color:var(--accent-gold);" />
+        <span id="audio-pct-${ch}" style="width:36px; text-align:right;">${Math.round(val * 100)}%</span>
+      </div>
+    `;
+
     this.modalPanelEl.innerHTML = `
       <div class="modal-header" data-testid="modal-menu">
         <h2>系统菜单 — Ashen March 灰烬边境</h2>
@@ -1242,7 +1240,7 @@ export class UIManager {
           ${slotsHtml}
         </div>
         <div class="panel-card">
-          <div class="panel-title">画质档位与实时性能</div>
+          <div class="panel-title">画质档位与箱庭实时性能</div>
           <div class="quality-btn-row">
             ${(['low', 'medium', 'high'] as QualityPreset[])
               .map(
@@ -1255,23 +1253,29 @@ export class UIManager {
             telemetry
               ? `<div class="stat-grid">
                   <div class="stat-pill"><span>帧率 FPS</span><b>${telemetry.fps}</b></div>
-                  <div class="stat-pill"><span>Draw Calls</span><b>${telemetry.drawCalls}</b></div>
+                  <div class="stat-pill"><span>Main DC</span><b>${telemetry.drawCalls}</b></div>
                   <div class="stat-pill"><span>Triangles</span><b>${telemetry.triangles.toLocaleString()}</b></div>
-                  <div class="stat-pill"><span>Textures</span><b>${telemetry.textures}</b></div>
+                  <div class="stat-pill"><span>活动箱庭</span><b>${telemetry.city ? `${telemetry.city.activeCells.length} Cells` : telemetry.textures}</b></div>
                 </div>`
               : ''
           }
-          <div class="panel-title" style="margin-top:4px;">区域快速测试入口与音频</div>
-          <div class="item-desc">
-            WASD 移动 · Shift 奔跑 · Space 跳跃 · E 交互<br/>
-            左键 近战 · 右键 火球术 · 3/4 快捷饮用药水<br/>
-            I 行囊 · J 任务日志 · M 边境舆图 · Esc 系统菜单
+          <div class="panel-title" style="margin-top:6px;">空间音频与混音控制</div>
+          <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:6px;" data-testid="audio-mixer">
+            ${volRow('master', '主音量', vols.master)}
+            ${volRow('ambient', '环境音', vols.ambient)}
+            ${volRow('sfx', '音效 SFX', vols.sfx)}
+            ${volRow('music', '背景音乐', vols.music)}
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button class="btn btn-primary" id="btn-travel-city" data-testid="btn-travel-city">${
-              this.state.player.currentZone === 'ashenhold_city' ? '返回 溪谷村 (Overworld)' : '前往 灰烬城 (中央市集 · 双环城区)'
+              this.state.player.currentZone === 'ashenhold_city' ? '返回 溪谷村 (Overworld)' : '前往 灰烬城 (八大互联箱庭)'
             }</button>
-            <button class="btn" id="btn-toggle-mute">切换音效静音</button>
+            <button class="btn" id="btn-toggle-mute">${vols.muted ? '取消静音' : '静音切换'}</button>
+            ${
+              this.state.player.currentZone === 'ashenhold_city'
+                ? `<button class="btn" id="btn-toggle-cell-debug" data-testid="btn-toggle-cell-debug">Cell/Portal 框线</button>`
+                : ''
+            }
           </div>
         </div>
       </div>
@@ -1286,6 +1290,22 @@ export class UIManager {
     this.modalPanelEl.querySelector('#btn-toggle-mute')?.addEventListener('click', () => {
       const muted = this.actions.onToggleMute();
       this.pushToast(muted ? '音效已静音' : '音效已开启', 'info');
+      this.renderMenu();
+    });
+    this.modalPanelEl.querySelector('#btn-toggle-cell-debug')?.addEventListener('click', () => {
+      const on = this.actions.onToggleCellDebug?.() ?? false;
+      this.pushToast(on ? '已开启 Cell & Portal 3D 调试框线' : '已关闭 Cell & Portal 调试框线', 'info');
+    });
+
+    this.modalPanelEl.querySelectorAll('[data-audio-slider]').forEach((input) => {
+      input.addEventListener('input', (ev) => {
+        const target = ev.target as HTMLInputElement;
+        const ch = target.getAttribute('data-audio-slider') as 'master' | 'ambient' | 'sfx' | 'music';
+        const val = Number(target.value) / 100;
+        this.actions.onSetAudioVolume?.(ch, val);
+        const pctEl = this.modalPanelEl.querySelector(`#audio-pct-${ch}`);
+        if (pctEl) pctEl.textContent = `${Math.round(val * 100)}%`;
+      });
     });
 
     this.modalPanelEl.querySelectorAll('[data-quality]').forEach((btn) => {

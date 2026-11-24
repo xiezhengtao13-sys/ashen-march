@@ -1,0 +1,223 @@
+{
+  "cells": [
+    {
+      "id": "cell_08_undercroft_cellars",
+      "index": 8,
+      "name": "地下暗渠与地窖",
+      "nameEn": "Undercroft & Secret Cellars",
+      "regionId": "ashenhold_undercroft",
+      "priority": 100,
+      "bounds": {
+        "minX": -18.0,
+        "maxX": 20.5,
+        "minY": -6.2,
+        "maxY": -0.45,
+        "minZ": -123.0,
+        "maxZ": 28.5
+      },
+      "hysteresis": 0.4,
+      "ambientZoneId": "amb_undercroft",
+      "reverbPreset": "damp_undercroft_tunnel",
+      "isUnderground": true,
+      "vistaCells": [],
+      "budget": {
+        "maxDrawCalls": 140,
+        "maxTriangles": 150000
+      }
+    },
+    {
+      "id": "cell_01_barbican_gate",
+      "index": 1,
+      "name": "南城门与瓮城",
+      "nameEn": "South Gate & Bent-Axis Barbican",
+      "regionId": "ashenhold_gate",
+      "priority": 20,
+      "bounds": {
+        "minX": -23.0,
+        "maxX": 23.0,
+        "minY": -0.45,
+        "maxY": 23.0,
+        "minZ": 9.0,
+        "maxZ": 39.0
+      },
+      "hysteresis": 2.2,
+      "ambientZoneId": "amb_gate_barbican",
+      "reverbPreset": "outdoor_courtyard",
+      "isUnderground": false,
+      "overlookMinY": 8.8,
+      "vistaCells": ["cell_02_trade_street", "cell_07_lord_castle"],
+      "budget": {
+        "maxDrawCalls": 220,
+        "maxTriangles": 240000
+      }
+    },
+    {
+      "id": "cell_02_trade_street",
+      "index": 2,
+      "name": "贸易街与余烬酒馆",
+      "nameEn": "Trade Street & Ember Tavern",
+      "regionId": "ashenhold_main_street",
+      "priority": 20,
+      "bounds": {
+        "minX": -17.5,
+        "maxX": 17.5,
+        "minY": -0.45,
+        "maxY": 18.0,
+        "minZ": -18.0,
+        "maxZ": 9.0
+      },
+      "hysteresis": 2.2,
+      "ambientZoneId": "amb_trade_street",
+      "reverbPreset": "outdoor_alley",
+      "isUnderground": false,
+      "overlookMinY": 8.8,
+      "vistaCells": ["cell_03_market_plaza", "cell_01_barbican_gate", "cell_07_lord_castle"],
+      "budget": {
+        "maxDrawCalls": 230,
+        "maxTriangles": 250000
+      }
+    },
+    {
+      "id": "cell_03_market_plaza",
+      "index": 3,
+      "name": "中央市集",
+      "nameEn": "Central Gothic Market",
+      "regionId": "ashenhold_market_plaza",
+      "priority": 20,
+      "bounds": {
+        "minX": -17.5,
+        "maxX": 17.5,
+        "minY": 1.5,
+        "maxY": 18.5,
+        "minZ": -52.8,
+        "maxZ": -18.0
+      },
+      "hysteresis": 2.2,
+      "ambientZoneId": "amb_market_plaza",
+      "reverbPreset": "outdoor_courtyard",
+      "isUnderground": false,
+      "overlookMinY": 8.8,
+      "vistaCells": ["cell_06_temple_acropolis", "cell_07_lord_castle"],
+      "budget": {
+        "maxDrawCalls": 250,
+        "maxTriangles": 270000
+      }
+    },
+    {
+      "id": "cell_04_artisan_quarter",
+      "index": 4,
+      "name": "西侧工匠区",
+      "nameEn": "West Artisan & Forge Quarter",
+      "regionId": "ashenhold_artisan_quarter",
+      "priority": 30,
+      "bounds": {
+        "minX": -50.0,
+        "maxX": -17.5,
+        "minY": 3.0,
+        "maxY": 24.0,
+        "minZ": -74.0,
+        "maxZ": -12.0
+      },
+      "hysteresis": 2.2,
+      "ambientZoneId": "amb_artisan_quarter",
+      "reverbPreset": "semi_open_yard",
+      "isUnderground": false,
+      "overlookMinY": 10.2,
+      "vistaCells": ["cell_03_market_plaza", "cell_06_temple_acropolis", "cell_07_lord_castle"],
+      "budget": {
+        "maxDrawCalls": 210,
+        "maxTriangles": 220000
+      }
+    },
+    {
+      "id": "cell_05_residential_heights",
+      "index": 5,
+      "name": "东侧居民高地",
+      "nameEn": "East Residential Heights",
+      "regionId": "ashenhold_residential_quarter",
+      "priority": 30,
+      "bounds": {
+        "minX": 17.5,
+        "maxX": 50.0,
+        "minY": 3.0,
+        "maxY": 24.0,
+        "minZ": -74.0,
+        "maxZ": -10.0
+      },
+      "hysteresis": 2.2,
+      "ambientZoneId": "amb_residential",
+      "reverbPreset": "outdoor_alley",
+      "isUnderground": false,
+      "overlookMinY": 10.6,
+      "vistaCells": ["cell_03_market_plaza", "cell_06_temple_acropolis", "cell_07_lord_castle"],
+      "budget": {
+        "maxDrawCalls": 220,
+        "maxTriangles": 230000
+      }
+    },
+    {
+      "id": "cell_06_temple_acropolis",
+      "index": 6,
+      "name": "圣堂与钟楼高地",
+      "nameEn": "Cathedral & Bell Tower Heights",
+      "regionId": "ashenhold_temple_acropolis",
+      "priority": 25,
+      "bounds": {
+        "minX": -29.0,
+        "maxX": 29.0,
+        "minY": 6.5,
+        "maxY": 32.0,
+        "minZ": -103.5,
+        "maxZ": -52.8
+      },
+      "hysteresis": 2.5,
+      "ambientZoneId": "amb_temple_heights",
+      "reverbPreset": "high_cliff",
+      "isUnderground": false,
+      "overlookMinY": 18.0,
+      "vistaCells": [
+        "cell_03_market_plaza",
+        "cell_04_artisan_quarter",
+        "cell_05_residential_heights",
+        "cell_07_lord_castle",
+        "cell_02_trade_street",
+        "cell_01_barbican_gate"
+      ],
+      "budget": {
+        "maxDrawCalls": 240,
+        "maxTriangles": 260000
+      }
+    },
+    {
+      "id": "cell_07_lord_castle",
+      "index": 7,
+      "name": "领主城堡",
+      "nameEn": "Sovereign Lord's Castle",
+      "regionId": "ashenhold_castle_approach",
+      "priority": 28,
+      "bounds": {
+        "minX": -34.0,
+        "maxX": 34.0,
+        "minY": 15.5,
+        "maxY": 44.0,
+        "minZ": -148.0,
+        "maxZ": -103.5
+      },
+      "hysteresis": 2.5,
+      "ambientZoneId": "amb_lord_castle",
+      "reverbPreset": "high_cliff",
+      "isUnderground": false,
+      "overlookMinY": 22.8,
+      "vistaCells": [
+        "cell_06_temple_acropolis",
+        "cell_03_market_plaza",
+        "cell_04_artisan_quarter",
+        "cell_05_residential_heights"
+      ],
+      "budget": {
+        "maxDrawCalls": 240,
+        "maxTriangles": 260000
+      }
+    }
+  ]
+}

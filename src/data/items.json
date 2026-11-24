@@ -231,6 +231,51 @@
         "maxMp": 15
       },
       "color": "#3d5c8a"
+    },
+    {
+      "id": "citadel_knights_greatsword",
+      "name": "禁卫骑士重剑",
+      "nameEn": "Citadel Knight's Greatsword",
+      "category": "weapon",
+      "equipSlot": "weapon",
+      "description": "灰烬领主城堡军械库封存的重型精钢骑士长剑，兼顾强悍劈砍与格挡防护。",
+      "value": 260,
+      "stackable": false,
+      "stats": {
+        "attack": 26,
+        "defense": 3
+      },
+      "color": "#b8c6d6"
+    },
+    {
+      "id": "sovereign_ember_ring",
+      "name": "灰烬领主余烬戒",
+      "nameEn": "Sovereign Ember Ring",
+      "category": "accessory",
+      "equipSlot": "accessory",
+      "description": "藏于城堡地底王室秘库的赤金古戒，凝聚着不灭的山堡余烬之力。",
+      "value": 320,
+      "stackable": false,
+      "stats": {
+        "attack": 8,
+        "magic": 12,
+        "maxHp": 25
+      },
+      "color": "#e89238"
+    },
+    {
+      "id": "cathedral_blessed_salve",
+      "name": "圣堂祝圣疗伤膏",
+      "nameEn": "Blessed Sanctuary Salve",
+      "category": "consumable",
+      "description": "圣伊格尼斯圣堂调配的秘药，同时恢复大量生命与法力。",
+      "value": 55,
+      "stackable": true,
+      "stats": {
+        "healHp": 110,
+        "restoreMp": 30
+      },
+      "color": "#f0d478"
     }
   ]
 }

@@ -1,0 +1,214 @@
+{
+  "portals": [
+    {
+      "id": "P01_inner_south_gate",
+      "cellA": "cell_01_barbican_gate",
+      "cellB": "cell_02_trade_street",
+      "center": { "x": 0.0, "y": 2.8, "z": 12.2 },
+      "normal": { "x": 0.0, "y": 0.0, "z": -1.0 },
+      "width": 5.8,
+      "height": 5.8,
+      "maxSightDist": 38.0
+    },
+    {
+      "id": "P02_gate_rampart_walk",
+      "cellA": "cell_01_barbican_gate",
+      "cellB": "cell_02_trade_street",
+      "center": { "x": -11.5, "y": 10.6, "z": 9.2 },
+      "normal": { "x": 0.0, "y": 0.0, "z": -1.0 },
+      "width": 6.5,
+      "height": 4.2,
+      "maxSightDist": 48.0
+    },
+    {
+      "id": "P03_barbican_undercroft_stair",
+      "cellA": "cell_01_barbican_gate",
+      "cellB": "cell_08_undercroft_cellars",
+      "center": { "x": -12.5, "y": 0.6, "z": 26.8 },
+      "normal": { "x": 0.0, "y": -0.35, "z": -0.94 },
+      "width": 3.0,
+      "height": 3.2,
+      "maxSightDist": 11.5
+    },
+    {
+      "id": "P04_bridge_arch_steps",
+      "cellA": "cell_02_trade_street",
+      "cellB": "cell_03_market_plaza",
+      "center": { "x": 0.0, "y": 3.6, "z": -16.5 },
+      "normal": { "x": 0.0, "y": 0.0, "z": -1.0 },
+      "width": 6.4,
+      "height": 5.8,
+      "maxSightDist": 42.0
+    },
+    {
+      "id": "P05_west_battlement_walk",
+      "cellA": "cell_02_trade_street",
+      "cellB": "cell_03_market_plaza",
+      "center": { "x": -13.5, "y": 10.8, "z": -18.0 },
+      "normal": { "x": 0.0, "y": 0.0, "z": -1.0 },
+      "width": 4.2,
+      "height": 3.8,
+      "maxSightDist": 46.0
+    },
+    {
+      "id": "P06_trade_undercroft_culvert",
+      "cellA": "cell_02_trade_street",
+      "cellB": "cell_08_undercroft_cellars",
+      "center": { "x": -4.2, "y": 1.5, "z": -7.2 },
+      "normal": { "x": -1.0, "y": 0.0, "z": 0.0 },
+      "width": 3.2,
+      "height": 3.2,
+      "maxSightDist": 11.5
+    },
+    {
+      "id": "P07_tavern_wine_cellar",
+      "cellA": "cell_02_trade_street",
+      "cellB": "cell_08_undercroft_cellars",
+      "center": { "x": 12.8, "y": 0.8, "z": 3.6 },
+      "normal": { "x": -0.7, "y": -0.3, "z": -0.65 },
+      "width": 2.8,
+      "height": 3.0,
+      "maxSightDist": 10.5
+    },
+    {
+      "id": "P08_tavern_bridge_to_residential",
+      "cellA": "cell_02_trade_street",
+      "cellB": "cell_05_residential_heights",
+      "center": { "x": 16.5, "y": 9.8, "z": -14.5 },
+      "normal": { "x": 1.0, "y": 0.0, "z": 0.0 },
+      "width": 3.8,
+      "height": 3.8,
+      "maxSightDist": 32.0
+    },
+    {
+      "id": "P09_warehouse_alley_to_residential",
+      "cellA": "cell_02_trade_street",
+      "cellB": "cell_05_residential_heights",
+      "center": { "x": 16.5, "y": 4.2, "z": -8.5 },
+      "normal": { "x": 1.0, "y": 0.0, "z": 0.0 },
+      "width": 3.4,
+      "height": 3.8,
+      "maxSightDist": 26.0
+    },
+    {
+      "id": "P10_bridge_to_artisan_catwalk",
+      "cellA": "cell_02_trade_street",
+      "cellB": "cell_04_artisan_quarter",
+      "center": { "x": -16.8, "y": 9.8, "z": -14.5 },
+      "normal": { "x": -1.0, "y": 0.0, "z": 0.0 },
+      "width": 3.6,
+      "height": 3.6,
+      "maxSightDist": 30.0
+    },
+    {
+      "id": "P11_market_west_artisan_arch",
+      "cellA": "cell_03_market_plaza",
+      "cellB": "cell_04_artisan_quarter",
+      "center": { "x": -16.2, "y": 5.2, "z": -35.0 },
+      "normal": { "x": -1.0, "y": 0.0, "z": 0.0 },
+      "width": 3.8,
+      "height": 4.2,
+      "maxSightDist": 32.0
+    },
+    {
+      "id": "P12_market_east_residential_steps",
+      "cellA": "cell_03_market_plaza",
+      "cellB": "cell_05_residential_heights",
+      "center": { "x": 16.2, "y": 5.5, "z": -35.0 },
+      "normal": { "x": 1.0, "y": 0.0, "z": 0.0 },
+      "width": 3.8,
+      "height": 4.2,
+      "maxSightDist": 32.0
+    },
+    {
+      "id": "P13_market_shop_2f_residential",
+      "cellA": "cell_03_market_plaza",
+      "cellB": "cell_05_residential_heights",
+      "center": { "x": 17.2, "y": 8.6, "z": -26.5 },
+      "normal": { "x": 1.0, "y": 0.0, "z": 0.0 },
+      "width": 3.0,
+      "height": 3.2,
+      "maxSightDist": 24.0
+    },
+    {
+      "id": "P14_market_undercroft_stair",
+      "cellA": "cell_03_market_plaza",
+      "cellB": "cell_08_undercroft_cellars",
+      "center": { "x": -9.6, "y": 3.8, "z": -36.2 },
+      "normal": { "x": 0.0, "y": -0.35, "z": 0.94 },
+      "width": 3.2,
+      "height": 3.4,
+      "maxSightDist": 11.5
+    },
+    {
+      "id": "P15_market_north_bastion_overlook",
+      "cellA": "cell_03_market_plaza",
+      "cellB": "cell_06_temple_acropolis",
+      "center": { "x": 0.0, "y": 9.2, "z": -52.8 },
+      "normal": { "x": 0.0, "y": 0.0, "z": -1.0 },
+      "width": 26.0,
+      "height": 10.0,
+      "maxSightDist": 55.0
+    },
+    {
+      "id": "P16_artisan_north_temple_stairs",
+      "cellA": "cell_04_artisan_quarter",
+      "cellB": "cell_06_temple_acropolis",
+      "center": { "x": -21.5, "y": 10.5, "z": -71.0 },
+      "normal": { "x": 0.35, "y": 0.0, "z": -0.94 },
+      "width": 4.2,
+      "height": 4.6,
+      "maxSightDist": 38.0
+    },
+    {
+      "id": "P17_residential_north_temple_stairs",
+      "cellA": "cell_05_residential_heights",
+      "cellB": "cell_06_temple_acropolis",
+      "center": { "x": 21.5, "y": 10.8, "z": -71.0 },
+      "normal": { "x": -0.35, "y": 0.0, "z": -0.94 },
+      "width": 4.2,
+      "height": 4.6,
+      "maxSightDist": 38.0
+    },
+    {
+      "id": "P18_royal_causeway_castle_gate",
+      "cellA": "cell_06_temple_acropolis",
+      "cellB": "cell_07_lord_castle",
+      "center": { "x": 0.0, "y": 18.2, "z": -103.5 },
+      "normal": { "x": 0.0, "y": 0.0, "z": -1.0 },
+      "width": 7.6,
+      "height": 7.2,
+      "maxSightDist": 52.0
+    },
+    {
+      "id": "P19_high_viaduct_to_castle_rampart",
+      "cellA": "cell_06_temple_acropolis",
+      "cellB": "cell_07_lord_castle",
+      "center": { "x": 2.5, "y": 20.8, "z": -103.5 },
+      "normal": { "x": 0.0, "y": 0.0, "z": -1.0 },
+      "width": 4.2,
+      "height": 4.2,
+      "maxSightDist": 56.0
+    },
+    {
+      "id": "P20_castle_armory_secret_vault",
+      "cellA": "cell_07_lord_castle",
+      "cellB": "cell_08_undercroft_cellars",
+      "center": { "x": 15.5, "y": 18.2, "z": -119.5 },
+      "normal": { "x": 0.0, "y": -1.0, "z": 0.0 },
+      "width": 3.0,
+      "height": 3.2,
+      "maxSightDist": 14.5
+    },
+    {
+      "id": "P21_secret_vault_bottom_arch",
+      "cellA": "cell_08_undercroft_cellars",
+      "cellB": "cell_07_lord_castle",
+      "center": { "x": 13.5, "y": -2.4, "z": -121.0 },
+      "normal": { "x": 1.0, "y": 0.0, "z": 0.0 },
+      "width": 3.0,
+      "height": 3.2,
+      "maxSightDist": 18.0
+    }
+  ]
+}

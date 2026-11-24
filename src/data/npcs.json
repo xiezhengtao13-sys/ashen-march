@@ -5,11 +5,7 @@
       "name": "村长奥尔德林",
       "title": "溪谷村长老",
       "zone": "overworld",
-      "position": {
-        "x": 0,
-        "y": 4.0,
-        "z": 31
-      },
+      "position": { "x": 0, "y": 4.0, "z": 31 },
       "yaw": 0,
       "robeColor": "#5b3b6e",
       "accentColor": "#d9b166",
@@ -21,11 +17,7 @@
       "name": "铁匠商人葛伦",
       "title": "军械与杂货商",
       "zone": "overworld",
-      "position": {
-        "x": -13.5,
-        "y": 4.0,
-        "z": 38
-      },
+      "position": { "x": -13.5, "y": 4.0, "z": 38 },
       "yaw": 1.35,
       "robeColor": "#754632",
       "accentColor": "#a8b2bd",
@@ -45,11 +37,7 @@
       "name": "猎人莱拉",
       "title": "灰木林斥候",
       "zone": "overworld",
-      "position": {
-        "x": 13.5,
-        "y": 4.0,
-        "z": 39
-      },
+      "position": { "x": 13.5, "y": 4.0, "z": 39 },
       "yaw": -1.35,
       "robeColor": "#355c42",
       "accentColor": "#8c6b48",
@@ -59,49 +47,82 @@
     {
       "id": "city_gate_captain",
       "name": "守门队长马库斯",
-      "title": "灰烬城南门卫戍官",
+      "title": "灰烬城南内门卫戍官",
       "zone": "ashenhold_city",
-      "position": {
-        "x": -2.4,
-        "y": 0,
-        "z": 9.2
-      },
+      "position": { "x": -2.4, "y": 0, "z": 9.2 },
       "yaw": 0.45,
       "robeColor": "#5c2323",
       "accentColor": "#a8b2bd",
       "hasStaff": true,
+      "behavior": "guard_stand",
       "dialogueId": "city_gate_captain_dialogue"
     },
     {
       "id": "city_guard_sentinel",
-      "name": "城门卫兵凯尔",
-      "title": "灰烬城卫士",
+      "name": "瓮城巡卫凯尔",
+      "title": "南门曲轴瓮城哨兵",
       "zone": "ashenhold_city",
-      "position": {
-        "x": 2.9,
-        "y": 0,
-        "z": 18.2
-      },
-      "yaw": -0.35,
+      "position": { "x": -5.6, "y": 0.02, "z": 24.5 },
+      "yaw": 0.0,
       "robeColor": "#3e4652",
       "accentColor": "#bfa065",
       "hasStaff": true,
+      "behavior": "patrol",
+      "waypoints": [
+        { "x": -5.8, "y": 0.02, "z": 28.0 },
+        { "x": -5.8, "y": 0.02, "z": 21.8 },
+        { "x": 2.4, "y": 0.02, "z": 21.8 }
+      ],
       "dialogueId": "city_guard_sentinel_dialogue"
+    },
+    {
+      "id": "city_tavern_keeper",
+      "name": "老板娘格蕾塔",
+      "title": "余烬与酒杯酒馆掌柜",
+      "zone": "ashenhold_city",
+      "position": { "x": 10.6, "y": 1.66, "z": -0.8 },
+      "yaw": -1.57,
+      "robeColor": "#7d3528",
+      "accentColor": "#e3c07d",
+      "hasStaff": false,
+      "behavior": "tavern_tend",
+      "shopInventory": [
+        "hearth_bread",
+        "minor_health_potion",
+        "mana_potion"
+      ],
+      "dialogueId": "city_tavern_keeper_dialogue"
+    },
+    {
+      "id": "city_apothecary_lian",
+      "name": "草药师莉安",
+      "title": "贸易街草药铺掌柜",
+      "zone": "ashenhold_city",
+      "position": { "x": -7.8, "y": 0.62, "z": 3.4 },
+      "yaw": 1.57,
+      "robeColor": "#365446",
+      "accentColor": "#c9a359",
+      "hasStaff": false,
+      "behavior": "merchant_tend",
+      "shopInventory": [
+        "minor_health_potion",
+        "greater_health_potion",
+        "mana_potion",
+        "ashen_herb"
+      ],
+      "dialogueId": "city_apothecary_lian_dialogue"
     },
     {
       "id": "city_merchant_elena",
       "name": "药商伊琳娜",
       "title": "西拱廊药剂师",
       "zone": "ashenhold_city",
-      "position": {
-        "x": -13.4,
-        "y": 3.52,
-        "z": -31.5
-      },
-      "yaw": -1.57,
+      "position": { "x": -13.4, "y": 3.52, "z": -31.5 },
+      "yaw": 1.57,
       "robeColor": "#3c5446",
       "accentColor": "#c9a359",
       "hasStaff": false,
+      "behavior": "merchant_tend",
       "shopInventory": [
         "minor_health_potion",
         "greater_health_potion",
@@ -115,15 +136,12 @@
       "name": "烘焙娘玛尔塔",
       "title": "市集面包摊主",
       "zone": "ashenhold_city",
-      "position": {
-        "x": 7.5,
-        "y": 3.52,
-        "z": -27.4
-      },
-      "yaw": 1.45,
+      "position": { "x": 7.5, "y": 3.52, "z": -27.4 },
+      "yaw": -1.45,
       "robeColor": "#965d38",
       "accentColor": "#e3c588",
       "hasStaff": false,
+      "behavior": "merchant_tend",
       "shopInventory": [
         "hearth_bread",
         "minor_health_potion"
@@ -135,15 +153,12 @@
       "name": "商会总管索恩",
       "title": "中央市集大商行主事",
       "zone": "ashenhold_city",
-      "position": {
-        "x": -6.6,
-        "y": 3.52,
-        "z": -41.4
-      },
+      "position": { "x": -6.6, "y": 3.52, "z": -41.4 },
       "yaw": -1.15,
       "robeColor": "#2e486e",
       "accentColor": "#d9b166",
       "hasStaff": true,
+      "behavior": "merchant_tend",
       "shopInventory": [
         "forged_guild_halberd",
         "weavers_silk_cloak",
@@ -154,62 +169,153 @@
       "dialogueId": "city_merchant_thorne_dialogue"
     },
     {
+      "id": "city_townsfolk_aldous",
+      "name": "市民奥尔德斯",
+      "title": "灰烬城老石匠",
+      "zone": "ashenhold_city",
+      "position": { "x": 4.2, "y": 3.52, "z": -31.8 },
+      "yaw": -2.4,
+      "robeColor": "#5c5346",
+      "accentColor": "#b89f72",
+      "hasStaff": false,
+      "behavior": "stroll",
+      "waypoints": [
+        { "x": 4.4, "y": 3.52, "z": -30.5 },
+        { "x": 4.4, "y": 3.52, "z": -39.2 },
+        { "x": -4.2, "y": 3.52, "z": -39.2 }
+      ],
+      "dialogueId": "city_townsfolk_aldous_dialogue"
+    },
+    {
       "id": "city_smith_brennan",
       "name": "铁匠大师布伦南",
-      "title": "北堡垒平台锻造长",
+      "title": "西翼铁砧大锻坊炉长",
       "zone": "ashenhold_city",
-      "position": {
-        "x": -7.2,
-        "y": 7.52,
-        "z": -53.8
-      },
-      "yaw": 3.05,
+      "position": { "x": -31.8, "y": 7.12, "z": -35.2 },
+      "yaw": 1.57,
       "robeColor": "#54342b",
       "accentColor": "#9ca6b3",
       "hasStaff": false,
+      "behavior": "smith_hammer",
       "shopInventory": [
         "forged_guild_halberd",
+        "citadel_knights_greatsword",
         "chainmail_vest",
         "warden_plate"
       ],
       "dialogueId": "city_smith_brennan_dialogue"
     },
     {
+      "id": "city_carpenter_owen",
+      "name": "木匠工头欧文",
+      "title": "橡木箍桶与锯木坊匠师",
+      "zone": "ashenhold_city",
+      "position": { "x": -32.2, "y": 7.12, "z": -48.6 },
+      "yaw": 0.4,
+      "robeColor": "#6b4f35",
+      "accentColor": "#c4a472",
+      "hasStaff": false,
+      "behavior": "carpenter_work",
+      "dialogueId": "city_carpenter_owen_dialogue"
+    },
+    {
       "id": "city_weaver_claire",
       "name": "织坊女匠克莱尔",
-      "title": "北堡垒高地锦缎匠",
+      "title": "东翼居民高地锦缎匠",
       "zone": "ashenhold_city",
-      "position": {
-        "x": 7.2,
-        "y": 7.52,
-        "z": -53.8
-      },
-      "yaw": 3.14,
+      "position": { "x": 25.4, "y": 7.52, "z": -50.8 },
+      "yaw": -1.57,
       "robeColor": "#456348",
       "accentColor": "#dfd0a6",
       "hasStaff": false,
+      "behavior": "merchant_tend",
       "shopInventory": [
         "weavers_silk_cloak",
+        "ashen_amulet",
         "mana_potion",
         "hearth_bread"
       ],
       "dialogueId": "city_weaver_claire_dialogue"
     },
     {
+      "id": "city_resident_mira",
+      "name": "高地居民米拉",
+      "title": "古井内院住户",
+      "zone": "ashenhold_city",
+      "position": { "x": 35.8, "y": 7.52, "z": -45.4 },
+      "yaw": -1.2,
+      "robeColor": "#4d5e73",
+      "accentColor": "#d9c29c",
+      "hasStaff": false,
+      "behavior": "stroll",
+      "waypoints": [
+        { "x": 35.6, "y": 7.52, "z": -45.2 },
+        { "x": 38.6, "y": 7.52, "z": -49.2 }
+      ],
+      "dialogueId": "city_resident_mira_dialogue"
+    },
+    {
+      "id": "city_archivist_theron",
+      "name": "首席档案官塞伦",
+      "title": "圣堂高地古卷馆学者",
+      "zone": "ashenhold_city",
+      "position": { "x": 10.6, "y": 12.32, "z": -86.8 },
+      "yaw": -1.57,
+      "robeColor": "#353d5c",
+      "accentColor": "#e0be6e",
+      "hasStaff": true,
+      "behavior": "scholar_read",
+      "shopInventory": [
+        "cathedral_blessed_salve",
+        "mana_potion",
+        "greater_health_potion"
+      ],
+      "dialogueId": "city_archivist_theron_dialogue"
+    },
+    {
       "id": "city_citadel_warden",
       "name": "内堡卫队长加雷斯",
       "title": "悬崖瞭望塔顶守官（+19.5m）",
       "zone": "ashenhold_city",
-      "position": {
-        "x": -2.5,
-        "y": 19.52,
-        "z": -64.5
-      },
+      "position": { "x": -2.5, "y": 19.52, "z": -64.5 },
       "yaw": 3.14,
       "robeColor": "#592121",
       "accentColor": "#d4af64",
       "hasStaff": true,
+      "behavior": "guard_stand",
       "dialogueId": "city_citadel_warden_dialogue"
+    },
+    {
+      "id": "city_castle_quartermaster",
+      "name": "城堡军需官雷恩",
+      "title": "领主军械库执事",
+      "zone": "ashenhold_city",
+      "position": { "x": 9.4, "y": 18.04, "z": -117.6 },
+      "yaw": -1.57,
+      "robeColor": "#454c59",
+      "accentColor": "#d1af66",
+      "hasStaff": false,
+      "behavior": "guard_stand",
+      "shopInventory": [
+        "citadel_knights_greatsword",
+        "warden_plate",
+        "cathedral_blessed_salve",
+        "greater_health_potion"
+      ],
+      "dialogueId": "city_castle_quartermaster_dialogue"
+    },
+    {
+      "id": "city_lord_steward",
+      "name": "摄政总管维克多",
+      "title": "灰烬城领主议事厅执政官",
+      "zone": "ashenhold_city",
+      "position": { "x": 0.0, "y": 21.62, "z": -139.2 },
+      "yaw": 0.0,
+      "robeColor": "#4f1c24",
+      "accentColor": "#f0c96e",
+      "hasStaff": true,
+      "behavior": "noble_stand",
+      "dialogueId": "city_lord_steward_dialogue"
     }
   ]
 }
