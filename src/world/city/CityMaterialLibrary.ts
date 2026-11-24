@@ -93,6 +93,31 @@ float amNoise3(vec3 x) {
     f.z
   );
 }
+// Smooth world-space sky-occlusion inside roofed interiors (Tavern, Guardhouse, Apothecary) & -4m Undercroft
+float amComputeSkyOcclusion(vec3 wp) {
+  // 1. Tavern 1F/2F interior [x: 5.35..13.1, y: 1.4..8.2, z: -8.3..+1.9] (West street facade at x=5.35)
+  float tavInX = smoothstep(5.30, 6.85, wp.x) * (1.0 - smoothstep(12.6, 13.3, wp.x));
+  float tavInY = smoothstep(1.30, 1.85, wp.y) * (1.0 - smoothstep(7.8, 8.5, wp.y));
+  float tavInZ = smoothstep(-8.45, -7.75, wp.z) * (1.0 - smoothstep(1.35, 2.05, wp.z));
+  float occTav = tavInX * tavInY * tavInZ * 0.78;
+
+  // 2. Gate Guardhouse interior [x: -12.4..-5.6, y: 0.0..4.2, z: 3.8..10.6]
+  float gdX = smoothstep(-12.4, -11.5, wp.x) * (1.0 - smoothstep(-6.3, -5.4, wp.x));
+  float gdY = (1.0 - smoothstep(3.8, 4.4, wp.y));
+  float gdZ = smoothstep(3.8, 4.6, wp.z) * (1.0 - smoothstep(9.8, 10.6, wp.z));
+  float occGuard = gdX * gdY * gdZ * 0.72;
+
+  // 3. Market Apothecary interior [x: -19.2..-12.6, y: 3.3..7.5, z: -34.6..-26.6]
+  float apX = smoothstep(-19.2, -18.2, wp.x) * (1.0 - smoothstep(-13.4, -12.4, wp.x));
+  float apY = smoothstep(3.2, 3.7, wp.y) * (1.0 - smoothstep(7.1, 7.8, wp.y));
+  float apZ = smoothstep(-34.6, -33.6, wp.z) * (1.0 - smoothstep(-27.6, -26.6, wp.z));
+  float occApoth = apX * apY * apZ * 0.72;
+
+  // 4. Vaulted -4m Subterranean Undercroft
+  float occUnder = smoothstep(0.45, -1.65, wp.y) * 0.82;
+
+  return 1.0 - max(max(occTav, occGuard), max(occApoth, occUnder));
+}
 `;
 
 function injectGothicWeathering(
@@ -142,7 +167,6 @@ function injectGothicWeathering(
     .replace(
       '#include <color_fragment>',
       `float amWetMask = 0.0;
-       float amMicroAo = 1.0;
        vec3 aoTint = vec3(1.0);
        #if defined( USE_COLOR_ALPHA )
          diffuseColor.a *= vColor.a;
@@ -160,34 +184,35 @@ function injectGothicWeathering(
        float amMac2 = amNoise3(vAmWorldPos * (uWeatherA.y * 3.1) + vec3(11.3, 5.7, 2.9));
        float amMac = amMac1 * 0.65 + amMac2 * 0.35;
        // Macro mineral brightness & warm/cool subtle geological drift
-       diffuseColor.rgb *= 1.0 + (amMac - 0.5) * uWeatherA.x * 2.0;
-       diffuseColor.rgb *= mix(vec3(0.97, 0.99, 1.03), vec3(1.03, 1.00, 0.96), amMac1);
+       diffuseColor.rgb *= 1.0 + (amMac - 0.5) * uWeatherA.x * 1.85;
+       diffuseColor.rgb *= mix(vec3(0.97, 0.99, 1.02), vec3(1.02, 1.00, 0.97), amMac1);
 
-       // Close-range (<10m) micro-stone grain & pitting keeps 1m closeups razor tactile
-       float amClose = 1.0 - smoothstep(2.5, 11.0, amCamDist);
+       // Close-range (<9m) micro-stone mineral grain
+       float amClose = 1.0 - smoothstep(2.0, 9.0, amCamDist);
        if (uWeatherB.y > 0.001 && amClose > 0.01) {
-         float amGrit = amNoise3(vAmWorldPos * 14.5) * 0.6 + amNoise3(vAmWorldPos * 33.0 + 4.1) * 0.4;
-         diffuseColor.rgb *= 1.0 + (amGrit - 0.5) * uWeatherB.y * amClose;
+         float amGrit = amNoise3(vAmWorldPos * 16.0) * 0.6 + amNoise3(vAmWorldPos * 38.0 + 4.1) * 0.4;
+         diffuseColor.rgb *= 1.0 + (amGrit - 0.5) * (uWeatherB.y * 0.65) * amClose;
        }
 
-       // Vertical anisotropic rain streaks on exposed vertical walls
+       // Vertical anisotropic rain streaks on exposed outdoor walls (attenuated indoors)
+       float amSkyOcc = amComputeSkyOcclusion(vAmWorldPos);
        float amUp = smoothstep(0.54, 0.88, amNrmW.y);
        float amVert = 1.0 - abs(amNrmW.y);
-       if (uWeatherA.w > 0.001) {
+       if (uWeatherA.w > 0.001 && amSkyOcc > 0.45) {
          float sCoord = vAmWorldPos.x + vAmWorldPos.z;
          float st1 = amNoise3(vec3(sCoord * 1.45, vAmWorldPos.y * 0.24, (vAmWorldPos.x - vAmWorldPos.z) * 1.45));
          float st2 = amNoise3(vec3(sCoord * 4.2, vAmWorldPos.y * 0.45, 3.7));
-         float streak = smoothstep(0.46, 0.82, st1 * 0.6 + st2 * 0.4) * amVert * uWeatherA.w;
-         diffuseColor.rgb *= 1.0 - streak * 0.22;
-         amWetMask = max(amWetMask, streak * 0.45);
+         float streak = smoothstep(0.48, 0.84, st1 * 0.6 + st2 * 0.4) * amVert * uWeatherA.w * amSkyOcc;
+         diffuseColor.rgb *= 1.0 - streak * 0.20;
+         amWetMask = max(amWetMask, streak * 0.42);
        }
 
-       // Upward-facing horizontal ledge moss / lichen weathering
-       if (uWeatherA.z > 0.001 && amUp > 0.01) {
-         float mossN = smoothstep(0.46, 0.78, amMac * 0.75 + amMac2 * 0.25);
-         float mossW = amUp * mossN * uWeatherA.z;
+       // Upward-facing horizontal outdoor ledge moss / lichen weathering
+       if (uWeatherA.z > 0.001 && amUp > 0.01 && amSkyOcc > 0.5) {
+         float mossN = smoothstep(0.48, 0.80, amMac * 0.75 + amMac2 * 0.25);
+         float mossW = amUp * mossN * uWeatherA.z * amSkyOcc;
          vec3 lichenCol = vec3(0.19, 0.24, 0.14);
-         diffuseColor.rgb = mix(diffuseColor.rgb, lichenCol, mossW * 0.68);
+         diffuseColor.rgb = mix(diffuseColor.rgb, lichenCol, mossW * 0.62);
        }
 
        // Basal dampness near ground/terrace bases & full dampness in the -4m Undercroft
@@ -195,12 +220,28 @@ function injectGothicWeathering(
        float undercroftWet = smoothstep(0.2, -1.5, localY);
        float basal0 = smoothstep(0.85, 0.0, abs(localY - 0.15));
        float basal3 = smoothstep(0.75, 0.0, abs(localY - 3.65));
-       float basalDamp = max(basal0, basal3) * amVert * 0.34;
+       float basalDamp = max(basal0, basal3) * amVert * 0.32 * amSkyOcc;
        amWetMask = clamp(max(amWetMask, max(undercroftWet * 0.86, basalDamp)), 0.0, 1.0) * uWeatherB.x;
        if (amWetMask > 0.01) {
          float lum = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
-         diffuseColor.rgb = mix(vec3(lum), diffuseColor.rgb, 1.0 + 0.20 * amWetMask);
-         diffuseColor.rgb *= 1.0 - 0.22 * amWetMask;
+         diffuseColor.rgb = mix(vec3(lum), diffuseColor.rgb, 1.0 + 0.18 * amWetMask);
+         diffuseColor.rgb *= 1.0 - 0.20 * amWetMask;
+       }`,
+    )
+    .replace(
+      '#include <normal_fragment_maps>',
+      `#include <normal_fragment_maps>
+       // True close-range (<8m) world-space micro-normal crystal/pore relief (NOT just albedo noise!)
+       if (uWeatherB.y > 0.02 && amClose > 0.02) {
+         vec3 mp = vAmWorldPos * 26.0;
+         float mn0 = amNoise3(mp);
+         vec3 mGrad = vec3(
+           amNoise3(mp + vec3(0.18, 0.0, 0.0)) - mn0,
+           amNoise3(mp + vec3(0.0, 0.18, 0.0)) - mn0,
+           amNoise3(mp + vec3(0.0, 0.0, 0.18)) - mn0
+         );
+         vec3 viewGrad = (viewMatrix * vec4(mGrad, 0.0)).xyz;
+         normal = normalize(normal - viewGrad * (uWeatherB.y * 0.55 * amClose));
        }`,
     )
     .replace(
@@ -209,22 +250,30 @@ function injectGothicWeathering(
        #ifdef USE_ROUGHNESSMAP
          vec4 texelRoughness = texture2D( roughnessMap, vRoughnessMapUv );
          roughnessFactor *= texelRoughness.g;
-         if (uWeatherB.z > 0.5) {
-           amMicroAo = texelRoughness.r;
-         }
        #endif
        // Wet stone & rain streaks smoothly drop roughness for crisp grazing highlights
-       roughnessFactor = mix(roughnessFactor, max(0.18, roughnessFactor * 0.42), amWetMask);
+       roughnessFactor = mix(roughnessFactor, max(0.18, roughnessFactor * 0.44), amWetMask);
        roughnessFactor = clamp(roughnessFactor + (amMac2 - 0.5) * 0.08, 0.14, 0.98);`,
     )
     .replace(
       '#include <aomap_fragment>',
-      `#include <aomap_fragment>
-       float ormAo = (uDebugMode > 3.5 && uDebugMode < 4.5) ? 1.0 : mix(1.0, amMicroAo, 0.72);
-       vec3 combinedAo = aoTint * ormAo;
-       reflectedLight.indirectDiffuse *= combinedAo;
-       reflectedLight.indirectSpecular *= combinedAo;
-       reflectedLight.directDiffuse *= mix(vec3(1.0), combinedAo, uWeatherB.w);`,
+      `#ifdef USE_AOMAP
+         float ambientOcclusion = ( texture2D( aoMap, vAoMapUv ).r - 1.0 ) * aoMapIntensity + 1.0;
+         if (uDebugMode > 3.5 && uDebugMode < 4.5) {
+           ambientOcclusion = 1.0;
+         }
+         reflectedLight.indirectDiffuse *= ambientOcclusion;
+         #if defined( USE_ENVMAP ) && defined( STANDARD )
+           float dotNV = saturate( dot( geometryNormal, geometryViewDir ) );
+           reflectedLight.indirectSpecular *= computeSpecularOcclusion( dotNV, ambientOcclusion, material.roughness );
+         #endif
+       #endif
+       // Apply vertex AO + indoor/undercroft sky-occlusion (creates genuine interior vs sunlit-exterior contrast!)
+       reflectedLight.indirectDiffuse *= aoTint * amSkyOcc;
+       reflectedLight.indirectSpecular *= aoTint * amSkyOcc;
+       // Warm ambient hearth bounce inside enclosed Tavern/Guardhouse rooms so shadows stay rich & readable
+       reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(0.065, 0.038, 0.018) * (1.0 - amSkyOcc);
+       reflectedLight.directDiffuse *= mix(vec3(1.0), aoTint, uWeatherB.w);`,
     )
     .replace(
       '#include <dithering_fragment>',
@@ -243,24 +292,24 @@ function injectGothicWeathering(
  * Linear albedo gains calibrated for realistic sunlit Gothic limestone, slate, and ancient oak.
  */
 export const ALBEDO_GAIN: Record<string, number> = {
-  stone_ashlar: 1.15,
-  stone_trim: 1.08,
-  limestone_weathered: 1.08,
-  citadel_masonry: 1.15,
+  stone_ashlar: 1.12,
+  stone_trim: 1.06,
+  limestone_weathered: 1.06,
+  citadel_masonry: 1.12,
   damp_slate_stone: 1.12,
   mountain_crag_rock: 1.12,
-  aged_oak_timber: 1.18,
-  brick_medieval: 1.25,
-  timber_oak: 1.22,
-  planks_oak: 1.18,
-  roof_slate: 1.65,
-  roof_clay: 1.4,
-  iron_forged: 1.35,
-  brass_aged: 1.12,
-  plaster_cream: 0.96,
-  plaster_ochre: 1.02,
-  plaster_sage: 1.05,
-  plaster_terracotta: 1.02,
+  aged_oak_timber: 1.16,
+  brick_medieval: 1.08,
+  timber_oak: 1.16,
+  planks_oak: 1.14,
+  roof_slate: 1.55,
+  roof_clay: 1.12,
+  iron_forged: 1.18,
+  brass_aged: 1.08,
+  plaster_cream: 0.92,
+  plaster_ochre: 0.94,
+  plaster_sage: 0.92,
+  plaster_terracotta: 0.92,
 };
 
 const METAL_ENV_MATERIALS = new Set(['iron_forged', 'brass_aged', 'window_leaded']);
@@ -292,18 +341,26 @@ export class CityMaterialLibrary {
       return tex;
     };
 
-    /** Load V3 Packed-ORM PBR Material (Albedo + Tangent Normal + ORM [R=AO, G=Rough, B=Metal]) */
+    /**
+     * Load V4 Packed-ORM PBR Material (1024/512 Albedo + Dual-Scale Normal + HBAO Packed ORM):
+     *   - R = Horizon-Based Heightfield AO (`aoMap`, `aoMapIntensity`)
+     *   - G = Roughness (`roughnessMap`)
+     *   - B = Metalness (`metalnessMap`; 0.0 for dielectric stone/wood, 1.0 * B for wrought iron!)
+     */
     const loadOrmPBR = (
       texBase: string,
-      opts: { roughness?: number; metalness?: number; normalScale?: number; repeat?: number } = {},
+      opts: { roughness?: number; metalness?: number; aoIntensity?: number; normalScale?: number; repeat?: number } = {},
     ): THREE.MeshStandardMaterial => {
-      const { roughness = 1.0, metalness = 0.04, normalScale = 1.25, repeat = 1 } = opts;
+      const { roughness = 1.0, metalness = 0.0, aoIntensity = 0.65, normalScale = 1.32, repeat = 1 } = opts;
       const ormTex = loadTex(`${texBase}_orm.png`, false, repeat);
       return new THREE.MeshStandardMaterial({
         map: loadTex(`${texBase}_albedo.png`, true, repeat),
         normalMap: loadTex(`${texBase}_normal.png`, false, repeat),
         normalScale: new THREE.Vector2(normalScale, normalScale),
+        aoMap: ormTex,
+        aoMapIntensity: aoIntensity,
         roughnessMap: ormTex,
+        metalnessMap: ormTex,
         roughness,
         metalness,
       });
@@ -313,7 +370,7 @@ export class CityMaterialLibrary {
       name: string,
       opts: { roughness?: number; metalness?: number; normalScale?: number; repeat?: number } = {},
     ): THREE.MeshStandardMaterial => {
-      const { roughness = 0.86, metalness = 0.04, normalScale = 1.0, repeat = 1 } = opts;
+      const { roughness = 0.88, metalness = 0.0, normalScale = 1.0, repeat = 1 } = opts;
       return new THREE.MeshStandardMaterial({
         map: loadTex(`${name}_albedo.png`, true, repeat),
         normalMap: loadTex(`${name}_normal.png`, false, repeat),
@@ -325,32 +382,32 @@ export class CityMaterialLibrary {
     };
 
     const STONE_WEATHER: WeatheringParams = {
-      macroAmp: 0.16,
+      macroAmp: 0.15,
       macroFreq: 0.14,
-      mossStrength: 0.52,
-      streakStrength: 0.58,
-      wetStrength: 0.65,
-      microGrit: 0.12,
+      mossStrength: 0.48,
+      streakStrength: 0.56,
+      wetStrength: 0.62,
+      microGrit: 0.16,
       useOrm: true,
       directAoMix: AO_DIRECT_MIX,
     };
     const DAMP_WEATHER: WeatheringParams = {
-      macroAmp: 0.18,
+      macroAmp: 0.17,
       macroFreq: 0.18,
-      mossStrength: 0.65,
-      streakStrength: 0.72,
-      wetStrength: 0.92,
-      microGrit: 0.14,
+      mossStrength: 0.62,
+      streakStrength: 0.70,
+      wetStrength: 0.90,
+      microGrit: 0.16,
       useOrm: true,
       directAoMix: 0.22,
     };
     const OAK_WEATHER: WeatheringParams = {
       macroAmp: 0.12,
       macroFreq: 0.22,
-      mossStrength: 0.18,
+      mossStrength: 0.16,
       streakStrength: 0.22,
-      wetStrength: 0.35,
-      microGrit: 0.08,
+      wetStrength: 0.34,
+      microGrit: 0.10,
       useOrm: true,
       directAoMix: 0.24,
     };
@@ -359,67 +416,115 @@ export class CityMaterialLibrary {
       macroFreq: 0.16,
       mossStrength: 0.15,
       streakStrength: 0.28,
-      wetStrength: 0.25,
-      microGrit: 0.06,
+      wetStrength: 0.24,
+      microGrit: 0.08,
       useOrm: false,
       directAoMix: 0.24,
     };
 
-    // === V3 Primary Grounded Gothic Mountain Citadel Materials (Packed ORM + Multi-Scale Weathering) ===
-    this.registerBase('citadel_masonry', loadOrmPBR('citadel_masonry', { normalScale: 1.35 }), STONE_WEATHER);
-    this.registerBase('limestone_weathered', loadOrmPBR('limestone_weathered', { normalScale: 1.25 }), STONE_WEATHER);
+    // === V4 Primary Grounded Gothic Mountain Citadel Materials (1024/512 Packed ORM + Multi-Scale Weathering) ===
+    this.registerBase('citadel_masonry', loadOrmPBR('citadel_masonry', { normalScale: 1.42, aoIntensity: 0.68 }), STONE_WEATHER);
+    this.registerBase('limestone_weathered', loadOrmPBR('limestone_weathered', { normalScale: 1.28, aoIntensity: 0.62 }), STONE_WEATHER);
     this.registerBase(
       'damp_slate_stone',
       (() => {
-        const mat = loadOrmPBR('damp_slate_stone', { normalScale: 1.25 });
+        const mat = loadOrmPBR('damp_slate_stone', { normalScale: 1.32, aoIntensity: 0.66 });
         mat.color.setHex(0xd8cfc2);
         return mat;
       })(),
       DAMP_WEATHER,
     );
-    this.registerBase('broken_flagstone', loadOrmPBR('broken_flagstone', { normalScale: 1.28 }), STONE_WEATHER);
-    this.registerBase('mountain_crag_rock', loadOrmPBR('mountain_crag_rock', { normalScale: 1.45 }), {
+    this.registerBase('broken_flagstone', loadOrmPBR('broken_flagstone', { normalScale: 1.35, aoIntensity: 0.66 }), STONE_WEATHER);
+    this.registerBase('mountain_crag_rock', loadOrmPBR('mountain_crag_rock', { normalScale: 1.55, aoIntensity: 0.72 }), {
       ...STONE_WEATHER,
-      mossStrength: 0.68,
-      macroAmp: 0.22,
+      mossStrength: 0.62,
+      macroAmp: 0.20,
+      microGrit: 0.20,
     });
-    this.registerBase('aged_oak_timber', loadOrmPBR('aged_oak_timber', { normalScale: 1.2 }), OAK_WEATHER);
+    this.registerBase('aged_oak_timber', loadOrmPBR('aged_oak_timber', { normalScale: 1.25, aoIntensity: 0.62 }), OAK_WEATHER);
 
-    // Upgrade legacy material keys directly onto the new V3 Packed-ORM maps so ALL assets harmonize!
-    this.registerBase('stone_ashlar', loadOrmPBR('citadel_masonry', { normalScale: 1.35 }), STONE_WEATHER);
-    this.registerBase('stone_trim', loadOrmPBR('limestone_weathered', { normalScale: 1.25 }), STONE_WEATHER);
-    this.registerBase('timber_oak', loadOrmPBR('aged_oak_timber', { normalScale: 1.2 }), OAK_WEATHER);
-    this.registerBase('planks_oak', loadOrmPBR('aged_oak_timber', { normalScale: 1.12 }), OAK_WEATHER);
+    // Harmonize ALL legacy stone/brick/wood keys onto V4 1024/512 Packed-ORM maps (eliminates cartoon pillow bricks!)
+    this.registerBase('stone_ashlar', loadOrmPBR('citadel_masonry', { normalScale: 1.40, aoIntensity: 0.68 }), STONE_WEATHER);
+    this.registerBase('stone_trim', loadOrmPBR('limestone_weathered', { normalScale: 1.28, aoIntensity: 0.62 }), STONE_WEATHER);
+    this.registerBase(
+      'brick_medieval',
+      (() => {
+        const mat = loadOrmPBR('citadel_masonry', { normalScale: 1.36, aoIntensity: 0.66 });
+        mat.color.setHex(0xd2c4b4);
+        return mat;
+      })(),
+      STONE_WEATHER,
+    );
+    this.registerBase('timber_oak', loadOrmPBR('aged_oak_timber', { normalScale: 1.25 }), OAK_WEATHER);
+    this.registerBase('planks_oak', loadOrmPBR('aged_oak_timber', { normalScale: 1.15 }), OAK_WEATHER);
 
-    // Secondary Architectural Materials (Brick, Plaster, Roofs, Metals)
-    this.registerBase('brick_medieval', loadPBR('brick_medieval', { roughness: 0.9, metalness: 0.02, normalScale: 1.2 }), SUBTLE_WEATHER);
-    this.registerBase('plaster_cream', loadPBR('plaster_cream', { roughness: 0.94, metalness: 0.0, normalScale: 0.8 }), SUBTLE_WEATHER);
-    this.registerBase('plaster_ochre', loadPBR('plaster_ochre', { roughness: 0.94, metalness: 0.0, normalScale: 0.8 }), SUBTLE_WEATHER);
-    this.registerBase('plaster_sage', loadPBR('plaster_sage', { roughness: 0.94, metalness: 0.0, normalScale: 0.8 }), SUBTLE_WEATHER);
+    // Unified Weathered Limewash Roughcast, Highland Slate Roofs & Hand-Forged Iron (100% cohesive Stormveil palette!)
+    this.registerBase(
+      'plaster_cream',
+      (() => {
+        const mat = loadOrmPBR('limestone_weathered', { normalScale: 0.95, aoIntensity: 0.55 });
+        mat.color.setHex(0xd4cbbd);
+        return mat;
+      })(),
+      STONE_WEATHER,
+    );
+    this.registerBase(
+      'plaster_ochre',
+      (() => {
+        const mat = loadOrmPBR('limestone_weathered', { normalScale: 0.95, aoIntensity: 0.55 });
+        mat.color.setHex(0xc9bba3);
+        return mat;
+      })(),
+      STONE_WEATHER,
+    );
+    this.registerBase(
+      'plaster_sage',
+      (() => {
+        const mat = loadOrmPBR('limestone_weathered', { normalScale: 0.95, aoIntensity: 0.55 });
+        mat.color.setHex(0xbfbfb4);
+        return mat;
+      })(),
+      STONE_WEATHER,
+    );
     this.registerBase(
       'plaster_terracotta',
       (() => {
-        const mat = loadPBR('plaster_cream', { roughness: 0.94, metalness: 0.0, normalScale: 0.8 });
-        mat.color.setHex(0xc9896b);
+        const mat = loadOrmPBR('limestone_weathered', { normalScale: 0.95, aoIntensity: 0.55 });
+        mat.color.setHex(0xc2afa0);
         return mat;
       })(),
-      SUBTLE_WEATHER,
+      STONE_WEATHER,
     );
-    this.registerBase('roof_slate', loadPBR('roof_slate', { roughness: 0.78, metalness: 0.06, normalScale: 1.3 }), {
+    this.registerBase('roof_slate', loadPBR('roof_slate', { roughness: 0.78, metalness: 0.0, normalScale: 1.35 }), {
       ...SUBTLE_WEATHER,
       mossStrength: 0.42,
     });
-    this.registerBase('roof_clay', loadPBR('roof_clay', { roughness: 0.82, metalness: 0.04, normalScale: 1.3 }), {
-      ...SUBTLE_WEATHER,
-      mossStrength: 0.34,
-    });
-    this.registerBase('iron_forged', loadPBR('iron_forged', { roughness: 0.54, metalness: 0.88, normalScale: 1.05 }), {
-      ...SUBTLE_WEATHER,
-      macroAmp: 0.08,
-      mossStrength: 0,
-      streakStrength: 0.2,
-    });
-    this.registerBase('brass_aged', loadPBR('brass_aged', { roughness: 0.42, metalness: 0.88, normalScale: 0.9 }), {
+    this.registerBase(
+      'roof_clay',
+      (() => {
+        const mat = loadPBR('roof_slate', { roughness: 0.82, metalness: 0.0, normalScale: 1.35 });
+        mat.color.setHex(0xb89a8c);
+        return mat;
+      })(),
+      {
+        ...SUBTLE_WEATHER,
+        mossStrength: 0.40,
+      },
+    );
+    // V4 Hand-Hammered Wrought Iron with spatially varying metalness (0.15..0.95) & roughness (0.26..0.94) in Packed ORM!
+    this.registerBase(
+      'iron_forged',
+      loadOrmPBR('iron_forged_v4', { roughness: 1.0, metalness: 1.0, aoIntensity: 0.72, normalScale: 1.35 }),
+      {
+        ...SUBTLE_WEATHER,
+        useOrm: true,
+        macroAmp: 0.08,
+        mossStrength: 0,
+        streakStrength: 0.18,
+        microGrit: 0.08,
+      },
+    );
+    this.registerBase('brass_aged', loadPBR('brass_aged', { roughness: 0.52, metalness: 0.80, normalScale: 0.9 }), {
       ...SUBTLE_WEATHER,
       macroAmp: 0.06,
       mossStrength: 0,
@@ -433,23 +538,24 @@ export class CityMaterialLibrary {
       emissive: new THREE.Color('#ffaa4c'),
       emissiveMap: windowTex,
       emissiveIntensity: 0.04,
-      roughness: 0.22,
-      metalness: 0.15,
+      roughness: 0.24,
+      metalness: 0.12,
     });
     this.registerBase('window_leaded', windowMat, { ...SUBTLE_WEATHER, macroAmp: 0, mossStrength: 0, streakStrength: 0, wetStrength: 0 });
 
-    // Banners, awnings, painted shop signs
-    this.registerBase('banner_ashenhold', new THREE.MeshStandardMaterial({ map: loadTex('banner_ashenhold.png', true), roughness: 0.88, side: THREE.DoubleSide }), SUBTLE_WEATHER);
-    this.registerBase('awning_striped', new THREE.MeshStandardMaterial({ map: loadTex('awning_striped.png', true), roughness: 0.92, side: THREE.DoubleSide }), SUBTLE_WEATHER);
-    this.registerBase('awning_navy', new THREE.MeshStandardMaterial({ map: loadTex('awning_navy.png', true), roughness: 0.92, side: THREE.DoubleSide }), SUBTLE_WEATHER);
-    this.registerBase('awning_emerald', new THREE.MeshStandardMaterial({ map: loadTex('awning_emerald.png', true), roughness: 0.92, side: THREE.DoubleSide }), SUBTLE_WEATHER);
-    this.registerBase('awning_ochre', new THREE.MeshStandardMaterial({ map: loadTex('awning_ochre.png', true), roughness: 0.92, side: THREE.DoubleSide }), SUBTLE_WEATHER);
-    this.registerBase('awning_plum', new THREE.MeshStandardMaterial({ map: loadTex('awning_plum.png', true), roughness: 0.92, side: THREE.DoubleSide }), SUBTLE_WEATHER);
-    this.registerBase('cloth_crimson', new THREE.MeshStandardMaterial({ color: 0x7b2520, roughness: 0.9, side: THREE.DoubleSide }), SUBTLE_WEATHER);
-    this.registerBase('cloth_navy', new THREE.MeshStandardMaterial({ color: 0x263f5b, roughness: 0.9, side: THREE.DoubleSide }), SUBTLE_WEATHER);
-    this.registerBase('cloth_emerald', new THREE.MeshStandardMaterial({ color: 0x28563c, roughness: 0.9, side: THREE.DoubleSide }), SUBTLE_WEATHER);
-    this.registerBase('cloth_ochre', new THREE.MeshStandardMaterial({ color: 0x9b7229, roughness: 0.9, side: THREE.DoubleSide }), SUBTLE_WEATHER);
-    this.registerBase('cloth_linen', new THREE.MeshStandardMaterial({ color: 0xc2b49a, roughness: 0.92, side: THREE.DoubleSide }), SUBTLE_WEATHER);
+    // Weathered Heraldic Banners, Muted Coarse-Woven Linen Awnings (ZERO circus stripes!) & Painted Shop Signs
+    const coarseCanvasTex = loadTex('dirt_gravel_albedo.png', true, 3);
+    this.registerBase('banner_ashenhold', new THREE.MeshStandardMaterial({ map: loadTex('banner_ashenhold.png', true), color: 0xcab8a8, roughness: 0.92, side: THREE.DoubleSide }), SUBTLE_WEATHER);
+    this.registerBase('awning_striped', new THREE.MeshStandardMaterial({ map: coarseCanvasTex, color: 0x8e6b58, roughness: 0.95, side: THREE.DoubleSide }), SUBTLE_WEATHER);
+    this.registerBase('awning_navy', new THREE.MeshStandardMaterial({ map: coarseCanvasTex, color: 0x5c6976, roughness: 0.95, side: THREE.DoubleSide }), SUBTLE_WEATHER);
+    this.registerBase('awning_emerald', new THREE.MeshStandardMaterial({ map: coarseCanvasTex, color: 0x64705a, roughness: 0.95, side: THREE.DoubleSide }), SUBTLE_WEATHER);
+    this.registerBase('awning_ochre', new THREE.MeshStandardMaterial({ map: coarseCanvasTex, color: 0x9c8564, roughness: 0.95, side: THREE.DoubleSide }), SUBTLE_WEATHER);
+    this.registerBase('awning_plum', new THREE.MeshStandardMaterial({ map: coarseCanvasTex, color: 0x7a5c5e, roughness: 0.95, side: THREE.DoubleSide }), SUBTLE_WEATHER);
+    this.registerBase('cloth_crimson', new THREE.MeshStandardMaterial({ map: coarseCanvasTex, color: 0x6e312a, roughness: 0.94, side: THREE.DoubleSide }), SUBTLE_WEATHER);
+    this.registerBase('cloth_navy', new THREE.MeshStandardMaterial({ map: coarseCanvasTex, color: 0x3b4958, roughness: 0.94, side: THREE.DoubleSide }), SUBTLE_WEATHER);
+    this.registerBase('cloth_emerald', new THREE.MeshStandardMaterial({ map: coarseCanvasTex, color: 0x3d523c, roughness: 0.94, side: THREE.DoubleSide }), SUBTLE_WEATHER);
+    this.registerBase('cloth_ochre', new THREE.MeshStandardMaterial({ map: coarseCanvasTex, color: 0x8a6d40, roughness: 0.94, side: THREE.DoubleSide }), SUBTLE_WEATHER);
+    this.registerBase('cloth_linen', new THREE.MeshStandardMaterial({ map: coarseCanvasTex, color: 0xbab09c, roughness: 0.95, side: THREE.DoubleSide }), SUBTLE_WEATHER);
     this.registerBase('sign_tavern', new THREE.MeshStandardMaterial({ map: loadTex('sign_tavern.png', true), roughness: 0.78 }), SUBTLE_WEATHER);
     this.registerBase('sign_apothecary', new THREE.MeshStandardMaterial({ map: loadTex('sign_apothecary.png', true), roughness: 0.78 }), SUBTLE_WEATHER);
     this.registerBase('sign_bakery', new THREE.MeshStandardMaterial({ map: loadTex('sign_bakery.png', true), roughness: 0.78 }), SUBTLE_WEATHER);
@@ -458,27 +564,27 @@ export class CityMaterialLibrary {
 
     this.registerBase(
       'fabric_sack',
-      new THREE.MeshStandardMaterial({ map: loadTex('dirt_gravel_albedo.png', true, 2), color: 0xa8926e, roughness: 0.95 }),
+      new THREE.MeshStandardMaterial({ map: loadTex('dirt_gravel_albedo.png', true, 2), color: 0xa08b6a, roughness: 0.95 }),
       SUBTLE_WEATHER,
     );
-    this.registerBase('ceramic_clay', new THREE.MeshStandardMaterial({ color: 0x8f5032, roughness: 0.72, metalness: 0.04 }), SUBTLE_WEATHER);
+    this.registerBase('ceramic_clay', new THREE.MeshStandardMaterial({ color: 0x7d4930, roughness: 0.74, metalness: 0.0 }), SUBTLE_WEATHER);
     this.registerBase(
       'glow_warm',
-      new THREE.MeshStandardMaterial({ color: 0xffd084, emissive: new THREE.Color('#ff9d3b'), emissiveIntensity: 2.1, roughness: 0.4 }),
+      new THREE.MeshStandardMaterial({ color: 0xffc670, emissive: new THREE.Color('#ff8c2a'), emissiveIntensity: 1.9, roughness: 0.45 }),
       { ...SUBTLE_WEATHER, macroAmp: 0, mossStrength: 0, streakStrength: 0, wetStrength: 0 },
     );
     this.registerBase(
       'ember_forge',
-      new THREE.MeshStandardMaterial({ color: 0x3b1810, emissive: new THREE.Color('#ff5514'), emissiveIntensity: 2.8, roughness: 0.65 }),
+      new THREE.MeshStandardMaterial({ color: 0x2a120c, emissive: new THREE.Color('#ff4d12'), emissiveIntensity: 2.6, roughness: 0.75 }),
       { ...SUBTLE_WEATHER, macroAmp: 0, mossStrength: 0, streakStrength: 0, wetStrength: 0 },
     );
     this.registerBase(
       'foliage_leaf',
-      new THREE.MeshStandardMaterial({ map: loadTex('dirt_gravel_albedo.png', true, 2), color: 0x456637, roughness: 0.84 }),
+      new THREE.MeshStandardMaterial({ map: loadTex('dirt_gravel_albedo.png', true, 2), color: 0x3b582e, roughness: 0.86 }),
       { ...SUBTLE_WEATHER, macroAmp: 0.14, mossStrength: 0, streakStrength: 0, wetStrength: 0.2 },
     );
 
-    // === V3 Multi-Scale Ground Shader: Fractured Gothic Flagstones + Mountain Crag Rock + Earth + Organic Puddles ===
+    // === V4 Multi-Scale Ground Shader: 1024px Fractured Flagstones + Triplanar Cliff Bedrock + Gutters & Puddles ===
     const flagAlbedo = loadTex('broken_flagstone_albedo.png', true);
     const flagNormal = loadTex('broken_flagstone_normal.png', false);
     const flagOrm = loadTex('broken_flagstone_orm.png', false);
@@ -489,13 +595,13 @@ export class CityMaterialLibrary {
     this.streetMaterial = new THREE.MeshStandardMaterial({
       map: flagAlbedo,
       normalMap: flagNormal,
-      normalScale: new THREE.Vector2(1.3, 1.3),
+      normalScale: new THREE.Vector2(1.42, 1.42),
       roughnessMap: flagOrm,
       roughness: 1.0,
-      metalness: 0.04,
+      metalness: 0.0,
       vertexColors: true,
     });
-    this.streetMaterial.color.setScalar(1.16);
+    this.streetMaterial.color.setScalar(1.12);
     this.streetMaterial.onBeforeCompile = (shader) => {
       shader.uniforms.uCragMap = { value: cragAlbedo };
       shader.uniforms.uCragNormal = { value: cragNormal };
@@ -547,25 +653,29 @@ export class CityMaterialLibrary {
           `float gPuddleW = 0.0;
            float gSoakW = 0.0;
            float gOrmAo = 1.0;
+           float gCliffSlope = smoothstep(0.14, 0.38, 1.0 - clamp(vAmWorldNrm.y, 0.0, 1.0));
+           // World-space triplanar UV on steep retaining walls eliminates vertical UV smearing!
+           vec2 gCliffUv = mix(
+             vMapUv * 0.68,
+             vec2((vAmWorldPos.x * 0.78 + vAmWorldPos.z * 0.62) * 0.34, vAmWorldPos.y * 0.42),
+             smoothstep(0.08, 0.32, 1.0 - clamp(vAmWorldNrm.y, 0.0, 1.0))
+           );
            #ifdef USE_MAP
              vec4 flagCol = texture2D( map, vMapUv );
-             vec4 cragCol = texture2D( uCragMap, vMapUv * 0.65 );
-             // Macro dual-frequency world breakup eliminates any visible stone tiling
+             vec4 cragCol = texture2D( uCragMap, gCliffUv );
              float gMac = amNoise3(vAmWorldPos * 0.16) * 0.65 + amNoise3(vAmWorldPos * 0.55 + 7.2) * 0.35;
-             float gFine = amNoise3(vAmWorldPos * 4.8);
-             vec3 mossCol = vec3(0.16, 0.22, 0.11) * (0.85 + 0.3 * gFine);
-             float cliffSlope = smoothstep(0.16, 0.42, 1.0 - clamp(vAmWorldNrm.y, 0.0, 1.0));
+             float gFine = amNoise3(vAmWorldPos * 5.2);
+             vec3 mossCol = vec3(0.17, 0.22, 0.12) * (0.85 + 0.3 * gFine);
              vec3 blendedGround = flagCol.rgb * vSplat.x + cragCol.rgb * vSplat.y + mossCol * vSplat.z;
-             blendedGround = mix(blendedGround, cragCol.rgb * 0.95, cliffSlope);
-             blendedGround *= 0.86 + 0.28 * gMac;
+             blendedGround = mix(blendedGround, cragCol.rgb * 0.96, gCliffSlope);
+             blendedGround *= 0.87 + 0.26 * gMac;
 
              // Continuous organic wetness gradient: standing puddle -> soaked rim -> damp -> dry
              float edgeNoise = amNoise3(vAmWorldPos * 1.9) * 0.6 + amNoise3(vAmWorldPos * 6.5) * 0.4;
              float depth = vSplat.w + (edgeNoise - 0.5) * 0.28;
-             gPuddleW = smoothstep(0.46, 0.64, depth);
-             gSoakW = smoothstep(0.24, 0.52, depth);
-             // Soaked dark rim + subtle crisp sky specular tint inside puddle mirror
-             blendedGround *= 1.0 - 0.24 * gSoakW;
+             gPuddleW = smoothstep(0.46, 0.64, depth) * (1.0 - gCliffSlope);
+             gSoakW = smoothstep(0.24, 0.52, depth) * (1.0 - gCliffSlope * 0.7);
+             blendedGround *= 1.0 - 0.22 * gSoakW;
              blendedGround = mix(blendedGround, blendedGround * 0.72 + vec3(0.09, 0.12, 0.16), gPuddleW * 0.72);
              diffuseColor *= vec4(blendedGround, flagCol.a);
            #endif`,
@@ -575,9 +685,10 @@ export class CityMaterialLibrary {
           `float roughnessFactor = roughness;
            #ifdef USE_ROUGHNESSMAP
              vec4 flagOrmS = texture2D( roughnessMap, vRoughnessMapUv );
-             vec4 cragOrmS = texture2D( uCragOrm, vRoughnessMapUv * 0.65 );
-             float mixRough = mix(flagOrmS.g, cragOrmS.g, clamp(vSplat.y + vSplat.z * 0.5, 0.0, 1.0));
-             gOrmAo = mix(flagOrmS.r, cragOrmS.r, clamp(vSplat.y, 0.0, 1.0));
+             vec4 cragOrmS = texture2D( uCragOrm, gCliffUv );
+             float rockBlend = clamp(max(vSplat.y + vSplat.z * 0.4, gCliffSlope), 0.0, 1.0);
+             float mixRough = mix(flagOrmS.g, cragOrmS.g, rockBlend);
+             gOrmAo = mix(flagOrmS.r, cragOrmS.r, rockBlend);
              float wetRough = mix(mixRough, mixRough * 0.48, gSoakW);
              roughnessFactor *= mix(wetRough, 0.07, gPuddleW);
            #endif`,
@@ -586,8 +697,8 @@ export class CityMaterialLibrary {
           '#include <normal_fragment_maps>',
           `#ifdef USE_NORMALMAP_TANGENTSPACE
              vec3 mapN1 = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;
-             vec3 mapN2 = texture2D( uCragNormal, vNormalMapUv * 0.65 ).xyz * 2.0 - 1.0;
-             vec3 mapN = mix(mapN1, mapN2, clamp(vSplat.y, 0.0, 1.0));
+             vec3 mapN2 = texture2D( uCragNormal, gCliffUv ).xyz * 2.0 - 1.0;
+             vec3 mapN = mix(mapN1, mapN2, clamp(max(vSplat.y, gCliffSlope), 0.0, 1.0));
              mapN = mix(mapN, vec3(0.0, 0.0, 1.0), clamp(gPuddleW * 0.94, 0.0, 0.94));
              mapN.xy *= normalScale;
              normal = normalize( tbn * mapN );
@@ -596,11 +707,12 @@ export class CityMaterialLibrary {
         .replace(
           '#include <aomap_fragment>',
           `#include <aomap_fragment>
-           float gAo = (uDebugMode > 3.5 && uDebugMode < 4.5) ? 1.0 : mix(1.0, gOrmAo, 0.65);
-           vec3 cAo = aoTint * gAo;
+           float gAo = (uDebugMode > 3.5 && uDebugMode < 4.5) ? 1.0 : mix(1.0, gOrmAo, 0.68);
+           float gSkyOcc = amComputeSkyOcclusion(vAmWorldPos);
+           vec3 cAo = aoTint * gAo * gSkyOcc;
            reflectedLight.indirectDiffuse *= cAo;
            reflectedLight.indirectSpecular *= cAo;
-           reflectedLight.directDiffuse *= mix(vec3(1.0), cAo, 0.20);`,
+           reflectedLight.directDiffuse *= mix(vec3(1.0), aoTint * gAo, 0.22);`,
         )
         .replace(
           '#include <dithering_fragment>',
@@ -614,7 +726,7 @@ export class CityMaterialLibrary {
            #include <dithering_fragment>`,
         );
     };
-    this.streetMaterial.customProgramCacheKey = () => 'ashenhold-street-v3-flagstone';
+    this.streetMaterial.customProgramCacheKey = () => 'ashenhold-street-v4-flagstone';
 
     this.waterTroughMaterial = new THREE.MeshStandardMaterial({
       color: 0x224652,
@@ -643,7 +755,7 @@ export class CityMaterialLibrary {
 
   private applyEnv(mat: THREE.MeshStandardMaterial, base: string): void {
     mat.envMap = this.metalEnv;
-    mat.envMapIntensity = base === 'window_leaded' ? 0.8 : 1.15;
+    mat.envMapIntensity = base === 'iron_forged' ? 0.72 : base === 'window_leaded' ? 0.78 : 0.95;
     mat.needsUpdate = true;
   }
 

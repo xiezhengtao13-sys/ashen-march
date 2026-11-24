@@ -63,7 +63,11 @@ function buildGroundChunk(
     const z = posAttr.getZ(i) + czMid;
 
     const sample = sampleCityNetwork(x, z);
-    const y = sample.height;
+    const microSettle =
+      (sample.plazaWeight > 0.2 || sample.roadDist <= 0.4) && sample.stepWeight < 0.1
+        ? (noise2(x * 1.35 + 3.1, z * 1.35 - 7.4) - 0.5) * 0.028
+        : 0;
+    const y = sample.height + microSettle;
     posAttr.setXYZ(i, x, y, z);
 
     // Analytic finite-difference normals eliminate visible seams across chunk borders
@@ -78,8 +82,8 @@ function buildGroundChunk(
     normals[i * 3 + 1] = invLen;
     normals[i * 3 + 2] = nz * invLen;
 
-    // Metric UVs (1 tile = 2.6m)
-    uvAttr.setXY(i, x / 2.6, z / 2.6);
+    // Crisp metric UVs (1024px tile = 2.15m -> ~0.48px/mm high close-up texel density!)
+    uvAttr.setXY(i, x / 2.15, z / 2.15);
 
     const nA = noise2(x * 0.24 + 5.1, z * 0.24 - 2.3);
     const nB = noise2(x * 0.55 - 1.7, z * 0.55 + 4.9);
@@ -92,9 +96,9 @@ function buildGroundChunk(
     // Steep hillside retaining slopes show mossy mountain rock/earth
     const slopeAmt = 1.0 - invLen;
 
-    if (slopeAmt > 0.14) {
-      dirt = 0.6;
-      moss = 0.4;
+    if (slopeAmt > 0.12) {
+      dirt = 0.82;
+      moss = 0.18;
       cobble = 0.0;
     } else if (sample.plazaWeight > 0.25 || sample.roadDist <= 0.35) {
       cobble = 0.94;
@@ -102,27 +106,28 @@ function buildGroundChunk(
       if (sample.stepWeight > 0.2) {
         cobble = 0.97;
         dirt = 0.03;
-      } else if (sample.roadDist > -0.65 && sample.roadDist < 0.25 && sample.plazaWeight < 0.4) {
-        // Curbside damp moss & puddle glint along trade street gutters
-        moss = 0.22 * nB;
-        puddle = smoothstep(0.62, 0.88, nA) * 0.45;
+      } else if (sample.roadDist > -0.75 && sample.roadDist < 0.30 && sample.plazaWeight < 0.4) {
+        // Curbside drainage gutter: gritty silt, patchy moss & damp rainwater sheen
+        dirt = 0.18 + 0.12 * nA;
+        moss = 0.16 * smoothstep(0.45, 0.85, nB);
+        puddle = smoothstep(0.56, 0.84, nA) * 0.52;
       } else if (sample.plazaWeight > 0.5) {
         // Subtle worn stone patches in Central Market square
         dirt = 0.08 * nA;
-        puddle = smoothstep(0.76, 0.94, nA * nB) * 0.22;
+        puddle = smoothstep(0.76, 0.94, nA * nB) * 0.24;
       }
     } else if (sample.roadDist <= 2.6) {
       const f = smoothstep(0.35, 2.6, sample.roadDist);
-      cobble = (1 - f) * 0.65;
-      dirt = 0.35 + f * 0.45;
-      moss = f * (0.28 + 0.25 * nB);
+      cobble = (1 - f) * 0.62;
+      dirt = 0.38 + f * 0.46;
+      moss = f * (0.20 + 0.22 * nB);
     } else {
       // Mountain hillside turf & rocky earth outside paved terraces
-      dirt = 0.42 + 0.18 * nA;
-      moss = 0.58 - 0.12 * nA;
+      dirt = 0.55 + 0.18 * nA;
+      moss = 0.45 - 0.12 * nA;
       if (Math.abs(x) > 52 || z < -126) {
-        dirt = 0.32 + 0.15 * nA;
-        moss = 0.68 - 0.1 * nA;
+        dirt = 0.44 + 0.15 * nA;
+        moss = 0.56 - 0.1 * nA;
       }
     }
 
@@ -132,10 +137,10 @@ function buildGroundChunk(
     splats[i * 4 + 2] = moss / sum;
     splats[i * 4 + 3] = puddle;
 
-    // Crisp bright natural daylight stone albedo modulation
-    let shade = 0.95 + 0.05 * nA;
+    // Crisp bright natural daylight stone albedo modulation with darker gutter silt
+    let shade = 0.94 + 0.06 * nA;
     if (sample.curbOffset < -0.02) {
-      shade *= 0.91;
+      shade *= 0.84;
     } else if (sample.plazaWeight > 0.5) {
       shade *= 1.03;
     }
@@ -147,6 +152,7 @@ function buildGroundChunk(
   geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
   geometry.setAttribute('aSplat', new THREE.BufferAttribute(splats, 4));
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.computeTangents();
 
   const mesh = new THREE.Mesh(geometry, streetMaterial);
   mesh.name = name;

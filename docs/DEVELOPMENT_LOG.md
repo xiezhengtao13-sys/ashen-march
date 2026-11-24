@@ -118,6 +118,13 @@
   - `npm run test:e2e` (Playwright + headless Chrome WebGL2 SwiftShader)：**2/2 全部通过 (`6.8m`，0 控制台/页面报错)**——完整验证原开放世界/古代墓穴/IndexedDB 存档无回归，以及灰烬城 V3 全程零 `teleport()` 的真实 `KeyW` 连续步行：`0.0m` 南城门 → `-3.93m` 黑石暗渠 → `+3.55m` 拱廊市集（与商会总管索恩真实交易扣减金币）→ `+7.59m` 北堡垒观景台 → `+19.58m` 悬崖瞭望塔顶 → 材质诊断接口与 `[M]` 舆图。
   - 采集并归档全部 15 张实机截图至 `docs/screenshots/v3/`（6 组固定机位 A–F Before/After、6 档材质诊断图、3 张四层垂直补充视图；云端 CPU SwiftShader 1280×720 High 档实测：机位 F `no_post` 主通道仅 `50 DC / 123,044 Tris`，含 2048 阴影 + PostFX 累计 `195 DC / 371,014 Tris`；全城视野 `447–489 DC / 627k–657k Tris / 2.7–6.2s` CPU 软件帧耗时）。
 
-
-
-
+## 2026-11-24 — Ashenhold Visual Polish V4 (`feature/ashenhold-visual-polish-v4`)：高品质环境美术精修、两轮实机迭代与分通道性能优化
+- **V3 基线 8 机位审计与三通道性能探针 (`QualityManager.ts`, `DayNightCycle.ts`, `CityPostFX.ts`, `docs/VISUAL_POLISH_V4.md`)**：
+  - 扩充固定对比机位至 8 组（`Cam A–F` + 新增 `Cam G` 石板路/路缘排水近景 + `Cam H` 山体城墙与台阶交界），并实装 `Main Pass`、`Shadow Pass`、`Post-FX Pass` 严格分离的 Draw Calls / Triangles 统计与 `SwiftShader (CPU Software)` 后端标识。
+- **1024/512 多尺度 Packed ORM 材质集与着色器升级 (`scripts/city/texgen_v4.c`, `generate_textures_v4.py`, `CityMaterialLibrary.ts`, `CityAssetLoader.ts`, `CityGroundBuilder.ts`)**：
+  - 生成 7 套 V4 多尺度 PBR 贴图（21 张 PNG：含 1024×1024 `limestone_weathered`、`citadel_masonry`、`broken_flagstone`、`mountain_crag_rock`，以及 512×512 `damp_slate_stone`、`aged_oak_timber`、`iron_forged_v4`），全部烘入 8 向高度场 HBAO（`R`）、物理粗糙度（`G`）、空间变化金属度（`B`）与 3×3/7×7 双尺度法线。
+  - 彻底区分无假砖缝整石（`limestone_weathered`）与错缝垫片石砌体（`citadel_masonry`）；修复 `CityMaterialLibrary.ts` 完整绑定 `aoMap + roughnessMap + metalnessMap`（石木 `metalness = 0.0`、锤击锻铁 `metalness = 1.0 * B`），补齐 GLB 与地面切线空间（`computeTangents()`）、`<8m` 世界空间微法线、台地陡坡三平面岩石投影与室内/暗渠天光遮蔽（Sky Occlusion）。
+- **`O(1)` BMesh 雕刻几何、两轮可追踪画面迭代与可见性裁剪 (`scripts/city/v4_sculpt_helpers.py`, `stormveil_kit.py`, `CityPhase1Builder.ts`)**：
+  - 实现零 `bmesh.ops` 全局扫描的 `O(1)` 12 顶点缺角倒棱条石、8 顶点开背草边凸肚石（每石仅 10 三角面且带随机 UV 相位偏移）、28° 倾角层理裂解山崖（取代圆角方块山体）、哥特十字肋架拱顶、S 形路缘石与雨水铁箅、劈柴火盆与锻铁六角笼灯（彻底清除全城肉粉/橘色发光方块），并重制哥特八角铁链喷泉、宪章柱与 6 座粗麻木构摊位（共导出 23 个精修 GLB）。
+  - 执行完整的 **Iteration 1 → 逐图挑刺复盘 → Iteration 2** 实机迭代：在 Iteration 2 中消除 `limestone_weathered` 规则斜纹与白骨牌跳色、将 `damp_slate_stone` 重构为层状劈裂青灰板岩、加深 `broken_flagstone` 泥苔暗缝与多岩性色差、将台阶斜向白压条改为水平阶梯压顶条石，并实装 `-4m` 地底暗渠入口裁剪、室内静态合并与南北道具阴影裁剪。
+  - **实测对比（`1280×720`, `High`, `13:00`）**：在视觉雕刻细节显著提升的同时，Total Triangles 在主要视野全面下降（`Cam A` `627k → 436k` **-30.5%**，`Cam B` `653k → 521k` **-20.2%**，`Cam E` `548k → 439k` **-19.8%**，`Cam G` `619k → 507k` **-18.1%**，`Cam C` `633k → 537k` **-15.3%**），驻留纹理由 `80` 降至 `58–76`；同步输出 `Raw → Tonemap → Tonemap+FXAA → Final` 四阶段渲染管线对比图与 PBR 通道诊断图。

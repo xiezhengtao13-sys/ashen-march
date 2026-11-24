@@ -2,17 +2,24 @@ import * as THREE from 'three';
 
 export interface CityPostFXOptions {
   enabled: boolean;
+  tonemap: boolean;
   fxaa: boolean;
-  sharpen: number;
-  grain: number;
+  sharpen: boolean | number;
+  grain: boolean | number;
+  sharpenStrength: number;
+  grainStrength: number;
 }
 
 /**
- * Lightweight single-pass WebGL2 post-processing compositor for Ashenhold V3.
+ * Lightweight single-pass WebGL2 post-processing compositor for Ashenhold V4.
  * Renders the scene into a linear HalfFloat HDR target, applies Three.js's exact
- * Khronos PBR Neutral tone-mapping + Linear-to-sRGB encoding per sample so `final`
- * and `no_post` match in exposure and color identically, then runs edge-aware FXAA,
- * contrast-adaptive micro-sharpening (backed off on FXAA edges), and subtle dither/grain.
+ * Khronos PBR Neutral tone-mapping + Linear-to-sRGB encoding per sample (zero double
+ * tonemapping), then runs edge-aware FXAA, halo-free contrast-adaptive micro-sharpening,
+ * and ultra-subtle 8-bit dither/grain. Supports 4-stage pipeline verification:
+ *   (1) Raw HDR->sRGB (`tonemap: false, fxaa: false, sharpen: false, grain: false`)
+ *   (2) Tone Mapping Only (`tonemap: true, fxaa: false, sharpen: false, grain: false`)
+ *   (3) Tone Mapping + FXAA (`tonemap: true, fxaa: true, sharpen: false, grain: false`)
+ *   (4) Final (`tonemap: true, fxaa: true, sharpen: true, grain: true`)
  */
 export class CityPostFX {
   private rt: THREE.WebGLRenderTarget | null = null;
@@ -23,9 +30,12 @@ export class CityPostFX {
 
   readonly options: CityPostFXOptions = {
     enabled: true,
+    tonemap: true,
     fxaa: true,
-    sharpen: 0.22,
-    grain: 0.008,
+    sharpen: true,
+    grain: true,
+    sharpenStrength: 0.18,
+    grainStrength: 0.0025,
   };
 
   constructor() {
@@ -38,9 +48,10 @@ export class CityPostFX {
         uTexel: { value: new THREE.Vector2(1 / 1280, 1 / 720) },
         uTime: { value: 0 },
         uExposure: { value: 1.0 },
+        uTonemap: { value: 1 },
         uFxaa: { value: 1 },
-        uSharpen: { value: 0.22 },
-        uGrain: { value: 0.008 },
+        uSharpen: { value: 0.18 },
+        uGrain: { value: 0.0025 },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -54,6 +65,7 @@ export class CityPostFX {
         uniform vec2 uTexel;
         uniform float uTime;
         uniform float uExposure;
+        uniform float uTonemap;
         uniform float uFxaa;
         uniform float uSharpen;
         uniform float uGrain;
@@ -82,7 +94,9 @@ export class CityPostFX {
         }
 
         vec3 sampleSrgb(vec2 uv) {
-          return linearToSrgb(neutralToneMapping(texture2D(tDiffuse, uv).rgb));
+          vec3 hdr = texture2D(tDiffuse, uv).rgb;
+          vec3 mapped = (uTonemap > 0.5) ? neutralToneMapping(hdr) : clamp(hdr * uExposure, 0.0, 1.0);
+          return linearToSrgb(mapped);
         }
 
         float luma(vec3 c) {
@@ -129,14 +143,14 @@ export class CityPostFX {
             col = (lB < lMin || lB > lMax) ? rgbA : rgbB;
           }
 
-          // Contrast-adaptive micro-sharpening, smoothly backed off on sharp silhouette edges
+          // Halo-free contrast-adaptive micro-sharpening (backed off on high-contrast silhouette edges)
           if (uSharpen > 0.001) {
             vec3 blur = (rgbNW + rgbNE + rgbSW + rgbSE) * 0.25;
-            float edgeBackoff = 1.0 - smoothstep(0.05, 0.24, contrast);
-            col += (rgbM - blur) * uSharpen * edgeBackoff;
+            float edgeBackoff = 1.0 - smoothstep(0.045, 0.20, contrast);
+            col += clamp((rgbM - blur) * uSharpen * edgeBackoff, vec3(-0.045), vec3(0.045));
           }
 
-          // Subtle tonal dither + micro film grain (prevents 8-bit sky/shadow banding)
+          // Subtle 8-bit tonal dither (prevents sky/shadow banding without muddying stone pores)
           if (uGrain > 0.0005) {
             float n = hash12(gl_FragCoord.xy + fract(uTime) * 37.0) - 0.5;
             col += vec3(n * uGrain);
@@ -169,11 +183,23 @@ export class CityPostFX {
     return this.rt;
   }
 
-  render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, elapsed: number): void {
+  render(
+    renderer: THREE.WebGLRenderer,
+    scene: THREE.Scene,
+    camera: THREE.Camera,
+    elapsed: number,
+  ): { sceneCalls: number; sceneTris: number; postCalls: number; postTris: number } {
+    const prevAutoReset = renderer.info.autoReset;
+    renderer.info.autoReset = false;
+    renderer.info.reset();
+
     if (!this.options.enabled) {
       renderer.setRenderTarget(null);
       renderer.render(scene, camera);
-      return;
+      const sceneCalls = renderer.info.render.calls;
+      const sceneTris = renderer.info.render.triangles;
+      renderer.info.autoReset = prevAutoReset;
+      return { sceneCalls, sceneTris, postCalls: 0, postTris: 0 };
     }
 
     const size = new THREE.Vector2();
@@ -182,24 +208,36 @@ export class CityPostFX {
     const h = Math.max(2, Math.floor(size.y));
     const rt = this.ensureTarget(w, h);
 
-    const prevAutoReset = renderer.info.autoReset;
-    renderer.info.autoReset = false;
-    renderer.info.reset();
-
     renderer.setRenderTarget(rt);
     renderer.render(scene, camera);
+    const sceneCalls = renderer.info.render.calls;
+    const sceneTris = renderer.info.render.triangles;
 
     this.material.uniforms.tDiffuse.value = rt.texture;
     this.material.uniforms.uTexel.value.set(1 / w, 1 / h);
     this.material.uniforms.uTime.value = elapsed;
     this.material.uniforms.uExposure.value = renderer.toneMappingExposure;
+    this.material.uniforms.uTonemap.value = this.options.tonemap ? 1 : 0;
     this.material.uniforms.uFxaa.value = this.options.fxaa ? 1 : 0;
-    this.material.uniforms.uSharpen.value = this.options.sharpen;
-    this.material.uniforms.uGrain.value = this.options.grain;
+    this.material.uniforms.uSharpen.value =
+      typeof this.options.sharpen === 'number'
+        ? this.options.sharpen
+        : this.options.sharpen
+          ? this.options.sharpenStrength
+          : 0;
+    this.material.uniforms.uGrain.value =
+      typeof this.options.grain === 'number'
+        ? this.options.grain
+        : this.options.grain
+          ? this.options.grainStrength
+          : 0;
 
     renderer.setRenderTarget(null);
     renderer.render(this.quadScene, this.quadCamera);
+    const postCalls = renderer.info.render.calls - sceneCalls;
+    const postTris = renderer.info.render.triangles - sceneTris;
     renderer.info.autoReset = prevAutoReset;
+    return { sceneCalls, sceneTris, postCalls, postTris };
   }
 
   dispose(): void {

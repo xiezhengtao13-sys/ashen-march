@@ -90,5 +90,8 @@
 - [x] **Stage D & E**：全套 6 机位 Before vs After 截图、6 档材质/后处理诊断图、3 张四层立体机位图、Vitest 9/9（含全路径零传送 4 层物理连通测试）与 Playwright E2E 零传送实机验收
 - [x] **Stage F**：同步文档与独立 PR 发布（不覆盖 `feature/ashenhold-hillside-redesign`，不合并 `main`）
 
-
-
+## Ashenhold — Visual Polish V4 (`feature/ashenhold-visual-polish-v4`)：高品质环境美术精修与渲染质量提升
+- [x] **Step 1 基线审计**：基于 V3 固定 8 组近景/中景机位（`Cam A–H`, `13:00`, `1280×720`, `High`）采集实机基线图与分离三通道遥测（`Main Pass` / `Shadow Pass` / `Post-FX Pass`），编写 [VISUAL_POLISH_V4.md](VISUAL_POLISH_V4.md)
+- [x] **Step 2 多尺度 1024/512 PBR 贴图与 BMesh 雕刻重构**：编写 `scripts/city/texgen_v4.c` 生成 7 套 1024/512 双尺度法线 + 8 向 HBAO Packed ORM 材质（彻底消除整石假砖缝、灯芯绒斜纹与油亮细胞板岩，补齐 `iron_forged_v4` 锤击金属度贴图）；编写 `scripts/city/v4_sculpt_helpers.py`（`O(1)` 缺角倒棱条石、草边凸肚石、28° 层理裂解山崖、哥特十字肋拱、劈柴火盆与锻铁六角笼灯）导出 23 个精修 GLB
+- [x] **Step 3 & 4 两轮可追踪实机视觉迭代与可见性裁剪**：完成 `Iteration 1 → 挑刺复盘 → Iteration 2` 全流程；实现 40° 西南斜射日光、36m 紧致阴影视锥、世界空间室内天光遮蔽、台地垂壁三平面投影、`-4m` 地底暗渠入口裁剪、室内静态合并与南北道具批次拆分（总面数与 Draw Calls 较 V3 下降 12%–30%）
+- [x] **Step 5–7 管线四阶段验证、全量自动化测试与独立 PR 预览发布**：输出 `Raw → Tonemap → Tonemap+FXAA → Final` 四阶段与 PBR 通道诊断图、8 维度 1–5 诚实评分表，通过 TypeScript / Vitest 10 套件 / Vite Build / Playwright E2E 全量验证并发布独立分支预览与 PR
