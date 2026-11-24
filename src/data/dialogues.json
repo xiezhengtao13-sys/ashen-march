@@ -366,227 +366,297 @@
       }
     },
     "city_gate_captain_dialogue": {
-      "entryNodes": [
-        {
-          "nodeId": "captain_greeting"
-        }
-      ],
+      "entryNodes": [{ "nodeId": "captain_greeting" }],
       "nodes": {
         "captain_greeting": {
           "speaker": "守门队长马库斯",
-          "text": "欢迎来到【灰烬城 (Ashenhold)】南门！如今穿过门卫主街北端的集市石拱门，即可直抵【中央市集广场】，也可分头探访西侧【铁匠工坊区】与东侧【织坊居民高地】。北巅的领主内堡仍在整修戒严，目前开放至城堡瓮城前庭。",
+          "text": "欢迎通过曲轴双门瓮城进入【灰烬城 (Ashenhold)】！全城八大区域现已全面贯通：向北经贸易街可达【中央拱廊市集】，两侧分通【西翼工匠锻坊】与【东翼居民高地】，更可一路登临【圣伊格尼斯大圣堂】与山巅【领主城堡议事大厅】。",
           "choices": [
-            {
-              "text": "这座城市现在有哪些地方可以参观？",
-              "nextNodeId": "captain_tour"
-            },
-            {
-              "text": "多谢放行，我先四处看看。",
-              "nextNodeId": null
-            }
+            { "text": "城里有哪些隐秘捷径或高处路线？", "nextNodeId": "captain_tour" },
+            { "text": "多谢指引，我这就进城探索。", "nextNodeId": null }
           ]
         },
         "captain_tour": {
           "speaker": "守门队长马库斯",
-          "text": "穿过城门拱道，左手边第一栋便是我们的【南门卫兵营房】，门常开着，桌上还有最新的防务日志；斜对面是挂着条纹遮阳篷的【铁锚药铺与裁缝坊】，往前走便是城里最暖和的【余烬与酒杯旅店】，炉火整天都旺着。",
-          "choices": [
-            {
-              "text": "听起来很热闹，我去街上逛逛。",
-              "nextNodeId": null
-            }
-          ]
+          "text": "瓮城东侧防卫塔和门后石阶都能登上 +9.5 米城墙步道；城底 -4 米的【黑石排水暗渠】更是四通八达——不仅连通瓮城、酒馆酒窖与中央市集，听说最北端还藏着直达城堡军械库的暗井密道！",
+          "choices": [{ "text": "太棒了，我去亲自走一遭。", "nextNodeId": null }]
         }
       }
     },
     "city_guard_sentinel_dialogue": {
-      "entryNodes": [
-        {
-          "nodeId": "sentinel_greeting"
-        }
-      ],
+      "entryNodes": [{ "nodeId": "sentinel_greeting" }],
       "nodes": {
         "sentinel_greeting": {
-          "speaker": "城门卫兵凯尔",
-          "text": "早安，旅者。刚落过一阵晨露，门卫大道石板缝里还有些积水，留神脚下。抬头往前看，远处高地上那座尖塔就是领主城堡的哨楼轮廓了。",
+          "speaker": "瓮城巡卫凯尔",
+          "text": "外城门故意偏筑在西侧，攻城敌军一进门就会撞上折角照壁与卫塔射界。西墙根下那道石阶通往地下暗渠，东边防卫塔则能直接爬上城墙女墙！",
+          "choices": [{ "text": "辛苦执勤了。", "nextNodeId": null }]
+        }
+      }
+    },
+    "city_tavern_keeper_dialogue": {
+      "entryNodes": [{ "nodeId": "greta_hi" }],
+      "nodes": {
+        "greta_hi": {
+          "speaker": "老板娘格蕾塔",
+          "text": "快进来烤烤火！余烬酒馆一楼有热黑麦包和药酒，顺着屋里木梯上二楼客房，不仅能俯瞰贸易街，北门还直通跨街哥特石桥与东侧居民高地呢。",
           "choices": [
             {
-              "text": "辛苦执勤了。",
+              "text": "来点热食与补给（打开酒馆柜台）",
+              "action": { "type": "openShop", "npcId": "city_tavern_keeper" },
               "nextNodeId": null
-            }
+            },
+            { "text": "听说后院下面还有座酒窖？", "nextNodeId": "greta_cellar" }
+          ]
+        },
+        "greta_cellar": {
+          "speaker": "老板娘格蕾塔",
+          "text": "嘘……穿过南边商队货栈到后院，就有石阶下到 -4 米酒窖。酒窖西墙连着古老的黑石暗渠，走私客留下的木箱说不定还在里头！",
+          "choices": [{ "text": "多谢告知！", "nextNodeId": null }]
+        }
+      }
+    },
+    "city_apothecary_lian_dialogue": {
+      "entryNodes": [{ "nodeId": "lian_hi" }],
+      "nodes": {
+        "lian_hi": {
+          "speaker": "草药师莉安",
+          "text": "刚研磨好的灰烬草疗伤剂和秘银法力药水，进山或下暗渠前备上几瓶吧！",
+          "choices": [
+            {
+              "text": "查看草药铺货架（打开商店）",
+              "action": { "type": "openShop", "npcId": "city_apothecary_lian" },
+              "nextNodeId": null
+            },
+            { "text": "稍后再来。", "nextNodeId": null }
           ]
         }
       }
     },
     "city_merchant_elena_dialogue": {
-      "entryNodes": [
-        {
-          "nodeId": "elena_greeting"
-        }
-      ],
+      "entryNodes": [{ "nodeId": "elena_greeting" }],
       "nodes": {
         "elena_greeting": {
           "speaker": "药商伊琳娜",
-          "text": "欢迎光临铁锚药铺！不论是刚刚进城的商队护卫，还是准备深入边境古墓的旅人，这里都有上好的治疗药剂、秘银法力药水和灰烬护符。",
+          "text": "欢迎来到中央拱廊市集！听见西拱廊墙后传来的打铁声了吗？穿过喷泉正西那道哥特石拱门，就能拾级登上【西侧工匠区】的大锻坊！",
           "choices": [
             {
               "text": "看看店里的商品（打开商店）",
-              "action": {
-                "type": "openShop",
-                "npcId": "city_merchant_elena"
-              },
+              "action": { "type": "openShop", "npcId": "city_merchant_elena" },
               "nextNodeId": null
             },
-            {
-              "text": "我只是随便看看橱窗。",
-              "nextNodeId": null
-            }
+            { "text": "我正想去工匠区看看。", "nextNodeId": null }
           ]
         }
       }
     },
     "city_baker_marta_dialogue": {
-      "entryNodes": [
-        {
-          "nodeId": "marta_hi"
-        }
-      ],
+      "entryNodes": [{ "nodeId": "marta_hi" }],
       "nodes": {
         "marta_hi": {
           "speaker": "烘焙娘玛尔塔",
-          "text": "刚出炉的黑麦面包和蜜糖酥饼！往西穿过【铁匠坊巷】，或者顺着东头石阶爬上【织坊高地】，处处都能闻到我家炉火的香气呢。",
+          "text": "刚出炉的黑麦面包！身后的【市集百货烘焙双层商行】大门敞开着，从一楼烤炉旁爬木梯上二楼账房，东门廊桥能直接穿楼走进【东侧居民高地】哟！",
           "choices": [
             {
               "text": "买些热腾腾的干粮（打开面包摊）",
-              "action": {
-                "type": "openShop",
-                "npcId": "city_baker_marta"
-              },
+              "action": { "type": "openShop", "npcId": "city_baker_marta" },
               "nextNodeId": null
             },
-            {
-              "text": "市集里最近生意如何？",
-              "nextNodeId": "marta_rumor"
-            }
-          ]
-        },
-        "marta_rumor": {
-          "speaker": "烘焙娘玛尔塔",
-          "text": "这十来座货摊打早起就热闹得很：裁缝、陶匠、书吏、香料马车全都到齐了。真要去买称手的兵刃，不妨向西走到铁匠大师布伦南的露天锻炉那边瞧瞧！",
-          "choices": [
-            {
-              "text": "谢谢指引！",
-              "nextNodeId": null
-            }
+            { "text": "穿楼捷径真巧妙，我去试试！", "nextNodeId": null }
           ]
         }
       }
     },
     "city_merchant_thorne_dialogue": {
-      "entryNodes": [
-        {
-          "nodeId": "thorne_hi"
-        }
-      ],
+      "entryNodes": [{ "nodeId": "thorne_hi" }],
       "nodes": {
         "thorne_hi": {
           "speaker": "商会总管索恩",
-          "text": "旅人，站在凤凰铁砧喷泉旁便能望见整座【灰烬城】的命脉了：西街是工匠锻铁与制桶行当，东坡高地则是染织人家与旅人巷陌，两条环道都能绕回南门主街。",
+          "text": "旅人，这座围合市集是灰烬城八大箱庭的枢纽：西拱门上铁砧工匠区，东石阶登居民高地，北双折阶梯直通圣堂与山巅【领主城堡】。",
           "choices": [
             {
               "text": "查看商会精选货品（打开商会行店）",
-              "action": {
-                "type": "openShop",
-                "npcId": "city_merchant_thorne"
-              },
+              "action": { "type": "openShop", "npcId": "city_merchant_thorne" },
               "nextNodeId": null
             },
-            {
-              "text": "北面高阶通往哪里？",
-              "nextNodeId": "thorne_north"
-            }
+            { "text": "北面圣堂与领主城堡也开放了吗？", "nextNodeId": "thorne_north" }
           ]
         },
         "thorne_north": {
           "speaker": "商会总管索恩",
-          "text": "沿着大圣堂钟楼与石匠拱廊之间的王道石阶一路向北，便是【领主城堡瓮城前庭】。内堡大厅目前尚属下一阶段的【Phase 3】闭门整备区域，不过站在前庭高处已能俯瞰全城天际线。",
-          "choices": [
-            {
-              "text": "我上去走走看。",
-              "nextNodeId": null
-            }
-          ]
+          "text": "千真万确！无论是从东西两翼北坡拾级而上，还是攀登北堡垒外悬崖石阶踏上 +19.5 米高架天桥，都能抵达【圣伊格尼斯大圣堂】与【灰烬领主城堡议事大厅】。",
+          "choices": [{ "text": "我这就动身前往高城区。", "nextNodeId": null }]
+        }
+      }
+    },
+    "city_townsfolk_aldous_dialogue": {
+      "entryNodes": [{ "nodeId": "aldous_hi" }],
+      "nodes": {
+        "aldous_hi": {
+          "speaker": "市民奥尔德斯",
+          "text": "咱们灰烬城依断崖而建，高墙窄巷挡住了山谷寒风。若想一览全城壮丽全景，去爬圣堂西侧那座 +24.2 米高的钟楼，或者登上城堡 +30.5 米的主瞭望塔吧！",
+          "choices": [{ "text": "多谢老丈指点。", "nextNodeId": null }]
         }
       }
     },
     "city_smith_brennan_dialogue": {
-      "entryNodes": [
-        {
-          "nodeId": "brennan_hi"
-        }
-      ],
+      "entryNodes": [{ "nodeId": "brennan_hi" }],
       "nodes": {
         "brennan_hi": {
           "speaker": "铁匠大师布伦南",
-          "text": "炉火正旺，少靠近火口些！沿着工坊街往南经过制桶行与制革巷，穿过铜角门廊就能抄回余烬酒馆北门。行会新打造了一批阔剑与板甲，要看货色吗？",
+          "text": "铛！铛！听见我这双烟囱大锻炉的锤音了吧？顺着锻坊里的木梯上二楼阁楼，外头的木栈道能直接跨上市集西城墙步道；往北爬崖边石阶则直达圣堂前庭！",
           "choices": [
             {
-              "text": "看看工坊锻造的兵刃护具（打开铁匠店）",
-              "action": {
-                "type": "openShop",
-                "npcId": "city_smith_brennan"
-              },
+              "text": "挑选大锻坊精锻兵刃与板甲（打开铁匠店）",
+              "action": { "type": "openShop", "npcId": "city_smith_brennan" },
               "nextNodeId": null
             },
-            {
-              "text": "暂时不用，继续逛街。",
-              "nextNodeId": null
-            }
+            { "text": "好旺盛的炉火，我四处看看。", "nextNodeId": null }
           ]
         }
       }
     },
-    "city_weaver_claire_dialogue": {
-      "entryNodes": [
-        {
-          "nodeId": "claire_hi"
+    "city_carpenter_owen_dialogue": {
+      "entryNodes": [{ "nodeId": "owen_hi" }],
+      "nodes": {
+        "owen_hi": {
+          "speaker": "木匠工头欧文",
+          "text": "酒馆的橡木酒桶、城墙上的战备脚手架还有过街木廊桥，全是我们木工场锯出来的上等山橡木！",
+          "choices": [{ "text": "手艺精湛，不打扰你干活了。", "nextNodeId": null }]
         }
-      ],
+      }
+    },
+    "city_weaver_claire_dialogue": {
+      "entryNodes": [{ "nodeId": "claire_hi" }],
       "nodes": {
         "claire_hi": {
           "speaker": "织坊女匠克莱尔",
-          "text": "站在东高地石阶这儿，整个中央市集的彩棚、水泉和钟楼顶一览无余。往南穿过提灯坡巷和行会拱洞，还能直接绕回到药铺旁边哩！",
+          "text": "欢迎来到东侧居民高地！沿着这条窄阶梯巷往北可上圣堂，往南则有两条捷径回贸易街和余烬酒馆二楼。",
           "choices": [
             {
               "text": "挑选高地织锦行货品（打开织坊店）",
-              "action": {
-                "type": "openShop",
-                "npcId": "city_weaver_claire"
-              },
+              "action": { "type": "openShop", "npcId": "city_weaver_claire" },
               "nextNodeId": null
             },
+            { "text": "这里的阶梯巷很有生活气息。", "nextNodeId": null }
+          ]
+        }
+      }
+    },
+    "city_resident_mira_dialogue": {
+      "entryNodes": [{ "nodeId": "mira_hi" }],
+      "nodes": {
+        "mira_hi": {
+          "speaker": "高地居民米拉",
+          "text": "很少有外乡人能找到这座过街楼后的古井小院呢！如果你从北边【织锦匠双层宅邸】一楼进屋上二楼，还能走巷子顶上的木廊桥登上东侧高台再绕下来。",
+          "choices": [{ "text": "真是有趣的立体街巷！", "nextNodeId": null }]
+        }
+      }
+    },
+    "city_archivist_theron_dialogue": {
+      "entryNodes": [
+        {
+          "condition": {
+            "questStageEquals": {
+              "questId": "side_city_citadel_accord",
+              "stageId": "report_archivist"
+            }
+          },
+          "nodeId": "theron_complete"
+        },
+        {
+          "condition": { "questCompleted": "side_city_citadel_accord" },
+          "nodeId": "theron_after"
+        },
+        { "nodeId": "theron_hi" }
+      ],
+      "nodes": {
+        "theron_hi": {
+          "speaker": "首席档案官塞伦",
+          "text": "愿圣火照亮你的旅途。这里是圣堂高地的古卷档案馆，对面便是【圣伊格尼斯大圣堂】与可攀爬至 +24.2 米的青铜钟楼。旅人，可愿替我将一份边防急卷呈递至北巅【领主城堡】议事大厅？",
+          "choices": [
             {
-              "text": "这里的风景确实很好。",
+              "text": "我愿意前往领主城堡面见摄政总管。（接取《山堡八区巡礼与王座密令》）",
+              "condition": { "questNotStarted": "side_city_citadel_accord" },
+              "action": { "type": "startQuest", "questId": "side_city_citadel_accord" },
+              "nextNodeId": "theron_accepted"
+            },
+            {
+              "text": "请配给圣堂祝圣药膏（打开圣堂药匣）",
+              "action": { "type": "openShop", "npcId": "city_archivist_theron" },
+              "nextNodeId": null
+            },
+            { "text": "我正在前往领主城堡的路上。", "nextNodeId": null }
+          ]
+        },
+        "theron_accepted": {
+          "speaker": "首席档案官塞伦",
+          "text": "有劳了！沿圣堂北侧的御道石阶向上，穿过城堡外瓮城与外庭院，即可步入【领主议事大厅】面见摄政总管维克多。",
+          "choices": [{ "text": "即刻启程。", "nextNodeId": null }]
+        },
+        "theron_complete": {
+          "speaker": "首席档案官塞伦",
+          "text": "摄政总管已经签发了城防手令！感谢你奔走于高城之间，请收下这份赏金与圣堂祝圣疗伤膏，愿守望者的庇佑伴你同行。",
+          "choices": [
+            {
+              "text": "收下奖励并完成委托",
+              "action": {
+                "type": "completeQuest",
+                "questId": "side_city_citadel_accord",
+                "outcome": "default"
+              },
               "nextNodeId": null
             }
+          ]
+        },
+        "theron_after": {
+          "speaker": "首席档案官塞伦",
+          "text": "若有闲暇，不妨攀上大圣堂西北角的钟楼敲响青铜大钟，钟声会在整座山谷与八大城区之间久久回荡。",
+          "choices": [
+            {
+              "text": "查看圣堂补给（打开商店）",
+              "action": { "type": "openShop", "npcId": "city_archivist_theron" },
+              "nextNodeId": null
+            },
+            { "text": "告辞，学者。", "nextNodeId": null }
           ]
         }
       }
     },
     "city_citadel_warden_dialogue": {
-      "entryNodes": [
-        {
-          "nodeId": "warden_hi"
-        }
-      ],
+      "entryNodes": [{ "nodeId": "warden_hi" }],
       "nodes": {
         "warden_hi": {
           "speaker": "内堡卫队长加雷斯",
-          "text": "止步，旅人。前方即是【灰烬领主城堡】的铁闸瓮城。领主大厅与内堡庭院正在为下一阶段【Phase 3】筹备整修，当前闸门落锁封禁，请先自由游历下方的市集与东西两大城区。",
+          "text": "立于 +19.5 米悬崖瞭望塔台，向北踏过凌空高架石桥，既可西折进入圣堂钟楼中廊，亦可直抵山巅【领主城堡】的外护墙步道！",
+          "choices": [{ "text": "视野真是壮阔，辛苦巡守。", "nextNodeId": null }]
+        }
+      }
+    },
+    "city_castle_quartermaster_dialogue": {
+      "entryNodes": [{ "nodeId": "qm_hi" }],
+      "nodes": {
+        "qm_hi": {
+          "speaker": "城堡军需官雷恩",
+          "text": "这里是领主城堡东侧军械库。库房里备有上等精钢重剑与板甲；另外，东墙深处的四折岩井石阶直通地底 -4 米的【王室地下秘库】与黑石暗渠，下去探索时当心脚滑！",
           "choices": [
             {
-              "text": "明白了，辛苦巡守。",
+              "text": "调配军械库装备与补给（打开商店）",
+              "action": { "type": "openShop", "npcId": "city_castle_quartermaster" },
               "nextNodeId": null
-            }
+            },
+            { "text": "我去军械库和暗井密道看看！", "nextNodeId": null }
+          ]
+        }
+      }
+    },
+    "city_lord_steward_dialogue": {
+      "entryNodes": [{ "nodeId": "steward_hi" }],
+      "nodes": {
+        "steward_hi": {
+          "speaker": "摄政总管维克多",
+          "text": "欢迎步入灰烬城最高权力中枢——【领主议事大厅】。我已收悉圣堂档案官与溪谷村的边防急报。大厅东侧木梯可登二楼长廊，向西更能攀上 +30.5 米的主堡王冠塔台俯瞰万里河山！",
+          "choices": [
+            { "text": "谨向执政官致意，我会继续守卫灰烬边境。", "nextNodeId": null }
           ]
         }
       }

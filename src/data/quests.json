@@ -138,6 +138,50 @@
           "items": [{ "itemId": "greater_health_potion", "quantity": 2 }]
         }
       }
+    },
+    {
+      "id": "side_city_citadel_accord",
+      "title": "山堡八区巡礼与王座密令",
+      "isMain": false,
+      "giverNpcId": "city_archivist_theron",
+      "summary": "圣堂高地的首席档案官塞伦请你前往山巅【领主城堡】议事大厅，向摄政总管维克多呈报边防现况并核验城防。",
+      "stages": [
+        {
+          "id": "audience_with_steward",
+          "description": "沿北御道或高架城墙进入【领主城堡】议事大厅，与王座台上的摄政总管维克多交谈。",
+          "objective": {
+            "id": "obj_talk_steward",
+            "type": "talk",
+            "targetId": "city_lord_steward",
+            "requiredCount": 1,
+            "description": "面见领主城堡摄政总管维克多"
+          },
+          "nextStageId": "report_archivist"
+        },
+        {
+          "id": "report_archivist",
+          "description": "返回圣堂高地的古卷档案馆（或经军械库暗井秘道绕行），向首席档案官塞伦复命。",
+          "objective": {
+            "id": "obj_report_theron",
+            "type": "talk",
+            "targetId": "city_archivist_theron",
+            "requiredCount": 1,
+            "description": "向首席档案官塞伦复命"
+          },
+          "nextStageId": null
+        }
+      ],
+      "rewards": {
+        "default": {
+          "xp": 180,
+          "gold": 140,
+          "items": [{ "itemId": "cathedral_blessed_salve", "quantity": 2 }],
+          "bonusStats": {
+            "maxHp": 15,
+            "defense": 2
+          }
+        }
+      }
     }
   ]
 }

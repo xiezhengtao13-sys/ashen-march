@@ -537,7 +537,9 @@ def build_sv_gate_tower() -> None:
     b.add_box("broken_flagstone", (-1.5, 0.0, 9.42), (27.6, 6.9, 0.24), bevel=0.02)
     for mx in range(-14, 12, 2):
         add_hewn_stone_block(b, "limestone_weathered", (float(mx), -3.55, 9.15), (0.38, 0.65, 0.55), chip_amp=0.02, seed=940 + mx)
-    add_broken_crenellations(b, (-15.0, -3.25, 9.5), 26.8, axis="X", seed=941)
+    # Leave 3.0m rampart portal at x in [7.4, 10.4] on South Parapet (-3.25) for Cell 01 Barbican Tower Wall-Walk!
+    add_broken_crenellations(b, (-15.0, -3.25, 9.5), 22.4, axis="X", seed=941)
+    add_broken_crenellations(b, (10.4, -3.25, 9.5), 1.6, axis="X", seed=943)
     add_broken_crenellations(b, (-11.0, 3.25, 9.5), 22.8, axis="X", seed=942)
     # Timber War-Hoarding Gallery crowning the South Gatehouse!
     for hx in (-2.4, -1.2, 0.0, 1.2, 2.4):
@@ -589,7 +591,8 @@ def build_sv_gate_tower() -> None:
         bl_box(13.6, -0.5, 7.0, 5.2, 5.6, 14.0),
         bl_box(-1.5, 0.0, 9.36, 27.6, 6.9, 0.30),
         bl_box(-13.2, 3.8, 9.36, 3.6, 3.6, 0.30),
-        bl_box(-1.5, -3.25, 10.2, 26.8, 0.56, 1.4),
+        bl_box(-3.8, -3.25, 10.2, 22.4, 0.56, 1.4),
+        bl_box(11.2, -3.25, 10.2, 1.6, 0.56, 1.4),
         bl_box(0.5, 3.25, 10.2, 22.8, 0.56, 1.4),
         bl_box(-4.8, 5.2, 2.4, 2.4, 3.2, 4.8),
     ])
@@ -721,23 +724,32 @@ def build_sv_market_bastion() -> None:
     bay_len = 5.2
     for i in range(6):
         by_mid = arcade_z0 - (i + 0.5) * bay_len
-        b.add_box("citadel_masonry", (-15.3, by_mid, 3.0), (1.2, bay_len + 0.1, 6.2), bevel=0.03)
+        if i == 2:
+            # V5 Portal P11: Open Pointed Gothic Archway through Bay 2 (world z = -35.2, facing Fountain!) into Cell 04 Artisan Quarter!
+            b.add_box("citadel_masonry", (-15.3, by_mid, 5.15), (1.2, bay_len + 0.1, 1.9), bevel=0.03)
+            add_gothic_pointed_arch(b, (-15.3, by_mid, 0.0), half_span=1.95, spring_z=2.35, apex_rise=1.80, depth=1.35, ring_thick=0.38, segments_per_side=7, axis="X")
+        else:
+            b.add_box("citadel_masonry", (-15.3, by_mid, 3.0), (1.2, bay_len + 0.1, 6.2), bevel=0.03)
         add_hewn_stone_block(b, "damp_slate_stone", (-12.1, by_mid + bay_len * 0.5, 2.8), (1.38, 1.38, 5.8), chip_amp=0.035, taper=0.04, seed=1155 + i)
         add_stepped_buttress(b, (-11.45, by_mid + bay_len * 0.5, 0.0), 0.92, 0.74, 5.6, "X", 1, stages=2)
         add_gothic_pointed_arch(b, (-12.1, by_mid, 0.0), half_span=1.95, spring_z=2.3, apex_rise=1.85, depth=1.1, ring_thick=0.38, segments_per_side=7, axis="X")
         b.add_box("citadel_masonry", (-12.2, by_mid, 5.05), (1.3, bay_len, 1.9), bevel=0.03)
         add_sculpted_masonry_face(b, (-11.55, by_mid, 3.9), bay_len - 0.6, 2.0, "X", 1, seed=1160 + i)
         # Contextual Market Merchant Goods tucked inside sheltered Gothic Arcade bays (`Cam C` & `Cam H`!)
-        if i in (0, 2, 4):
+        if i in (0, 4):
             b.add_box("aged_oak_timber", (-14.1, by_mid - 0.5, 0.45), (0.95, 1.35, 0.88), bevel=0.02, rot=(0.0, 0.0, 0.08))
             b.add_cylinder("aged_oak_timber", (-13.9, by_mid + 0.75, 0.46), 0.36, 0.34, 0.92, segs=10, bevel=0.02)
             b.add_cylinder("ceramic_clay", (-13.3, by_mid + 1.25, 0.34), 0.22, 0.14, 0.68, segs=10, bevel=0.015)
             add_gothic_cage_lantern(b, (-12.1, by_mid, 3.65), scale=0.92)
+        elif i == 2:
+            add_gothic_cage_lantern(b, (-12.1, by_mid, 3.65), scale=0.95)
         if i % 2 == 0:
             add_wall_vines(b, (-11.5, by_mid, 5.8), 2.4, 2.4, "X", 1, seed=1170 + i)
 
     b.add_box("broken_flagstone", (-13.5, -18.8, 5.92), (3.8, 32.4, 0.24), bevel=0.02)
-    add_broken_crenellations(b, (-15.1, -34.8, 6.0), 32.0, axis="Y", seed=1181)
+    # Leave 3.2m West Rampart Catwalk opening at y_bl in [-22.6, -19.4] (world z in [-31.6, -28.4]) to Smithy 2F Loft!
+    add_broken_crenellations(b, (-15.1, -34.8, 6.0), 12.2, axis="Y", seed=1181)
+    add_broken_crenellations(b, (-15.1, -19.4, 6.0), 16.6, axis="Y", seed=1183)
     add_broken_crenellations(b, (-11.9, -34.8, 6.0), 32.0, axis="Y", parapet_h=0.88, merlon_h=0.30, seed=1182)
 
     cols.extend([
@@ -747,9 +759,12 @@ def build_sv_market_bastion() -> None:
         bl_box(0.0, -0.20, DECK_H + 0.55, 5.2, 0.46, 1.1),
         bl_box(-3.6, -1.45, DECK_H * 0.5, 2.2, 2.9, DECK_H),
         bl_box(3.6, -1.45, DECK_H * 0.5, 2.2, 2.9, DECK_H),
-        bl_box(-15.3, -18.8, 3.0, 1.2, 32.0, 6.0),
+        # Split West Arcade rear wall around Bay 2 Portal (y_bl in [-17.8, -13.8] open!)
+        bl_box(-15.3, -8.3, 3.0, 1.2, 11.0, 6.0),
+        bl_box(-15.3, -26.3, 3.0, 1.2, 17.0, 6.0),
         bl_box(-13.5, -18.8, 5.88, 3.8, 32.4, 0.28),
-        bl_box(-15.1, -18.8, 6.65, 0.54, 32.0, 1.3),
+        bl_box(-15.1, -28.7, 6.65, 0.54, 12.2, 1.3),
+        bl_box(-15.1, -11.1, 6.65, 0.54, 16.6, 1.3),
         bl_box(-11.9, -18.8, 6.55, 0.54, 32.0, 1.1),
     ])
     cols.extend(c_sw + c_se + c_wr)
@@ -824,7 +839,9 @@ def build_sv_summit_ascent() -> None:
     b.add_box("broken_flagstone", (9.2, 6.8, 11.92), (3.9, 3.3, 0.24), bevel=0.02)
 
     add_broken_crenellations(b, (-11.4, 7.4, 12.0), 18.4, axis="X", seed=1221)
-    add_broken_crenellations(b, (-11.4, 14.5, 12.0), 22.8, axis="X", seed=1222)
+    # Leave 3.4m North Viaduct Gateway at x in [0.8, 4.2] on y_bl = 14.5 (world z = -69.5, +19.5m)!
+    add_broken_crenellations(b, (-11.4, 14.5, 12.0), 12.2, axis="X", seed=1222)
+    add_broken_crenellations(b, (4.2, 14.5, 12.0), 7.2, axis="X", seed=1225)
     add_broken_crenellations(b, (-11.4, 7.4, 12.0), 7.2, axis="Y", seed=1223)
     add_broken_crenellations(b, (11.2, 5.5, 12.0), 9.1, axis="Y", seed=1224)
 
@@ -855,7 +872,8 @@ def build_sv_summit_ascent() -> None:
         bl_box(9.4, 6.8, 5.95, 3.6, 3.3, 12.1),
         bl_box(0.0, 11.0, 11.88, 23.2, 7.4, 0.30),
         bl_box(-2.2, 7.4, 12.7, 18.4, 0.56, 1.4),
-        bl_box(0.0, 14.5, 12.7, 22.8, 0.56, 1.4),
+        bl_box(-5.3, 14.5, 12.7, 12.2, 0.56, 1.4),
+        bl_box(7.8, 14.5, 12.7, 7.2, 0.56, 1.4),
         bl_box(-11.4, 11.0, 12.7, 0.56, 7.2, 1.4),
         bl_box(11.2, 10.0, 12.7, 0.56, 9.1, 1.4),
         bl_box(-7.8, 11.8, 16.4, 5.8, 5.4, 9.2),
@@ -869,20 +887,6 @@ def build_sv_summit_ascent() -> None:
 # =============================================================================
 # HERO ASSET 5: -4.0m VAULTED STONE UNDERCROFT & DRAINAGE CISTERN
 # Placed at (-12.5, -4.0, -17.0).
-#   - Local z_bl = 0.0 -> world y = -4.0m (Cistern Floor!)
-#   - Local y_bl = -8.0 -> world z = -9.0 (South Stair bottom)
-#     Climbs East (+X) from (-12.5, -4.0, -9.0) -> Trade Alley (-5.4, +1.35, -7.0)!
-#     Wait: let's keep it axis-aligned along +X for super crisp collision & walking!
-#     South Stair: local (0.0, -9.5, 0.0) -> local (+8.4, -9.5, 5.35)
-#       -> world (-12.5, -4.0, -7.5) -> world (-4.1, +1.35, -7.5) [run=8.4m, rise=5.35m -> 32.5deg!]
-#     Let's make run = 9.0m -> (-12.5 -> -3.5) or start stair inside cistern at local (-1.0, -10.0, 0.0) -> (+8.2, -10.0, 5.35) [run=9.2m, rise=5.35m -> 30.2deg!].
-#     And at world x = -4.3, z = -7.0, Trade Street ground is right at y = +1.35m!
-#   - North Stair: local (0.0, +7.0, 0.0) -> local (0.0, +19.5, 7.52)
-#       -> world (-12.5, -4.0, -24.0) -> world (-12.5, +3.52, -36.5) [run=12.5m, rise=7.52m -> 31.0deg!]
-#     Wait: world (-12.5, +3.52, -36.5) is right inside the West Market Arcade? Remember West Market Arcade
-#     piers are at x = -12.1 and rear wall at x = -15.3! Let's shift North Stair slightly East to x_world = -9.6
-#     (local x = +2.9) so it emerges cleanly onto the open Market Plaza SW stone flagstones at (-9.6, +3.50, -36.0)
-#     with ZERO interference with the West Market Arcade piers!
 # =============================================================================
 def build_sv_undercroft() -> None:
     b = MeshBuilder("sv_hero_undercroft", seed=905)
@@ -890,40 +894,45 @@ def build_sv_undercroft() -> None:
     oriented: list[dict] = []
 
     # Main Vaulted Cistern Hall: local x in [-2.6, +2.6], y_bl in [-11.5, +8.5], z_bl = 0.0 (world y = -4.0m)
-    # Floor slabs flanking central recessed drainage gutter
     b.add_box("damp_slate_stone", (-1.55, -1.5, -0.15), (2.1, 21.0, 0.36), bevel=0.02)
     b.add_box("damp_slate_stone", (1.55, -1.5, -0.15), (2.1, 21.0, 0.36), bevel=0.02)
-    # Recessed Drain Trough Floor (z_bl = -0.22) + Forged Iron Drain Grates across center
     b.add_box("damp_slate_stone", (0.0, -1.5, -0.35), (1.1, 21.0, 0.24))
     for gy in range(-10, 9, 2):
         for gx in (-0.36, -0.12, 0.12, 0.36):
             b.add_box("iron_forged", (gx, float(gy), -0.02), (0.05, 1.85, 0.05))
         b.add_box("iron_forged", (0.0, float(gy), -0.02), (0.98, 0.08, 0.05))
 
-    # Heavy Damp-Slate Vault Side Walls (x = ±2.65, leave South Stair East opening at y_bl in [-11.4, -8.2], x=+2.65!)
     # West solid cistern wall
     b.add_box("damp_slate_stone", (-2.8, -1.5, 2.3), (0.9, 21.6, 5.2), bevel=0.04)
     add_sculpted_masonry_face(b, (-2.35, -1.5, 0.2), 19.6, 3.8, "X", 1, mat_primary="damp_slate_stone", mat_accent="citadel_masonry", seed=1301)
-    # East cistern wall (stops at y_bl = -8.0 to leave a 3.2m-wide vaulted opening for South Ascent Stair!)
-    b.add_box("damp_slate_stone", (2.8, 0.5, 2.3), (0.9, 17.4, 5.2), bevel=0.04)
-    add_sculpted_masonry_face(b, (2.35, 0.5, 0.2), 16.0, 3.8, "X", -1, mat_primary="damp_slate_stone", mat_accent="citadel_masonry", seed=1302)
-    # South End Wall (y_bl = -11.8)
-    b.add_box("damp_slate_stone", (0.0, -11.8, 2.3), (6.4, 0.9, 5.2), bevel=0.04)
+
+    # East cistern wall: open South Ascent Stair (y_bl < -8.0) AND Northern Castle Tunnel Arch (y_bl in [2.4, 5.6], world z in [-22.6, -19.4])!
+    b.add_box("damp_slate_stone", (2.8, -2.8, 2.3), (0.9, 10.4, 5.2), bevel=0.04)
+    b.add_box("damp_slate_stone", (2.8, 7.4, 2.3), (0.9, 3.6, 5.2), bevel=0.04)
+    b.add_box("damp_slate_stone", (2.8, 4.0, 4.1), (0.9, 3.4, 1.6), bevel=0.03)
+    add_gothic_pointed_arch(b, (2.75, 4.0, 0.0), half_span=1.55, spring_z=1.85, apex_rise=1.35, depth=0.95, ring_thick=0.34, segments_per_side=6, axis="X", mat_voussoir="citadel_masonry", mat_trim="damp_slate_stone")
+    add_sculpted_masonry_face(b, (2.35, -2.8, 0.2), 9.6, 3.8, "X", -1, mat_primary="damp_slate_stone", mat_accent="citadel_masonry", seed=1302)
+
+    # South End Wall (y_bl = -11.8 -> world z = -5.2): open central 3.0m Gothic Archway to Barbican & Tavern Cellar Tunnel!
+    b.add_box("damp_slate_stone", (-2.35, -11.8, 2.3), (1.7, 0.9, 5.2), bevel=0.04)
+    b.add_box("damp_slate_stone", (2.35, -11.8, 2.3), (1.7, 0.9, 5.2), bevel=0.04)
+    b.add_box("damp_slate_stone", (0.0, -11.8, 4.05), (3.2, 0.9, 1.7), bevel=0.03)
+    add_gothic_pointed_arch(b, (0.0, -11.8, 0.0), half_span=1.50, spring_z=1.85, apex_rise=1.35, depth=0.95, ring_thick=0.34, segments_per_side=6, axis="Y", mat_voussoir="citadel_masonry", mat_trim="damp_slate_stone")
 
     # 6 Pointed Gothic Stone Rib Arches + Solid Barrel Vault Ceiling overhead (z_bl = 4.2..5.4m)!
     for ry in (-7.5, -4.5, -1.5, 1.5, 4.5, 7.5):
         add_gothic_pointed_arch(b, (0.0, ry, 0.0), half_span=2.35, spring_z=1.95, apex_rise=2.05, depth=0.62, ring_thick=0.38, segments_per_side=6, axis="Y", mat_voussoir="citadel_masonry", mat_trim="damp_slate_stone")
-    # Vaulted ceiling roof slab + Upper Street/Courtyard Stone Deck above tunnel (world y = +1.4m -> local z_bl = 5.4m)
     b.add_box("citadel_masonry", (0.0, -1.5, 4.85), (6.5, 20.6, 1.1), bevel=0.04)
 
-    # Atmospheric Forged-Iron Cage Lantern Sconces & Ancient Iron-Bound Cistern Chest!
+    # Atmospheric Forged-Iron Cage Lantern Sconces & Ancient Iron-Bound Cistern Chest (tucked along West wall)!
     for sy in (-5.5, 0.0, 5.5):
         b.add_box("iron_forged", (-2.25, sy, 2.48), (0.36, 0.07, 0.07))
         add_gothic_cage_lantern(b, (-2.04, sy, 2.26), scale=0.88)
-        b.add_box("iron_forged", (2.25, sy, 2.48), (0.36, 0.07, 0.07))
-        add_gothic_cage_lantern(b, (2.04, sy, 2.26), scale=0.88)
-    b.add_box("aged_oak_timber", (-1.7, -9.8, 0.42), (0.85, 1.25, 0.78), bevel=0.02)
-    b.add_box("iron_forged", (-1.7, -9.8, 0.52), (0.89, 1.29, 0.09))
+        if sy != 5.5:
+            b.add_box("iron_forged", (2.25, sy, 2.48), (0.36, 0.07, 0.07))
+            add_gothic_cage_lantern(b, (2.04, sy, 2.26), scale=0.88)
+    b.add_box("aged_oak_timber", (-1.95, -8.8, 0.42), (0.78, 1.15, 0.78), bevel=0.02)
+    b.add_box("iron_forged", (-1.95, -8.8, 0.52), (0.82, 1.19, 0.09))
 
     # SOUTH STAIRWAY climbing East (+X) up to Trade Alley West Portal
     c_s, o_s = add_stone_stair_flight(
@@ -966,8 +975,10 @@ def build_sv_undercroft() -> None:
     cols.extend([
         bl_box(0.0, -1.5, -0.15, 5.4, 21.2, 0.34),
         bl_box(-2.8, -1.5, 2.3, 0.9, 21.6, 5.2),
-        bl_box(2.8, 0.5, 2.3, 0.9, 17.4, 5.2),
-        bl_box(0.0, -11.8, 2.3, 6.4, 0.9, 5.2),
+        bl_box(2.8, -2.8, 2.3, 0.9, 10.4, 5.2),
+        bl_box(2.8, 7.4, 2.3, 0.9, 3.6, 5.2),
+        bl_box(-2.35, -11.8, 2.3, 1.7, 0.9, 5.2),
+        bl_box(2.35, -11.8, 2.3, 1.7, 0.9, 5.2),
         bl_box(0.0, -1.5, 4.85, 6.5, 20.6, 1.1),
     ])
     cols.extend(c_s + c_n)
@@ -1500,7 +1511,7 @@ def build_sv_gothic_bridge_fixed() -> None:
         add_stepped_buttress(b, (-11.8, by, 1.4), 1.15, 0.95, 7.6, "X", 1, stages=3)
     b.add_box("broken_flagstone", (-13.5, -14.1, 9.42), (3.5, 24.0, 0.24), bevel=0.02)
     add_broken_crenellations(b, (-15.0, -25.8, 9.5), 23.8, axis="Y", seed=1072)
-    add_broken_crenellations(b, (-12.0, -25.8, 9.5), 23.8, axis="Y", parapet_h=0.88, merlon_h=0.32, seed=1073)
+    add_broken_crenellations(b, (-12.0, -23.0, 9.5), 21.0, axis="Y", parapet_h=0.88, merlon_h=0.32, seed=1073)
 
     # EAST RAMPART-TO-TAVERN-2F BRIDGE STAIR
     c_et, o_et = add_stone_stair_flight(
@@ -1531,7 +1542,7 @@ def build_sv_gothic_bridge_fixed() -> None:
         bl_box(-13.5, -14.1, 5.6, 3.4, 23.8, 7.6),
         bl_box(-13.5, -14.1, 9.36, 3.5, 24.0, 0.30),
         bl_box(-15.0, -14.1, 10.2, 0.56, 23.8, 1.4),
-        bl_box(-12.0, -14.1, 10.1, 0.56, 23.8, 1.2),
+        bl_box(-12.0, -12.5, 10.1, 0.56, 21.0, 1.2),
         bl_box(11.6, -6.35, 5.10, 2.4, 1.2, 0.22),
     ])
     cols.extend(c_et)
@@ -1541,6 +1552,17 @@ def build_sv_gothic_bridge_fixed() -> None:
 
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    manifest_path = OUT_DIR / "stormveil_manifest.json"
+    if manifest_path.exists():
+        try:
+            MANIFEST.update(json.loads(manifest_path.read_text(encoding="utf-8")))
+        except Exception:
+            pass
+
+    only_filters: list[str] = []
+    if "--" in sys.argv:
+        only_filters = sys.argv[sys.argv.index("--") + 1 :]
+
     builders = [
         ("sv_hero_gate_tower", build_sv_gate_tower),
         ("sv_hero_gothic_bridge", build_sv_gothic_bridge_fixed),
@@ -1551,10 +1573,11 @@ def main() -> None:
         ("sv_supporting_kit", build_sv_supporting_kit),
     ]
     for label, fn in builders:
+        if only_filters and not any(f in label for f in only_filters):
+            continue
         print(f"[stormveil_kit] Building {label}...", flush=True)
         fn()
 
-    manifest_path = OUT_DIR / "stormveil_manifest.json"
     manifest_path.write_text(json.dumps(MANIFEST, indent=2), encoding="utf-8")
     print(f"[stormveil_kit] Exported {len(MANIFEST)} sculpted Stormveil V4 GLBs + manifest -> {manifest_path}", flush=True)
 

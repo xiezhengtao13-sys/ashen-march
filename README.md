@@ -5,21 +5,23 @@
 ## ▶ 一键在线游玩（浏览器直玩）
 
 [![立即在线游玩 - Ashen March](https://img.shields.io/badge/▶_立即在线游玩-Ashen_March_灰烬边境-d9a043?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/)
-[![一键试玩 - 灰烬城 Visual Polish V4 环境精修版](https://img.shields.io/badge/▶_最新试玩_灰烬城_V4-高品质环境美术精修版-6b2218?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-visual-polish-v4/?zone=city)
+[![一键试玩 - 灰烬城 Interconnected City V5 完整八箱庭版](https://img.shields.io/badge/▶_最新试玩_灰烬城_V5-八大互联箱庭完整主城-4a1d15?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-interconnected-city-v5/?zone=city)
+[![一键试玩 - 灰烬城 Visual Polish V4 环境精修基线](https://img.shields.io/badge/▶_对比基线_灰烬城_V4-高品质环境美术精修版-6b2218?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-visual-polish-v4/?zone=city)
 [![一键试玩 - 灰烬城 Visual Fidelity V3 基线](https://img.shields.io/badge/▶_对比基线_灰烬城_V3-史东薇尔式四层山堡-8f2d1f?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-art-direction-v3/?zone=city)
 [![一键试玩 - 灰烬城山城重设计 Phase 2 基线](https://img.shields.io/badge/▶_灰烬城基线-Phase_2_依山样板区-b54524?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city)
 
 - **开放世界试玩入口（溪谷村出生点）**：https://xiezhengtao13-sys.github.io/ashen-march/
-- **最新入口 — 灰烬城 Visual Polish V4 (`feature/ashenhold-visual-polish-v4` · 高品质环境美术精修与渲染提升)**：
-  - **一键在线试玩（BMesh 雕刻缺角条石与层理断崖、1024px 多尺度 HBAO Packed ORM 材质、十字肋拱、S 形路缘排水铁箅、哥特喷泉与粗麻市集、室内天光遮蔽与四层零传送步行贯通）**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-visual-polish-v4/?zone=city
+- **最新入口 — 灰烬城 Interconnected City V5 (`feature/ashenhold-interconnected-city-v5` · 八大互联箱庭完整关卡与空间音频升级)**：
+  - **一键在线试玩（完整保留 V4 雕刻材质品质，建成 Cell 01–08 八大高墙围合箱庭、折轴南门瓮城、双层室内穿行捷径、+24.2m 可敲钟大钟楼、+30.5m 可自由探索领主城堡与议事大殿、+18m↔-4m 四折悬崖秘梯与王室秘库、Cell & Portal 裁剪及 WebAudio 空间音频/六材质脚步声）**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-interconnected-city-v5/?zone=city
+  - **V4 环境美术精修基线预览**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-visual-polish-v4/?zone=city
   - **V3 基线对比预览**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-art-direction-v3/?zone=city
   - **Phase 2 山城基线对比预览**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city
-  - **调试与管线四阶段诊断接口**：打开浏览器控制台可调用 `window.__ASHEN_MARCH__.setDebugMode('albedo' | 'normal' | 'roughness' | 'no_ao' | 'no_post' | 'final')` 与 `setPostFX({ enabled, tonemap, fxaa, sharpen, grain })` 实时检查 PBR 通道与后处理阶段。
+  - **调试与诊断接口**：打开浏览器控制台可调用 `window.__ASHEN_MARCH__.setCellDebug(true | false)` 查看 3D 箱庭包围盒与门户开闭线框、`getCellTelemetry()` / `getAudioDiagnostics()` 查看分箱庭裁剪与空间音频状态，以及 `setDebugMode('albedo' | 'normal' | 'roughness' | 'no_ao' | 'no_post' | 'final')` 检查 PBR 通道。
 - **零安装直玩**：由 GitHub Actions 自动构建并托管于 GitHub Pages，点击上方按钮即可在桌面浏览器（支持 WebGL2）中直接运行，存档自动保存于浏览器本地 IndexedDB。
 
 ## 核心特性
 
-- **灰烬城 Visual Polish V4（高品质环境美术精修版）**：基于 `scripts/city/texgen_v4.c` 1024/512 双尺度法线与 8 向 HBAO Packed ORM 贴图、`scripts/city/v4_sculpt_helpers.py` 缺角倒棱条石/层理裂解断崖/十字肋拱/锻铁笼灯雕刻模型、40° 斜射侧光与室内天光遮蔽、以及地底暗渠/分房间/分街区裁剪优化的四层立体山堡（总面数较 V3 降低 12%–30%，详情见 [VISUAL_POLISH_V4.md](docs/VISUAL_POLISH_V4.md) 与 [ART_DIRECTION_V3.md](docs/ART_DIRECTION_V3.md)）。
+- **灰烬城 Interconnected City V5（八大互联箱庭完整主城）**：在完整保留 V4 1024/512 HBAO Packed ORM 材质与 BMesh 雕刻几何品质的基础上，建成 **8 个相互连接的高密度箱庭（`-4.0m` 地底暗渠秘库 → `0m` 折轴瓮城 → `+1.6m` 曲折贸易街 → `+3.5m` 拱廊市集 → `+7m` 双层铁匠工坊 → `+7.5m/+11m` 阶梯居民区与跨巷天桥 → `+12.2m/+24.2m` 圣堂与四层大钟楼 → `+18m/+30.5m` 可进入领主城堡议事大殿）**，配套 `CityPortalVisibility` 门户裁剪、程序化 WebAudio 空间声源遮挡与六材质脚步声、16 名鲜活城市 NPC 及跨箱庭支线《灰烬城宪章与秘道》（详情见 [INTERCONNECTED_CITY_V5.md](docs/INTERCONNECTED_CITY_V5.md) 与 [VISUAL_POLISH_V4.md](docs/VISUAL_POLISH_V4.md)）。
 - **第一人称 3D 自由探索**：真实 Rapier 3D 物理碰撞、重力、斜坡行走与可进入建筑/地下城。
 - **五个特色区域（512 × 512 米固定种子世界，完整保留）**：
   - **溪谷村 (Ravendale Village)**：玩家出生点、可进入的村长长屋、铁匠铺、猎人小屋与水井广场。
@@ -85,6 +87,8 @@ npm run test:e2e
 ## 项目文档
 
 - [游戏设计文档 (GDD)](docs/GDD.md)
+- [灰烬城 V5 互联箱庭与空间音频实录 (INTERCONNECTED_CITY_V5)](docs/INTERCONNECTED_CITY_V5.md)
+- [灰烬城 V4 环境美术精修报告 (VISUAL_POLISH_V4)](docs/VISUAL_POLISH_V4.md)
 - [灰烬城总规划 (ASHENHOLD_MASTER_PLAN)](docs/ASHENHOLD_MASTER_PLAN.md)
 - [技术架构文档 (ARCHITECTURE)](docs/ARCHITECTURE.md)
 - [开发路线图 (ROADMAP)](docs/ROADMAP.md)
@@ -93,7 +97,7 @@ npm run test:e2e
 ## 当前验证状态
 
 - `npm run typecheck`: 通过 (`tsc --noEmit`，0 错误)
-- `npm test`: 9 个测试文件共 23 项单元测试全部通过（含开放世界/墓穴、灰烬城光照探针、Phase 1 室内门洞与 Phase 2 约 200×240m 双环道路/市集拱门/内堡铁闸碰撞及 `fake-indexeddb` 存档迁移）
+- `npm test`: **11 个测试套件共 31 项单元测试全部通过**（含 V5 八大箱庭 120+ 路点无传送物理闭环、21 门户裁剪/迟滞/声学跨墙遮挡、六材质脚步与室内混响、跨箱庭任务流转、V4 Packed ORM 与 IndexedDB 存档迁移）
 - `npm run build`: 生产包构建通过 (`vite build`)
-- `npm run test:e2e`: 2 项 Playwright + Chrome WebGL2 端到端测试全部通过（1. 开放世界主线/战斗/墓穴/画质/IndexedDB 存档；2. 灰烬城南门穿越→中央市集面包交易→铁匠工坊区→织坊高地→城堡前庭铁闸阻挡→`[M]` 舆图，0 控制台/页面错误）
-- **性能实测说明（CPU SwiftShader vs 硬件 GPU）**：本云端验证环境无独立显卡，运行于 headless Chrome SwiftShader 软件光栅化（中央市集 1080p High 档：**210 Draw Calls / 655,832 Triangles / 70 Textures**，CPU 软件帧耗时 ~9.1s；城堡前庭 82 Draw Calls / ~2.5s；南城门 379 Draw Calls / ~8.8s）。桌面硬件 GPU（WebGL2）上的 1080p 60 FPS 实际帧率表现待真机实测确认。
+- `npm run test:e2e`: **2 项 Playwright + Chrome WebGL2 端到端测试全部通过**（1. 开放世界主线/战斗/墓穴/画质/IndexedDB 存档；2. 灰烬城 V5 南外门弯折瓮城裁剪校验 → 无传送连续步行穿越 `Cell 01→02→08(-4m)→03→04→06→07(+21m)` → 商店交易 → 3D 门户调试线框 → `[M]` 八箱庭舆图 → `[Esc]` 四通道混音器，0 控制台/页面错误）
+- **性能实测说明（CPU SwiftShader vs 硬件 GPU）**：本云端验证环境运行于 headless Chrome `SwiftShader (CPU Software)` 软件光栅化；在全城规模较 V4 扩展逾 3 倍的前提下，依靠 Cell & Portal 裁剪，`1280×720 High` 档下各箱庭主通道（`Main Pass`）稳定控制在 `33–280 Draw Calls / 81k–381k Triangles`（如南瓮城 `201 DC / 210k Tris`、双层铁匠工坊 `101 DC / 81k Tris`、居民巷 `45 DC / 155k Tris`、领主大殿室内 `49 DC / 109k Tris`、地底秘库 `33 DC / 123k Tris`）。桌面硬件 GPU（WebGL2）上的 1080p 60 FPS 实际帧率待真机确认。

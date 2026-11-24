@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {
   getCityRoadCenterX,
   getCityStreetBaseY,
+  isCityTerrainHole,
   noise2,
   sampleCityNetwork,
   smoothstep,
@@ -152,17 +153,33 @@ function buildGroundChunk(
   geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
   geometry.setAttribute('aSplat', new THREE.BufferAttribute(splats, 4));
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const rawIndexAttr = geometry.getIndex();
+  let indices = new Uint32Array(0);
+  if (rawIndexAttr) {
+    const srcIdx = rawIndexAttr.array as ArrayLike<number>;
+    const kept: number[] = [];
+    for (let t = 0; t < srcIdx.length; t += 3) {
+      const i0 = srcIdx[t];
+      const i1 = srcIdx[t + 1];
+      const i2 = srcIdx[t + 2];
+      const cx = (posAttr.getX(i0) + posAttr.getX(i1) + posAttr.getX(i2)) / 3;
+      const cz = (posAttr.getZ(i0) + posAttr.getZ(i1) + posAttr.getZ(i2)) / 3;
+      if (!isCityTerrainHole(cx, cz)) {
+        kept.push(i0, i1, i2);
+      }
+    }
+    indices = new Uint32Array(kept);
+    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+  }
+
   geometry.computeTangents();
 
   const mesh = new THREE.Mesh(geometry, streetMaterial);
   mesh.name = name;
   mesh.receiveShadow = true;
 
-  const indexAttr = geometry.getIndex();
   const vertices = new Float32Array(posAttr.array as ArrayLike<number>);
-  const indices = indexAttr
-    ? new Uint32Array(indexAttr.array as ArrayLike<number>)
-    : new Uint32Array(0);
 
   return { mesh, vertices, indices };
 }
@@ -177,23 +194,27 @@ export function buildCityGroundMesh(streetMaterial: THREE.Material): CityGroundR
   root.name = 'AshenholdHillsideGround';
 
   const specs: Array<[number, number, number, number, number, string]> = [
-    // Tier 0 Gatehouse & S-Curved Trade Street + Bridge Steps (high-res 0.50m)
-    [-20, 20, -20, 28, 0.5, 'Ground_Tier0_GateAndTrade'],
-    // Tier 1 Compact Central Market Terrace + North Retaining Wall Step (high-res 0.55m)
-    [-22, 22, -64, -20, 0.55, 'Ground_Tier1_MarketAndOverlook'],
-    // Tier 2 West Artisan Wing (0.85m)
-    [-54, -20, -84, 14, 0.85, 'Ground_Tier2_WestArtisan'],
-    // Tier 2 East Residential Heights Wing (0.85m)
-    [20, 54, -84, 14, 0.85, 'Ground_Tier2_EastResidential'],
-    // Tier 3 Temple Acropolis + Tier 4 Citadel Forecourt & Keep Crag (0.85m)
-    [-28, 28, -142, -64, 0.85, 'Ground_Tier34_AcropolisCitadel'],
-    // Flanking Mountain Ridges (West / East / North / South skirts at 2.5m)
-    [-92, -54, -142, 42, 2.5, 'Ground_Ridge_West'],
-    [54, 92, -142, 42, 2.5, 'Ground_Ridge_East'],
-    [-92, 92, -166, -142, 2.5, 'Ground_Ridge_North'],
-    [-54, 54, 28, 48, 2.2, 'Ground_Approach_South'],
-    [-54, -28, -142, -84, 2.0, 'Ground_Ridge_NW'],
-    [28, 54, -142, -84, 2.0, 'Ground_Ridge_NE'],
+    // Cell 01 Barbican & Cell 02 S-Curved Trade Street + Bridge Steps (high-res 0.50m)
+    [-22, 22, -20, 40, 0.5, 'Ground_Cell01_02_GateAndTrade'],
+    // Cell 03 Compact Central Market Terrace + North Retaining Wall Step (high-res 0.55m)
+    [-22, 22, -64, -20, 0.55, 'Ground_Cell03_MarketAndOverlook'],
+    // Cell 04 West Artisan Wing (0.75m)
+    [-54, -22, -84, 14, 0.75, 'Ground_Cell04_WestArtisan'],
+    // Cell 05 East Residential Heights Wing (0.75m)
+    [22, 54, -84, 14, 0.75, 'Ground_Cell05_EastResidential'],
+    // Cell 06 Temple Acropolis (-104..-64, 0.75m)
+    [-32, 32, -104, -64, 0.75, 'Ground_Cell06_TempleAcropolis'],
+    // Cell 07 Lord's Castle Bailey & Keep Crag (-150..-104, 0.75m)
+    [-36, 36, -150, -104, 0.75, 'Ground_Cell07_LordCastle'],
+    // Flanking Mountain Ridges (West / East / North / South skirts at 2.4m)
+    [-92, -54, -150, 46, 2.4, 'Ground_Ridge_West'],
+    [54, 92, -150, 46, 2.4, 'Ground_Ridge_East'],
+    [-92, 92, -172, -150, 2.4, 'Ground_Ridge_North'],
+    [-54, 54, 40, 58, 2.2, 'Ground_Approach_South'],
+    [-54, -32, -104, -84, 1.8, 'Ground_Ridge_NW1'],
+    [32, 54, -104, -84, 1.8, 'Ground_Ridge_NE1'],
+    [-54, -36, -150, -104, 2.0, 'Ground_Ridge_NW2'],
+    [36, 54, -150, -104, 2.0, 'Ground_Ridge_NE2'],
   ];
 
   const chunks: GroundChunkData[] = [];

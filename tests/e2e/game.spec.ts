@@ -229,12 +229,12 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
     expect(errors).toEqual([]);
   });
 
-  test('loads Ashenhold V3 (?zone=city) and walks continuously WITHOUT teleport across all 4 vertical layers (0m Gate -> -4m Undercroft -> +3.5m Market -> +7.5m Overlook -> +19.5m Summit), trades & verifies Map', async ({
+  test('loads Ashenhold V5 (?zone=city), verifies bent-axis gate culling, walks continuously WITHOUT teleport across Cells 01->02->08->03->04->06->07 (-4m to +21m), trades, and verifies V5 Map & Audio Mixer', async ({
     page,
   }) => {
-    test.setTimeout(420_000);
-    // 640x360 keeps SwiftShader CPU rasterization 4x faster during the 180m zero-teleport real KeyW walk
-    await page.setViewportSize({ width: 640, height: 360 });
+    test.setTimeout(540_000);
+    // 320x180 keeps SwiftShader CPU pixel rasterization 4x faster during the long multi-cell zero-teleport KeyW walk
+    await page.setViewportSize({ width: 320, height: 180 });
     const errors: string[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') errors.push(`console.error: ${msg.text()}`);
@@ -253,7 +253,17 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
 
     await expect(page.getByTestId('hud-compass')).toContainText('灰烬城 · 南城门');
 
-    // Use low preset + bypass PostFX during SwiftShader CPU walk ticks so physics steps smoothly (re-enabled in Step 7)
+    // Verify bent-axis Outer Gate culling: standing at Outer Gate 1 does NOT render Market/Temple/Castle
+    const gateCellTel = await page.evaluate(() =>
+      (window as unknown as {
+        __ASHEN_MARCH__: { getCellTelemetry: () => { activeCellId: string; activeCells: string[]; debugEnabled: boolean } };
+      }).__ASHEN_MARCH__.getCellTelemetry(),
+    );
+    expect(gateCellTel.activeCellId).toBe('cell_01_barbican_gate');
+    expect(gateCellTel.activeCells).not.toContain('cell_03_market_plaza');
+    expect(gateCellTel.activeCells).not.toContain('cell_07_lord_castle');
+
+    // Use low preset + bypass PostFX during SwiftShader CPU walk ticks so physics steps smoothly
     await page.evaluate(() => {
       const api = (window as unknown as {
         __ASHEN_MARCH__: {
@@ -272,8 +282,9 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
         (window as unknown as { __ASHEN_MARCH__: { getSnapshot: () => Snapshot } }).__ASHEN_MARCH__.getSnapshot(),
       );
 
-    // Real continuous zero-teleport walking helper using ONLY setLook + KeyW (no sprint overshoot on SwiftShader!)
-    const walkTo = async (tx: number, tz: number, maxTicks = 18): Promise<Snapshot> => {
+    // Real continuous zero-teleport walking helper using ONLY setLook + KeyW (+ ShiftLeft sprint when stamina available)
+    const walkTo = async (tx: number, tz: number, maxTicks = 20): Promise<Snapshot> => {
+      await page.keyboard.down('ShiftLeft');
       await page.keyboard.down('KeyW');
       let snap = await getSnap();
       let prevDist = Math.hypot(tx - snap.position.x, tz - snap.position.z);
@@ -281,7 +292,7 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
         const dx = tx - snap.position.x;
         const dz = tz - snap.position.z;
         const dist = Math.hypot(dx, dz);
-        if (dist < 1.85) break;
+        if (dist < 1.65) break;
         const yaw = Math.atan2(-dx, -dz);
         await page.evaluate((y) => {
           (window as unknown as { __ASHEN_MARCH__: { setLook: (yaw: number, pitch: number) => void } }).__ASHEN_MARCH__.setLook(y, 0);
@@ -289,41 +300,47 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
         await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => resolve(null))));
         snap = await getSnap();
         const nextDist = Math.hypot(tx - snap.position.x, tz - snap.position.z);
-        if (nextDist < 1.85 || (nextDist > prevDist + 0.2 && prevDist < 3.2)) break;
+        if (nextDist < 1.65 || (nextDist > prevDist + 0.25 && prevDist < 2.8)) break;
         prevDist = nextDist;
       }
       await page.keyboard.up('KeyW');
+      await page.keyboard.up('ShiftLeft');
       return snap;
     };
 
-    // 1. Walk continuously North from South Gate spawn (0.0m, z=18.4) -> through Gate Arch -> Trade Alley -> South Undercroft Portal
-    let snap = await walkTo(0.0, 6.0, 14);
+    // 1. Cell 01 Outer Barbican (-6.2, 34.8) -> Bent-Axis Courtyard -> Inner Gate -> Cell 02 Trade Street!
+    let snap = await walkTo(-6.2, 23.2, 20);
+    snap = await walkTo(0.0, 22.0, 14);
+    snap = await walkTo(0.0, 6.0, 22);
     expect(snap.zone).toBe('ashenhold_city');
-    expect(snap.position.z).toBeLessThan(9.0);
+    expect(snap.position.z).toBeLessThan(8.5);
+    await expect(page.getByTestId('hud-compass')).toContainText('贸易街');
 
-    snap = await walkTo(0.0, -7.0, 14);
-    snap = await walkTo(-3.2, -7.0, 6);
-    // 2. Descend South Undercroft Stone Stair continuously to -4.0m Vaulted Stone Cistern! (ZERO TELEPORT)
-    snap = await walkTo(-12.3, -7.0, 14);
-    console.log('E2E_LAYER1_UNDERCROFT:', JSON.stringify(snap.position));
-    expect(snap.position.x).toBeLessThan(-10.5);
+    // 2. Cell 02 Trade Street -> Descend South Undercroft Stair continuously to Cell 08 (-4.0m Cistern)!
+    snap = await walkTo(0.0, -7.0, 18);
+    snap = await walkTo(-3.2, -7.0, 8);
+    snap = await walkTo(-12.3, -7.0, 18);
+    console.log('E2E_CELL08_UNDERCROFT:', JSON.stringify(snap.position));
+    expect(snap.position.x).toBeLessThan(-10.2);
     expect(snap.position.y).toBeLessThan(-3.0);
+    await expect(page.getByTestId('hud-compass')).toContainText('地下暗渠');
 
-    // 3. Walk North through the -4.0m Damp Vaulted Cistern -> climb North Undercroft Stairway into +3.5m Market Plaza!
-    snap = await walkTo(-12.1, -24.5, 18);
+    // 3. Cell 08 Vaulted Cistern -> Climb North Undercroft Stair into Cell 03 Market Plaza (+3.5m)!
+    snap = await walkTo(-12.1, -24.5, 22);
     expect(snap.position.y).toBeLessThan(-3.0);
-    snap = await walkTo(-9.3, -39.2, 20);
-    console.log('E2E_LAYER2_MARKET:', JSON.stringify(snap.position));
+    snap = await walkTo(-9.3, -39.2, 24);
+    console.log('E2E_CELL03_MARKET:', JSON.stringify(snap.position));
     expect(snap.position.y).toBeGreaterThan(3.0);
     await expect(page.getByTestId('hud-compass')).toContainText('灰烬城 · 中央市集');
 
-    // 4. Step cleanly North-East to Merchant Thorne (-6.6, -41.4) in Market Plaza and perform real shop transaction
+    // 4. Trade with Merchant Thorne (-6.6, -41.4) in Market Plaza
     snap = await walkTo(-7.8, -41.0, 10);
     await page.evaluate(() => {
       (window as unknown as { __ASHEN_MARCH__: { setLook: (yaw: number, pitch: number) => void } }).__ASHEN_MARCH__.setLook(-1.35, -0.02);
     });
     await page.waitForTimeout(200);
     await expect(page.getByTestId('hud-interact-prompt')).toContainText('商会总管索恩');
+    await page.setViewportSize({ width: 1280, height: 720 });
     await page.keyboard.press('KeyE');
     await expect(page.getByTestId('modal-dialogue')).toBeVisible();
     await page.locator('.choice-btn').first().click();
@@ -333,40 +350,78 @@ test.describe('Ashen March Visual Overhaul End-to-End Verification', () => {
     const goldAfter = (await getSnap()).stats.gold;
     expect(goldAfter).toBeLessThan(goldBefore);
     await page.keyboard.press('Escape');
+    await page.setViewportSize({ width: 320, height: 180 });
 
-    // 5. Step East into open plaza (clearing Thorne at -6.6,-41.4 & stall_06 at -8.0,-43.0) -> West Switchback Stair -> +7.5m Overlook!
-    snap = await walkTo(-4.8, -39.5, 8);
-    snap = await walkTo(-4.8, -46.5, 10);
-    snap = await walkTo(-11.6, -46.8, 10);
-    snap = await walkTo(-11.6, -49.35, 6);
+    // 5. Walk West through West Arcade Archway up into Cell 04 Artisan Quarter (+7.0m)!
+    snap = await walkTo(-13.8, -39.5, 12);
+    snap = await walkTo(-14.5, -35.2, 10);
+    snap = await walkTo(-25.8, -35.2, 18);
+    console.log('E2E_CELL04_ARTISAN:', JSON.stringify(snap.position));
+    expect(snap.position.y).toBeGreaterThan(6.6);
+    await expect(page.getByTestId('hud-compass')).toContainText('西侧工匠区');
+
+    // 6. Return to Market -> +7.5m Overlook -> Climb Ceremonial Stair to Cell 06 Temple Acropolis (+12.2m) -> Royal Causeway -> Cell 07 Castle Great Hall (+21.0m)!
+    snap = await walkTo(-14.2, -35.2, 18);
+    snap = await walkTo(-13.8, -39.5, 10);
+    snap = await walkTo(-11.6, -46.8, 12);
+    snap = await walkTo(-11.6, -49.35, 8);
     snap = await walkTo(-3.6, -49.35, 14);
     snap = await walkTo(-3.6, -54.5, 10);
-    console.log('E2E_LAYER3_OVERLOOK:', JSON.stringify(snap.position));
     expect(snap.position.y).toBeGreaterThan(7.1);
 
-    // 6. Climb Cliffside Outer Stairway Flight 1 (+7.5m -> +13.5m) & Flight 2 (+13.5m -> +19.5m Watchtower Summit)!
-    snap = await walkTo(10.6, -55.0, 12);
-    snap = await walkTo(10.6, -57.2, 6);
-    snap = await walkTo(-10.8, -57.2, 22);
-    expect(snap.position.y).toBeGreaterThan(12.8);
-    snap = await walkTo(-10.8, -61.2, 8);
-    snap = await walkTo(9.0, -61.2, 22);
-    expect(snap.position.y).toBeGreaterThan(18.8);
-    snap = await walkTo(9.0, -64.8, 8);
-    snap = await walkTo(0.0, -64.8, 12);
-    console.log('E2E_LAYER4_SUMMIT:', JSON.stringify(snap.position));
-    expect(snap.position.y).toBeGreaterThan(19.0);
+    snap = await walkTo(-15.5, -55.8, 16);
+    snap = await walkTo(-15.5, -74.0, 26);
+    console.log('E2E_CELL06_TEMPLE:', JSON.stringify(snap.position));
+    expect(snap.position.y).toBeGreaterThan(11.8);
+    await expect(page.getByTestId('hud-compass')).toContainText('圣堂与钟楼高地');
 
-    // 7. Verify live Material Diagnostic Mode API + V3 4-Layer Map Modal [M]
-    await page.evaluate(() => {
-      const api = (window as unknown as { __ASHEN_MARCH__: { setDebugMode: (m: string) => void } }).__ASHEN_MARCH__;
+    snap = await walkTo(0.0, -76.0, 20);
+    snap = await walkTo(0.0, -96.5, 24);
+    snap = await walkTo(0.0, -112.0, 22);
+    expect(snap.position.y).toBeGreaterThan(17.6);
+    await expect(page.getByTestId('hud-compass')).toContainText('领主城堡');
+
+    snap = await walkTo(0.0, -122.0, 16);
+    snap = await walkTo(0.0, -133.5, 18);
+    console.log('E2E_CELL07_GREAT_HALL:', JSON.stringify(snap.position));
+    expect(snap.position.y).toBeGreaterThan(20.6);
+
+    // 7. Verify Cell/Portal Debug Mode, Interior Reverb Override, V5 8-Cell Map [M], and 4-Channel Audio Mixer [Esc]
+    const diagAfter = await page.evaluate(() => {
+      const api = (window as unknown as {
+        __ASHEN_MARCH__: {
+          setDebugMode: (m: string) => void;
+          setCellDebug: (b: boolean) => void;
+          getCellTelemetry: () => { debugEnabled: boolean; activeCellId: string };
+          getAudioDiagnostics: () => { reverb: string; emitters: unknown[] };
+        };
+      }).__ASHEN_MARCH__;
       api.setDebugMode('albedo');
       api.setDebugMode('final');
+      api.setCellDebug(true);
+      const debugOn = api.getCellTelemetry().debugEnabled;
+      api.setCellDebug(false);
+      const debugOff = api.getCellTelemetry().debugEnabled;
+      const audio = api.getAudioDiagnostics();
+      return { debugOn, debugOff, activeCellId: api.getCellTelemetry().activeCellId, reverb: audio.reverb, emitterCount: audio.emitters.length };
     });
+    expect(diagAfter.debugOn).toBe(true);
+    expect(diagAfter.debugOff).toBe(false);
+    expect(diagAfter.activeCellId).toBe('cell_07_lord_castle');
+    expect(diagAfter.reverb).toBe('great_hall_stone');
+    expect(diagAfter.emitterCount).toBeGreaterThanOrEqual(10);
+
+    await page.setViewportSize({ width: 1280, height: 720 });
     await page.keyboard.press('KeyM');
     await expect(page.getByTestId('modal-map')).toBeVisible();
-    await expect(page.getByTestId('modal-map')).toContainText('灰烬城山堡舆图 · Ashenhold V3');
+    await expect(page.getByTestId('modal-map')).toContainText('灰烬城山堡舆图 · Ashenhold V5');
     await page.keyboard.press('KeyM');
+
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('modal-menu')).toBeVisible();
+    await expect(page.getByTestId('audio-mixer')).toBeVisible();
+    await expect(page.locator('[data-audio-slider]')).toHaveCount(4);
+    await page.keyboard.press('Escape');
 
     expect(errors).toEqual([]);
   });

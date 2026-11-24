@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import type { ReverbPresetId } from './audio/AmbientAudioManager';
+import { FootstepAudioSystem } from './audio/FootstepAudioSystem';
+import { SpatialAudioSystem } from './audio/SpatialAudioEmitter';
 import { EnemySystem } from './ai/EnemyAI';
 import { CombatSystem } from './combat/CombatSystem';
 import { GameState } from './core/GameState';
@@ -18,10 +21,11 @@ import { PlayerController } from './player/PlayerController';
 import { QuestSystem } from './quests/QuestSystem';
 import { applySavePayloadToState, SaveSystem } from './save/SaveSystem';
 import { UIManager } from './ui/UIManager';
+import type { CityCellManager } from './world/city/CityCellManager';
 import { buildCityEnvironmentMap } from './world/city/CityEnvironment';
 import { CITY_TONE, OVERWORLD_TONE } from './world/city/CityLighting';
 import type { CityMaterialLibrary, MaterialDebugMode } from './world/city/CityMaterialLibrary';
-import { buildAshenholdCity, getCityRegionAt } from './world/city/CityPhase1Builder';
+import { buildAshenholdCity, getCityRegionAt, type BuiltAshenholdCity } from './world/city/CityPhase1Builder';
 import { CityPostFX, type CityPostFXOptions } from './world/city/CityPostFX';
 import { DayNightCycle } from './world/DayNightCycle';
 import { buildAncientCrypt } from './world/DungeonBuilder';
@@ -40,6 +44,7 @@ export class GameApp {
   readonly dayNight: DayNightCycle;
   readonly particles: ParticleSystem;
   readonly audio = new AudioSystem();
+  readonly footsteps: FootstepAudioSystem;
   readonly registry = new InteractableRegistry();
   readonly inventory: InventorySystem;
   readonly enemies: EnemySystem;
@@ -55,9 +60,12 @@ export class GameApp {
   private readonly clock = new THREE.Clock();
   private overworldUpdate: (elapsed: number, dt?: number) => void = () => {};
   private cryptUpdate: (elapsed: number) => void = () => {};
-  private cityUpdate: (elapsed: number, dt: number, timeOfDay?: number, playerPos?: { x: number; y: number; z: number }) => void = () => {};
+  private cityUpdate: BuiltAshenholdCity['update'] = () => {};
+  private citySyncChests: () => void = () => {};
   private cityDispose: () => void = () => {};
   private cityMaterials: CityMaterialLibrary | null = null;
+  private cityCellManager: CityCellManager | null = null;
+  private spatialAudio: SpatialAudioSystem | null = null;
   private readonly cityPostFx = new CityPostFX();
   private cityEnvMap: THREE.Texture | null = null;
   private vegetation: VegetationController | null = null;
@@ -68,6 +76,7 @@ export class GameApp {
     this.engine = new SceneEngine(canvas);
     this.dayNight = new DayNightCycle(this.engine.scene);
     this.particles = new ParticleSystem(this.engine.scene);
+    this.footsteps = new FootstepAudioSystem(this.audio.ambient);
 
     this.inventory = new InventorySystem(this.state);
     this.enemies = new EnemySystem(this.state, this.inventory);
@@ -135,7 +144,10 @@ export class GameApp {
       listSaveSlots: () => this.saveSystem.listSlots(),
       onToggleMute: () => this.audio.toggleMute(),
       onReleasePointerLock: () => this.player.releasePointerLock(),
-      onEquipmentChanged: () => this.player.setEquippedWeapon(this.state.equipped.weapon),
+      onEquipmentChanged: () => {
+        this.player.setEquippedWeapon(this.state.equipped.weapon);
+        this.footsteps.playEquipItem();
+      },
       onQuickPotion: (kind) => this.useQuickPotion(kind),
       onSetQuality: (preset) => this.setQualityPreset(preset),
       getQualityPreset: () => this.quality.getPreset(),
@@ -146,6 +158,18 @@ export class GameApp {
         } else {
           this.enterCity();
         }
+      },
+      getAudioVolumes: () => this.audio.getVolumes(),
+      onSetAudioVolume: (channel, value) => this.audio.setVolume(channel, value),
+      onPlayFoley: (kind) => {
+        if (kind === 'book') this.footsteps.playBookPage();
+        else if (kind === 'trade') this.footsteps.playCoinTrade();
+        else this.footsteps.playEquipItem();
+      },
+      onToggleCellDebug: () => {
+        const next = !(this.cityCellManager?.getTelemetry().debugEnabled ?? false);
+        this.cityCellManager?.setCellDebug(next);
+        return next;
       },
     });
 
@@ -262,7 +286,7 @@ export class GameApp {
 
     this.ui.pushToast(
       this.state.player.currentZone === 'ashenhold_city'
-        ? '已抵达【灰烬城 · Ashenhold】：南门、中央市集、铁匠工坊区与织坊高地已开放。'
+        ? '已抵达【灰烬城 · Ashenhold】：瓮城南门、贸易街、中央市集、两翼街区、神殿高台、领主内堡与地下暗渠已互联开放。'
         : '欢迎来到灰烬边境！按 [E] 与溪谷村长老对话，或在村口路牌前往【灰烬城】。',
       'quest',
     );
@@ -343,7 +367,37 @@ export class GameApp {
         this.registry,
         {
           onExitCity: () => this.exitCity(),
-          onLoreRead: (title, body) => this.ui.openLore(title, body),
+          onLoreRead: (title, body) => {
+            this.footsteps.playBookPage();
+            this.ui.openLore(title, body);
+          },
+          isChestOpened: (chestId) => this.state.isChestOpened(chestId),
+          onChestOpen: (chest) => {
+            if (this.state.isChestOpened(chest.id)) return false;
+            this.state.markChestOpened(chest.id);
+            if (chest.gold > 0) {
+              this.state.player.stats.gold += chest.gold;
+              this.ui.pushToast(`开启【${chest.label}】：+${chest.gold} 金币`, 'loot');
+            }
+            for (const it of chest.items) {
+              this.inventory.addItem(it.itemId, it.quantity, chest.id);
+            }
+            this.footsteps.playChestOpen();
+            this.particles.spawnBurst(
+              { x: chest.position.x, y: chest.position.y + 0.6, z: chest.position.z },
+              0xf2cf88,
+              16,
+              4.0,
+              0.55,
+            );
+            this.ui.refreshHUD();
+            return true;
+          },
+          onRingBell: () => {
+            this.spatialAudio?.ringCathedralBell();
+            this.state.setFlag('rang_cathedral_bell', true);
+            this.ui.pushToast('圣火大圣堂青铜晨钟长鸣，声波回荡于灰烬山城八大城区……', 'quest');
+          },
         },
         {
           maxAnisotropy: Math.min(8, this.engine.renderer.capabilities.getMaxAnisotropy()),
@@ -351,8 +405,11 @@ export class GameApp {
         },
       ).then((cityBuilt) => {
         this.cityMaterials = cityBuilt.materials;
+        this.cityCellManager = cityBuilt.cellManager;
+        this.citySyncChests = cityBuilt.syncChestStates;
         this.cityUpdate = cityBuilt.update;
         this.cityDispose = cityBuilt.dispose;
+        this.spatialAudio = new SpatialAudioSystem(this.audio.ambient, cityBuilt.cellManager.portalVis);
       });
     }
     return this.cityLoadPromise;
@@ -408,6 +465,7 @@ export class GameApp {
     this.physics.teleportPlayer(this.state.player.position);
     this.player.syncCameraFromState();
     this.spawner.syncFromState();
+    this.citySyncChests();
     this.enemies.applySavedDefeatedIds();
     this.player.setEquippedWeapon(this.state.equipped.weapon);
     this.ui.refreshHUD();
@@ -430,29 +488,87 @@ export class GameApp {
     }
     this.dayNight.update(dt, this.state, this.quality.getConfig().fogMultiplier);
 
+    const pos = this.state.player.position;
+    const lookDir = this.player.getLookDirection();
+    const moveAudio = this.player.getMovementAudioState();
+    this.footsteps.update(
+      dt,
+      this.state.player.currentZone,
+      pos,
+      moveAudio.speed,
+      moveAudio.grounded,
+      moveAudio.jumped,
+    );
+
     if (this.state.player.currentZone === 'overworld') {
       this.overworldUpdate(elapsed, dt);
-      const region = getRegionAt(this.state.player.position.x, this.state.player.position.z);
+      const region = getRegionAt(pos.x, pos.z);
       if (region !== this.state.player.currentRegion) {
         this.state.player.currentRegion = region;
         this.state.markLocationDiscovered(region, getRegionDisplayName(region));
       }
+      this.audio.ambient.update(dt, 'overworld', 'amb_residential', 'outdoor_courtyard', pos, this.state.world.timeOfDay);
+      this.spatialAudio?.update(dt, 'cell_01_barbican_gate', pos, lookDir, false);
+      this.quality.recordCitySlice(undefined);
     } else if (this.state.player.currentZone === 'ashenhold_city') {
-      this.cityUpdate(elapsed, dt, this.state.world.timeOfDay, this.state.player.position);
-      const region = getCityRegionAt(this.state.player.position.x, this.state.player.position.z);
+      this.cityUpdate(
+        elapsed,
+        dt,
+        this.state.world.timeOfDay,
+        pos,
+        lookDir,
+        this.npcs.instances,
+        this.engine.camera.fov,
+        this.engine.camera.aspect,
+      );
+      const region = getCityRegionAt(pos.x, pos.z, pos.y);
       if (region !== this.state.player.currentRegion) {
         this.state.player.currentRegion = region;
         this.state.markLocationDiscovered(region, getRegionDisplayName(region));
+      }
+      const ct = this.cityCellManager?.getTelemetry();
+      const cellDef = ct ? this.cityCellManager?.portalVis.getCell(ct.activeCellId) : undefined;
+      this.audio.ambient.update(
+        dt,
+        'ashenhold_city',
+        cellDef?.ambientZoneId ?? 'amb_gate_barbican',
+        (cellDef?.reverbPreset as ReverbPresetId) ?? 'outdoor_courtyard',
+        pos,
+        this.state.world.timeOfDay,
+      );
+      this.spatialAudio?.update(dt, ct?.activeCellId ?? 'cell_01_barbican_gate', pos, lookDir, true);
+      if (ct) {
+        this.quality.recordCitySlice({
+          activeCellId: ct.activeCellId,
+          activeCellName: ct.activeCellName,
+          activeCells: ct.activeCells,
+          visibleBuildings: ct.visibleBuildings,
+          visibleNpcs: ct.visibleNpcs,
+          activeAudioNodes:
+            this.audio.ambient.getActiveNodeCount() + (this.spatialAudio?.getActiveNodeCount() ?? 0),
+          activeAmbientZone: this.audio.ambient.getActiveZoneId(),
+          cellSwitchMs: ct.lastCellSwitchMs,
+        });
       }
     } else {
       this.cryptUpdate(elapsed);
       this.state.player.currentRegion = 'ancient_crypt';
+      this.audio.ambient.update(
+        dt,
+        'ancient_crypt',
+        'amb_undercroft',
+        'damp_undercroft_tunnel',
+        pos,
+        this.state.world.timeOfDay,
+      );
+      this.spatialAudio?.update(dt, 'cell_08_undercroft_cellars', pos, lookDir, false);
+      this.quality.recordCitySlice(undefined);
     }
 
-    this.npcs.update(elapsed);
+    this.npcs.update(elapsed, pos, this.state.world.timeOfDay);
     this.enemies.update(
       dt,
-      this.state.player.position,
+      pos,
       this.state.player.currentZone,
       this.state.isPaused || this.state.isDead,
       (hit) => this.combat.applyDamageToPlayer(hit.damage, hit.enemyName),
@@ -462,7 +578,7 @@ export class GameApp {
 
     this.activeInteractable = this.registry.findBestInteractable(
       this.physics.getPlayerEyePosition(),
-      this.player.getLookDirection(),
+      lookDir,
       this.state.player.currentZone,
     );
     this.ui.setInteractPrompt(this.activeInteractable?.label ?? null);
@@ -521,6 +637,7 @@ export class GameApp {
         equipped: { ...this.state.equipped },
         quests: JSON.parse(JSON.stringify(this.state.quests)),
         discoveredLocations: [...this.state.world.discoveredLocations],
+        openedChests: [...this.state.world.openedChestIds],
         activeModal: this.ui.getActiveModal(),
         activePrompt: this.activeInteractable?.id ?? null,
       }),
@@ -532,6 +649,23 @@ export class GameApp {
           this.physics.teleportPlayer({ x, y, z });
           this.player.syncCameraFromState();
         }
+        if (this.state.player.currentZone === 'ashenhold_city') {
+          const region = getCityRegionAt(x, z, y);
+          if (region !== this.state.player.currentRegion) {
+            this.state.player.currentRegion = region;
+            this.state.markLocationDiscovered(region, getRegionDisplayName(region));
+          }
+          this.cityUpdate(
+            this.clock.elapsedTime,
+            0,
+            this.state.world.timeOfDay,
+            this.state.player.position,
+            this.player.getLookDirection(),
+            this.npcs.instances,
+            this.engine.camera.fov,
+            this.engine.camera.aspect,
+          );
+        }
         this.activeInteractable = this.registry.findBestInteractable(
           this.physics.getPlayerEyePosition(),
           this.player.getLookDirection(),
@@ -541,6 +675,18 @@ export class GameApp {
       },
       setLook: (yaw: number, pitch: number) => {
         this.player.setLook(yaw, pitch);
+        if (this.state.player.currentZone === 'ashenhold_city') {
+          this.cityUpdate(
+            this.clock.elapsedTime,
+            0,
+            this.state.world.timeOfDay,
+            this.state.player.position,
+            this.player.getLookDirection(),
+            this.npcs.instances,
+            this.engine.camera.fov,
+            this.engine.camera.aspect,
+          );
+        }
         this.activeInteractable = this.registry.findBestInteractable(
           this.physics.getPlayerEyePosition(),
           this.player.getLookDirection(),
@@ -555,6 +701,18 @@ export class GameApp {
         this.dayNight.update(0, this.state, this.quality.getConfig().fogMultiplier);
       },
       setDebugMode: (mode: MaterialDebugMode) => this.setDebugMode(mode),
+      setCellDebug: (enabled: boolean) => this.cityCellManager?.setCellDebug(enabled),
+      getCellTelemetry: () => this.cityCellManager?.getTelemetry() ?? null,
+      getAudioDiagnostics: () => ({
+        volumes: this.audio.getVolumes(),
+        ambientZone: this.audio.ambient.getActiveZoneId(),
+        reverb: this.audio.ambient.getActiveReverb(),
+        activeNodes:
+          this.audio.ambient.getActiveNodeCount() + (this.spatialAudio?.getActiveNodeCount() ?? 0),
+        lastSurface: this.footsteps.getLastSurface(),
+        stepCount: this.footsteps.getStepCount(),
+        emitters: this.spatialAudio?.getEmitterDiagnostics() ?? [],
+      }),
       setPostFX: (opts: Partial<CityPostFXOptions>) => {
         Object.assign(this.cityPostFx.options, opts);
       },
@@ -580,6 +738,7 @@ export class GameApp {
   dispose(): void {
     cancelAnimationFrame(this.rafId);
     this.player.dispose();
+    this.spatialAudio?.dispose();
     this.cityPostFx.dispose();
     this.cityDispose();
     this.cityEnvMap?.dispose();

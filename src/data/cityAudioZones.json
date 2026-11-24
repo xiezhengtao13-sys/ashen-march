@@ -1,0 +1,218 @@
+{
+  "license": "100% Original Procedural WebAudio Synthesis & Impulse Generation (CC0 / Project-Authored Code — Zero External Copyrighted Audio Files)",
+  "ambientZones": [
+    {
+      "id": "amb_gate_barbican",
+      "label": "南城门与瓮城风声",
+      "baseProfile": "mountain_wind",
+      "windGain": 0.34,
+      "crowdGain": 0.06,
+      "birdRate": 0.22,
+      "reverb": "outdoor_courtyard"
+    },
+    {
+      "id": "amb_trade_street",
+      "label": "曲折商街穿堂风与市井声",
+      "baseProfile": "alley_breeze",
+      "windGain": 0.18,
+      "crowdGain": 0.22,
+      "creakRate": 0.18,
+      "reverb": "outdoor_alley"
+    },
+    {
+      "id": "amb_tavern_interior",
+      "label": "余烬酒馆壁炉与欢聚",
+      "baseProfile": "warm_tavern",
+      "windGain": 0.03,
+      "crowdGain": 0.38,
+      "hearthGain": 0.36,
+      "clinkRate": 0.28,
+      "reverb": "timber_tavern"
+    },
+    {
+      "id": "amb_market_plaza",
+      "label": "中央市集熙攘人声",
+      "baseProfile": "busy_market",
+      "windGain": 0.14,
+      "crowdGain": 0.44,
+      "creakRate": 0.15,
+      "reverb": "outdoor_courtyard"
+    },
+    {
+      "id": "amb_artisan_quarter",
+      "label": "工匠锻炉热浪与风箱",
+      "baseProfile": "forge_yard",
+      "windGain": 0.16,
+      "crowdGain": 0.12,
+      "hearthGain": 0.42,
+      "reverb": "semi_open_yard"
+    },
+    {
+      "id": "amb_residential",
+      "label": "东翼民居高地静谧微风",
+      "baseProfile": "quiet_heights",
+      "windGain": 0.24,
+      "crowdGain": 0.07,
+      "birdRate": 0.32,
+      "creakRate": 0.12,
+      "reverb": "outdoor_alley"
+    },
+    {
+      "id": "amb_temple_heights",
+      "label": "圣堂高地清冷山风与圣咏余韵",
+      "baseProfile": "sacred_heights",
+      "windGain": 0.36,
+      "crowdGain": 0.02,
+      "chimeRate": 0.14,
+      "reverb": "cathedral_stone"
+    },
+    {
+      "id": "amb_lord_castle",
+      "label": "山巅领主城堡凛冽高风",
+      "baseProfile": "citadel_gale",
+      "windGain": 0.48,
+      "crowdGain": 0.04,
+      "creakRate": 0.20,
+      "reverb": "great_hall_stone"
+    },
+    {
+      "id": "amb_undercroft",
+      "label": "地下暗渠低频水流与拱顶水滴",
+      "baseProfile": "damp_cistern",
+      "windGain": 0.05,
+      "waterGain": 0.40,
+      "dripRate": 0.55,
+      "reverb": "damp_undercroft_tunnel"
+    }
+  ],
+  "interiorAcousticOverrides": [
+    {
+      "id": "aco_tavern_1f",
+      "ambientZoneId": "amb_tavern_interior",
+      "reverb": "timber_tavern",
+      "bounds": { "minX": 4.2, "maxX": 14.2, "minY": 1.2, "maxY": 8.4, "minZ": -8.6, "maxZ": 2.2 }
+    },
+    {
+      "id": "aco_cathedral_nave",
+      "ambientZoneId": "amb_temple_heights",
+      "reverb": "cathedral_stone",
+      "bounds": { "minX": -21.0, "maxX": -4.0, "minY": 11.8, "maxY": 25.0, "minZ": -96.5, "maxZ": -78.0 }
+    },
+    {
+      "id": "aco_castle_great_hall",
+      "ambientZoneId": "amb_lord_castle",
+      "reverb": "great_hall_stone",
+      "bounds": { "minX": -11.5, "maxX": 11.5, "minY": 20.5, "maxY": 31.0, "minZ": -141.0, "maxZ": -125.0 }
+    }
+  ],
+  "spatialEmitters": [
+    {
+      "id": "emit_barbican_brazier",
+      "kind": "torch_fire",
+      "cellId": "cell_01_barbican_gate",
+      "position": { "x": -4.1, "y": 1.2, "z": 16.3 },
+      "refDistance": 3.5,
+      "maxDistance": 26.0,
+      "gain": 0.34
+    },
+    {
+      "id": "emit_tavern_hearth",
+      "kind": "hearth_fire",
+      "cellId": "cell_02_trade_street",
+      "position": { "x": 11.4, "y": 2.4, "z": -1.8 },
+      "refDistance": 4.0,
+      "maxDistance": 28.0,
+      "gain": 0.46
+    },
+    {
+      "id": "emit_tavern_chatter",
+      "kind": "tavern_murmur",
+      "cellId": "cell_02_trade_street",
+      "position": { "x": 9.2, "y": 2.6, "z": -3.2 },
+      "refDistance": 4.5,
+      "maxDistance": 30.0,
+      "gain": 0.38
+    },
+    {
+      "id": "emit_market_fountain",
+      "kind": "fountain_water",
+      "cellId": "cell_03_market_plaza",
+      "position": { "x": 0.0, "y": 4.9, "z": -35.0 },
+      "refDistance": 4.5,
+      "maxDistance": 38.0,
+      "gain": 0.52
+    },
+    {
+      "id": "emit_artisan_anvil",
+      "kind": "anvil_hammer",
+      "cellId": "cell_04_artisan_quarter",
+      "position": { "x": -31.5, "y": 8.2, "z": -35.5 },
+      "refDistance": 5.5,
+      "maxDistance": 58.0,
+      "gain": 0.62
+    },
+    {
+      "id": "emit_artisan_forge_fire",
+      "kind": "hearth_fire",
+      "cellId": "cell_04_artisan_quarter",
+      "position": { "x": -34.5, "y": 8.4, "z": -36.0 },
+      "refDistance": 4.5,
+      "maxDistance": 34.0,
+      "gain": 0.48
+    },
+    {
+      "id": "emit_artisan_carpenter",
+      "kind": "wood_saw",
+      "cellId": "cell_04_artisan_quarter",
+      "position": { "x": -32.5, "y": 8.1, "z": -50.0 },
+      "refDistance": 4.0,
+      "maxDistance": 32.0,
+      "gain": 0.40
+    },
+    {
+      "id": "emit_residential_well",
+      "kind": "well_water",
+      "cellId": "cell_05_residential_heights",
+      "position": { "x": 36.0, "y": 8.0, "z": -44.0 },
+      "refDistance": 3.0,
+      "maxDistance": 22.0,
+      "gain": 0.32
+    },
+    {
+      "id": "emit_cathedral_bell",
+      "kind": "cathedral_bell",
+      "cellId": "cell_06_temple_acropolis",
+      "position": { "x": -19.5, "y": 24.8, "z": -93.5 },
+      "refDistance": 8.0,
+      "maxDistance": 88.0,
+      "gain": 0.65
+    },
+    {
+      "id": "emit_castle_hall_hearth",
+      "kind": "hearth_fire",
+      "cellId": "cell_07_lord_castle",
+      "position": { "x": 0.0, "y": 22.4, "z": -132.0 },
+      "refDistance": 5.0,
+      "maxDistance": 36.0,
+      "gain": 0.50
+    },
+    {
+      "id": "emit_undercroft_drain",
+      "kind": "cistern_stream",
+      "cellId": "cell_08_undercroft_cellars",
+      "position": { "x": -12.5, "y": -3.8, "z": -16.0 },
+      "refDistance": 4.5,
+      "maxDistance": 36.0,
+      "gain": 0.52
+    },
+    {
+      "id": "emit_undercroft_north_drip",
+      "kind": "cave_drips",
+      "cellId": "cell_08_undercroft_cellars",
+      "position": { "x": 2.0, "y": -2.5, "z": -68.0 },
+      "refDistance": 5.0,
+      "maxDistance": 42.0,
+      "gain": 0.44
+    }
+  ]
+}

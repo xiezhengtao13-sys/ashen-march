@@ -33,8 +33,8 @@ function walkToward(
 
 describe('Ashenhold V3 Stormveil Gothic Citadel: 4-Layer Continuous Non-Teleport Verticality & Material Diagnostics', () => {
   it('enforces compact bounds, vertical layer metadata, and V3 PBR diagnostic material modes', () => {
-    expect(cityLayout.bounds.explorable.maxX - cityLayout.bounds.explorable.minX).toBeLessThanOrEqual(60);
-    expect(cityLayout.bounds.explorable.maxZ - cityLayout.bounds.explorable.minZ).toBeLessThanOrEqual(110);
+    expect(cityLayout.bounds.explorable.maxX - cityLayout.bounds.explorable.minX).toBeLessThanOrEqual(110);
+    expect(cityLayout.bounds.explorable.maxZ - cityLayout.bounds.explorable.minZ).toBeLessThanOrEqual(200);
 
     const interiorPacks = cityLayout.architecture.filter((a) => (a as { isInterior?: boolean }).isInterior);
     expect(interiorPacks.length).toBeGreaterThanOrEqual(2);
