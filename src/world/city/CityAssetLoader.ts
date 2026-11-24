@@ -58,6 +58,18 @@ export class CityAssetLoader {
     return cached;
   }
 
+  private ensureGeometryTangents(geom: THREE.BufferGeometry): void {
+    if (
+      !geom.attributes.tangent &&
+      geom.index &&
+      geom.attributes.position &&
+      geom.attributes.normal &&
+      geom.attributes.uv
+    ) {
+      geom.computeTangents();
+    }
+  }
+
   async instantiateModel(
     filename: string,
     options: { castShadow?: boolean; receiveShadow?: boolean } = {},
@@ -68,6 +80,7 @@ export class CityAssetLoader {
 
     clone.traverse((child) => {
       if (!(child instanceof THREE.Mesh)) return;
+      this.ensureGeometryTangents(child.geometry);
       const origMat = Array.isArray(child.material) ? child.material[0] : child.material;
       const matName = origMat?.name ?? 'stone_ashlar';
       const hasVC = Boolean(child.geometry.attributes.color);
@@ -121,16 +134,27 @@ export class CityAssetLoader {
 
       template.traverse((child) => {
         if (!(child instanceof THREE.Mesh)) return;
+        this.ensureGeometryTangents(child.geometry);
         const origMat = Array.isArray(child.material) ? child.material[0] : child.material;
         const matName = origMat?.name ?? 'stone_ashlar';
         const hasVC = Boolean(child.geometry.attributes.color);
         const mat = this.materials.getMaterial(matName, hasVC);
-        const isGlowOrGlass = matName.startsWith('glow_warm') || matName.startsWith('window_leaded');
+        const isGlowOrGlass =
+          matName.startsWith('glow_warm') ||
+          matName.startsWith('window_leaded') ||
+          matName.startsWith('foliage_leaf');
         const castShadow = entry.castShadow && !isGlowOrGlass;
 
         // Normalize geometry to non-indexed with uniform attributes so mergeGeometries never fails
         const raw = child.geometry.index ? child.geometry.toNonIndexed() : child.geometry.clone();
-        const allowed = new Set(['position', 'normal', 'uv', ...(hasVC ? ['color'] : [])]);
+        const hasTan = Boolean(raw.attributes.tangent);
+        const allowed = new Set([
+          'position',
+          'normal',
+          'uv',
+          ...(hasTan ? ['tangent'] : []),
+          ...(hasVC ? ['color'] : []),
+        ]);
         for (const attrName of Object.keys(raw.attributes)) {
           if (!allowed.has(attrName)) {
             raw.deleteAttribute(attrName);
@@ -151,7 +175,7 @@ export class CityAssetLoader {
         worldMat.copy(instMat).multiply(child.matrixWorld);
         raw.applyMatrix4(worldMat);
 
-        const bucketKey = `${mat.name}__vc${hasVC ? 1 : 0}__cs${castShadow ? 1 : 0}__rs${entry.receiveShadow ? 1 : 0}`;
+        const bucketKey = `${mat.name}__vc${hasVC ? 1 : 0}__tan${hasTan ? 1 : 0}__cs${castShadow ? 1 : 0}__rs${entry.receiveShadow ? 1 : 0}`;
         let b = buckets.get(bucketKey);
         if (!b) {
           b = { material: mat, castShadow, receiveShadow: entry.receiveShadow, geoms: [] };
@@ -194,12 +218,16 @@ export class CityAssetLoader {
     template.updateMatrixWorld(true);
     template.traverse((child) => {
       if (!(child instanceof THREE.Mesh)) return;
+      this.ensureGeometryTangents(child.geometry);
       const origMat = Array.isArray(child.material) ? child.material[0] : child.material;
       const matName = origMat?.name ?? 'stone_ashlar';
       const hasVC = Boolean(child.geometry.attributes.color);
       const geom = child.geometry.clone();
       geom.applyMatrix4(child.matrixWorld);
-      const isGlow = matName.startsWith('glow_warm') || matName.startsWith('window_leaded');
+      const isGlow =
+        matName.startsWith('glow_warm') ||
+        matName.startsWith('window_leaded') ||
+        matName.startsWith('foliage_leaf');
       primitives.push({
         geometry: geom,
         material: this.materials.getMaterial(matName, hasVC),

@@ -275,16 +275,35 @@ export async function buildAshenholdCity(
     parent.add(lowerWater, upperWater);
   }
 
+  const undercroftGroup = new THREE.Group();
+  undercroftGroup.name = 'CityZone_UndercroftSublevel';
+  parent.add(undercroftGroup);
+
   const undercroftArch = resolvedArch.find((a) => a.model === 'sv_hero_undercroft.glb');
   if (undercroftArch) {
     const drainWater = new THREE.Mesh(new THREE.PlaneGeometry(0.98, 20.4), materials.waterTroughMaterial);
     drainWater.rotation.x = -Math.PI / 2;
     drainWater.position.set(undercroftArch.worldPos.x, undercroftArch.worldPos.y - 0.14, undercroftArch.worldPos.z + 1.5);
-    parent.add(drainWater);
+    undercroftGroup.add(drainWater);
   }
 
-  // 5. Auto-Instance Repeated Walls/Horizon, Distance-Cull Interior Packs (<28m), & Merge District Shells
-  const cullTargets: Array<{ group: THREE.Group; x: number; z: number; maxDistSq: number }> = [];
+  // 5. Spatial Visibility Zones, Room-Level Interior Culling, Sub-Level Portal Culling & Prop Partitioning
+  const visibilityRules: Array<{ target: THREE.Object3D; test: (p: Vec3) => boolean }> = [
+    {
+      // Sub-level (-4m) Undercroft: visible underground (y < -0.35) OR within 11.5m of South/North stairwell portals!
+      target: undercroftGroup,
+      test: (p) => {
+        if (p.y < -0.35) return true;
+        const dsx = p.x - -4.2;
+        const dsz = p.z - -7.5;
+        if (dsx * dsx + dsz * dsz <= 132.25) return true;
+        const dnx = p.x - -9.6;
+        const dnz = p.z - -36.2;
+        return dnx * dnx + dnz * dnz <= 132.25;
+      },
+    },
+  ];
+
   if (!options.skipAssetFetch && typeof fetch !== 'undefined') {
     const INSTANCED_ARCH_MODELS = new Set([
       'perimeter_curtain_wall.glb',
@@ -299,13 +318,17 @@ export async function buildAshenholdCity(
     const interiorEntries: Array<(typeof resolvedArch)[number]> = [];
     const districtBuckets = new Map<
       string,
-      { entries: import('./CityAssetLoader').StaticBatchEntry[]; cx: number; cz: number; maxDist: number }
+      {
+        entries: import('./CityAssetLoader').StaticBatchEntry[];
+        parentGroup: THREE.Group;
+        test?: (p: Vec3) => boolean;
+      }
     >();
 
-    const ensureBucket = (key: string, cx: number, cz: number, maxDist: number) => {
+    const ensureBucket = (key: string, parentGroup: THREE.Group, test?: (p: Vec3) => boolean) => {
       let b = districtBuckets.get(key);
       if (!b) {
-        b = { entries: [], cx, cz, maxDist };
+        b = { entries: [], parentGroup, test };
         districtBuckets.set(key, b);
       }
       return b;
@@ -316,6 +339,19 @@ export async function buildAshenholdCity(
         interiorEntries.push(arch);
         continue;
       }
+      if (arch.model === 'sv_hero_undercroft.glb') {
+        const b = ensureBucket('undercroft_mesh', undercroftGroup);
+        b.entries.push({
+          filename: arch.model,
+          x: arch.worldPos.x,
+          y: arch.worldPos.y,
+          z: arch.worldPos.z,
+          yaw: arch.yaw,
+          castShadow: false,
+          receiveShadow: true,
+        });
+        continue;
+      }
       if (INSTANCED_ARCH_MODELS.has(arch.model)) {
         const list = instancedArch.get(arch.model) ?? [];
         list.push({ x: arch.worldPos.x, y: arch.worldPos.y, z: arch.worldPos.z, yaw: arch.yaw, scale: 1 });
@@ -323,88 +359,133 @@ export async function buildAshenholdCity(
         continue;
       }
 
-      const isLandmark =
-        arch.model === 'bldg_market_chapel.glb' ||
-        arch.model === 'bldg_mason_hall.glb' ||
+      const isVistaHero =
+        arch.model === 'sv_hero_market_bastion.glb' ||
+        arch.model === 'landmark_market_fountain.glb' ||
         arch.model === 'castle_barbican_gate.glb' ||
         arch.model === 'castle_citadel_keep.glb' ||
         arch.district === 'ashenhold_temple_acropolis';
 
-      let bucketKey: string;
-      let cx: number;
-      let cz: number;
-      let maxDist: number;
-      if (isLandmark) {
-        bucketKey = 'skyline_landmarks';
-        cx = 0;
-        cz = -105;
-        maxDist = 380;
+      if (isVistaHero) {
+        const b = ensureBucket('vista_landmarks', parent);
+        b.entries.push({
+          filename: arch.model,
+          x: arch.worldPos.x,
+          y: arch.worldPos.y,
+          z: arch.worldPos.z,
+          yaw: arch.yaw,
+          castShadow: arch.model !== 'castle_citadel_keep.glb' && arch.tier !== 'decorative',
+          receiveShadow: true,
+        });
       } else if (arch.district === 'ashenhold_gate' || arch.district === 'ashenhold_main_street') {
-        bucketKey = 'gate_and_main';
-        cx = 0;
-        cz = 2;
-        maxDist = 115;
+        const b = ensureBucket('gate_and_alley', parent, (p) => p.z >= -52.0 || p.y >= 6.8);
+        b.entries.push({
+          filename: arch.model,
+          x: arch.worldPos.x,
+          y: arch.worldPos.y,
+          z: arch.worldPos.z,
+          yaw: arch.yaw,
+          castShadow: arch.tier !== 'decorative',
+          receiveShadow: true,
+        });
       } else if (arch.district === 'ashenhold_market_plaza') {
-        bucketKey = arch.worldPos.x <= 0 ? 'market_west' : 'market_east';
-        cx = arch.worldPos.x <= 0 ? -8 : 8;
-        cz = -35;
-        maxDist = 115;
-      } else if (arch.district === 'ashenhold_artisan_quarter') {
-        bucketKey = 'artisan_quarter';
-        cx = -32;
-        cz = -42;
-        maxDist = 125;
-      } else if (arch.district === 'ashenhold_residential_quarter') {
-        bucketKey = 'residential_quarter';
-        cx = 32;
-        cz = -42;
-        maxDist = 125;
+        // Side market stalls & east shops are occluded by Tavern/Bridge when standing south of z = +7.5!
+        const b = ensureBucket('market_plaza_stalls', parent, (p) => p.z <= 7.5 || p.y >= 6.5);
+        b.entries.push({
+          filename: arch.model,
+          x: arch.worldPos.x,
+          y: arch.worldPos.y,
+          z: arch.worldPos.z,
+          yaw: arch.yaw,
+          castShadow: arch.tier !== 'decorative',
+          receiveShadow: true,
+        });
       } else {
-        bucketKey = 'castle_forecourt';
-        cx = 0;
-        cz = -114;
-        maxDist = 200;
+        // Upper flank quarters (Apothecary shell & decorative flank houses) occluded from lower South Gate!
+        const b = ensureBucket('upper_flank_quarters', parent, (p) => p.z <= -6.0 || p.y >= 6.5);
+        b.entries.push({
+          filename: arch.model,
+          x: arch.worldPos.x,
+          y: arch.worldPos.y,
+          z: arch.worldPos.z,
+          yaw: arch.yaw,
+          castShadow: arch.tier !== 'decorative',
+          receiveShadow: true,
+        });
       }
-
-      const b = ensureBucket(bucketKey, cx, cz, maxDist);
-      b.entries.push({
-        filename: arch.model,
-        x: arch.worldPos.x,
-        y: arch.worldPos.y,
-        z: arch.worldPos.z,
-        yaw: arch.yaw,
-        castShadow: arch.model !== 'castle_citadel_keep.glb' && arch.tier !== 'decorative',
-        receiveShadow: true,
-      });
     }
 
     const archBatchPromises = [...districtBuckets.entries()].map(async ([key, bucket]) => {
-      const grp = await loader.createDistrictStaticBatch(`CityBatch_${key}`, bucket.entries, parent);
-      cullTargets.push({ group: grp, x: bucket.cx, z: bucket.cz, maxDistSq: bucket.maxDist * bucket.maxDist });
+      const grp = await loader.createDistrictStaticBatch(`CityBatch_${key}`, bucket.entries, bucket.parentGroup);
+      if (bucket.test) {
+        visibilityRules.push({ target: grp, test: bucket.test });
+      }
     });
 
+    // Room-Level Enclosed Interior Culling (merged static batch + tight doorway/window AABB bounds!)
     const interiorPromises = interiorEntries.map(async (arch) => {
-      const grp = new THREE.Group();
-      grp.name = `CityInterior_${arch.id}`;
-      const model = await loader.instantiateModel(arch.model, { castShadow: false, receiveShadow: true });
-      model.position.set(arch.worldPos.x, arch.worldPos.y, arch.worldPos.z);
-      model.rotation.y = arch.yaw;
-      grp.add(model);
-      parent.add(grp);
-      const d = arch.cullDist ?? 28;
-      cullTargets.push({ group: grp, x: arch.worldPos.x, z: arch.worldPos.z, maxDistSq: d * d });
+      const grp = await loader.createDistrictStaticBatch(
+        `CityInterior_${arch.id}`,
+        [
+          {
+            filename: arch.model,
+            x: arch.worldPos.x,
+            y: arch.worldPos.y,
+            z: arch.worldPos.z,
+            yaw: arch.yaw,
+            castShadow: false,
+            receiveShadow: true,
+          },
+        ],
+        parent,
+      );
+      const ax = arch.worldPos.x;
+      const ay = arch.worldPos.y;
+      const az = arch.worldPos.z;
+      visibilityRules.push({
+        target: grp,
+        test: (p) => Math.abs(p.x - ax) <= 9.2 && Math.abs(p.z - az) <= 9.8 && p.y >= ay - 1.2 && p.y <= ay + 6.2,
+      });
     });
 
     const instArchPromises = [...instancedArch.entries()].map(async ([modelName, transforms]) => {
-      const castShadow = modelName === 'city_retaining_wall.glb' || modelName === 'hillside_terrace_wall_16m.glb';
+      const castShadow =
+        modelName === 'city_retaining_wall.glb' ||
+        modelName === 'hillside_terrace_wall_16m.glb' ||
+        modelName === 'sv_hero_buttress_wall_12m.glb';
       await loader.createInstancedPropBatch(modelName, transforms, parent, castShadow);
     });
 
-    const propPromises = [...propTransformsByModel.entries()].map(async ([modelName, transforms]) => {
-      if (transforms.length === 0) return;
-      const castShadow = modelName !== 'prop_debris_cluster.glb';
-      await loader.createInstancedPropBatch(modelName, transforms, parent, castShadow);
-    });
+    // Partition props into South (Gate/Alley, z >= -18) & North (Market/Bastion, z < -18) zones + cull small-prop shadows!
+    const propsSouthGroup = new THREE.Group();
+    propsSouthGroup.name = 'CityProps_SouthZone';
+    const propsNorthGroup = new THREE.Group();
+    propsNorthGroup.name = 'CityProps_NorthZone';
+    parent.add(propsSouthGroup, propsNorthGroup);
+    visibilityRules.push(
+      { target: propsSouthGroup, test: (p) => p.z >= -38.0 || p.y >= 7.0 },
+      { target: propsNorthGroup, test: (p) => p.z <= 4.0 || p.y >= 7.0 },
+    );
+
+    const SHADOW_CASTING_PROPS = new Set([
+      'prop_cart.glb',
+      'prop_lantern_post.glb',
+      'sv_prop_timber_scaffold.glb',
+      'sv_prop_iron_brazier.glb',
+    ]);
+
+    const propPromises: Promise<unknown>[] = [];
+    for (const [modelName, transforms] of propTransformsByModel.entries()) {
+      const southList = transforms.filter((t) => t.z >= -18.0);
+      const northList = transforms.filter((t) => t.z < -18.0);
+      const castShadow = SHADOW_CASTING_PROPS.has(modelName);
+      if (southList.length > 0) {
+        propPromises.push(loader.createInstancedPropBatch(modelName, southList, propsSouthGroup, castShadow));
+      }
+      if (northList.length > 0) {
+        propPromises.push(loader.createInstancedPropBatch(modelName, northList, propsNorthGroup, castShadow));
+      }
+    }
 
     await Promise.all([...archBatchPromises, ...interiorPromises, ...instArchPromises, ...propPromises]);
   }
@@ -412,6 +493,8 @@ export async function buildAshenholdCity(
   // 6. Selective Local Warm Point Lights (<= 6 GPU light budget) & Soft Lantern Glow Sprites
   const lightRefs: Array<{ light: THREE.PointLight; base: number; phase: number; alwaysOn: boolean }> = [];
   const glowTex = createRadialGlowTexture();
+  const glowGroup = new THREE.Group();
+  parent.add(glowGroup);
   const glowSprites: THREE.Sprite[] = [];
 
   for (let i = 0; i < cityLayout.lights.length; i++) {
@@ -447,9 +530,9 @@ export async function buildAshenholdCity(
       const bulbX = p.x + Math.cos(-p.yaw) * 0.72 * p.scale;
       const bulbZ = p.z + Math.sin(-p.yaw) * 0.72 * p.scale;
       const sp = new THREE.Sprite(glowMat);
-      sp.position.set(bulbX, p.y + 2.63 * p.scale, bulbZ);
-      sp.scale.set(1.15, 1.15, 1.15);
-      parent.add(sp);
+      sp.position.set(bulbX, p.y + 2.48 * p.scale, bulbZ);
+      sp.scale.set(0.85, 0.85, 0.85);
+      glowGroup.add(sp);
       glowSprites.push(sp);
     }
 
@@ -458,14 +541,16 @@ export async function buildAshenholdCity(
       const bulbZ = w.z - Math.cos(w.yaw) * 0.6;
       const sp = new THREE.Sprite(glowMat);
       sp.position.set(bulbX, w.y - 0.2, bulbZ);
-      sp.scale.set(0.95, 0.95, 0.95);
-      parent.add(sp);
+      sp.scale.set(0.8, 0.8, 0.8);
+      glowGroup.add(sp);
       glowSprites.push(sp);
     }
   }
 
-  // 7. Gentle Chimney & Forge Smoke Wisps (A1 Guardhouse, A2 Tavern, A3 Apothecary & West Smithy)
+  // 7. Lean Distance-Culled Chimney Smoke Wisps (2 puffs/chimney = 8 sprites instead of 24!)
   const smokePuffs: SmokePuff[] = [];
+  const smokeGroup = new THREE.Group();
+  parent.add(smokeGroup);
   const smokeTex = createSmokeTexture();
   if (smokeTex) {
     const chimneyOrigins: Vec3[] = [
@@ -475,24 +560,25 @@ export async function buildAshenholdCity(
       { x: -28.5, y: 18.2, z: -44.0 },
     ];
     for (const origin of chimneyOrigins) {
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 2; i++) {
         const smMat = new THREE.SpriteMaterial({
           map: smokeTex,
           transparent: true,
-          opacity: 0.3,
+          opacity: 0.24,
           depthWrite: false,
         });
         const sp = new THREE.Sprite(smMat);
         sp.position.set(origin.x, origin.y, origin.z);
-        parent.add(sp);
+        smokeGroup.add(sp);
         smokePuffs.push({
           sprite: sp,
           origin,
-          phase: i / 6,
-          speed: 0.14 + (i % 3) * 0.025,
+          phase: i * 0.5,
+          speed: 0.13 + i * 0.03,
         });
       }
     }
+    visibilityRules.push({ target: smokeGroup, test: (p) => p.y >= -0.5 });
   }
 
   // 8. Carved Stone Return Portal Milestone + Data-Driven Lore & Municipal Notices
@@ -591,16 +677,19 @@ export async function buildAshenholdCity(
       }
 
       if (playerPos) {
-        const px = playerPos.x;
-        const pz = playerPos.z;
-        for (const ct of cullTargets) {
-          const dx = ct.x - px;
-          const dz = ct.z - pz;
-          ct.group.visible = dx * dx + dz * dz <= ct.maxDistSq;
+        for (const rule of visibilityRules) {
+          rule.target.visible = rule.test(playerPos);
         }
       }
 
       for (const puff of smokePuffs) {
+        if (playerPos) {
+          const dx = puff.origin.x - playerPos.x;
+          const dz = puff.origin.z - playerPos.z;
+          const inRange = dx * dx + dz * dz <= 3025;
+          puff.sprite.visible = inRange;
+          if (!inRange) continue;
+        }
         puff.phase = (puff.phase + dt * puff.speed) % 1;
         const t = puff.phase;
         puff.sprite.position.set(
@@ -610,7 +699,7 @@ export async function buildAshenholdCity(
         );
         const s = 0.65 + t * 2.2;
         puff.sprite.scale.set(s, s, s);
-        puff.sprite.material.opacity = Math.sin(t * Math.PI) * 0.34;
+        puff.sprite.material.opacity = Math.sin(t * Math.PI) * 0.28;
       }
     },
     dispose: () => {

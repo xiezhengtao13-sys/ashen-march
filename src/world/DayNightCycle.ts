@@ -89,10 +89,10 @@ export class DayNightCycle {
     this.sunLight = new THREE.DirectionalLight(0xfff1d6, 1.45);
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.set(2048, 2048);
-    this.sunLight.shadow.bias = -0.0005;
-    this.sunLight.shadow.normalBias = 0.025;
+    this.sunLight.shadow.bias = -0.00035;
+    this.sunLight.shadow.normalBias = 0.018;
     this.sunLight.shadow.camera.near = 10;
-    this.sunLight.shadow.camera.far = 360;
+    this.sunLight.shadow.camera.far = 280;
     const d = 140;
     this.sunLight.shadow.camera.left = -d;
     this.sunLight.shadow.camera.right = d;
@@ -119,8 +119,16 @@ export class DayNightCycle {
     });
     this.skyMesh = new THREE.Mesh(new THREE.SphereGeometry(480, 24, 16), skyMat);
     this.skyMesh.name = 'SkyDome';
+    this.skyMesh.renderOrder = -1000;
+    this.skyMesh.onBeforeRender = (renderer) => {
+      this.lastShadowCalls = renderer.info.render.calls;
+      this.lastShadowTris = renderer.info.render.triangles;
+    };
     this.scene.add(this.skyMesh);
   }
+
+  lastShadowCalls = 0;
+  lastShadowTris = 0;
 
   private setShadowBounds(halfExtent: number, targetX: number, targetY: number, targetZ: number): void {
     const cam = this.sunLight.shadow.camera;
@@ -164,17 +172,19 @@ export class DayNightCycle {
     const sunX = Math.cos(solarAngle);
 
     if (isCity) {
-      // Snap shadow camera around the player on a coarse texel grid so crisp 2048px shadows cover
-      // the full 200x240m city without swimming as the player walks.
-      const halfExt = 48;
-      const texel = (halfExt * 2) / 1024;
+      // Tighter 36m half-extent on 2048px shadow map (~3.5cm/texel) snapped to texel grid
+      // for razor-sharp architectural stone, buttress, and wrought-iron railing shadows.
+      const halfExt = 36;
+      const texel = (halfExt * 2) / 2048;
       const snapX = Math.round(state.player.position.x / texel) * texel;
       const snapY = Math.round(state.player.position.y / texel) * texel;
       const snapZ = Math.round(state.player.position.z / texel) * texel;
       this.setShadowBounds(halfExt, snapX, snapY, snapZ);
-      const sunOffX = sunX * 68 + (sunY > 0.4 ? 12 : 0);
-      const sunOffY = sunY > 0 ? Math.max(12, sunY * 82) : 48;
-      const sunOffZ = sunY > 0 ? 42 : -36;
+      // Oblique ~40-deg SW raking sunlight at 13:00 brings out 3D sculpted stone relief,
+      // deep arch reveals, and dramatic half-lit Gothic alleyways instead of flat front light!
+      const sunOffX = sunX * 68 - (sunY > 0.35 ? 21 : 0);
+      const sunOffY = sunY > 0 ? Math.max(12, sunY * 66) : 48;
+      const sunOffZ = sunY > 0 ? 45 : -36;
       const citySunDir = new THREE.Vector3(sunOffX, sunOffY, sunOffZ).normalize();
       this.sunLight.position.set(snapX + citySunDir.x * 115, snapY + citySunDir.y * 115, snapZ + citySunDir.z * 115);
       this.skyUniforms.uSunDir.value.copy(citySunDir);
@@ -230,7 +240,7 @@ export class DayNightCycle {
     this.scene.background = this.skyUniforms.uHorizonColor.value.clone();
     if (this.scene.fog instanceof THREE.FogExp2) {
       this.scene.fog.color.copy(this.skyUniforms.uHorizonColor.value);
-      this.scene.fog.density = (isCity ? 0.0028 : 0.0044) * fogMultiplier;
+      this.scene.fog.density = (isCity ? 0.0033 : 0.0044) * fogMultiplier;
     }
   }
 

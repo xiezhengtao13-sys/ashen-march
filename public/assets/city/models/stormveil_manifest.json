@@ -758,6 +758,18 @@
           4.6,
           2.7
         ]
+      },
+      {
+        "center": [
+          8.2,
+          15.2,
+          -12.4
+        ],
+        "half": [
+          2.4,
+          3.3,
+          2.4
+        ]
       }
     ],
     "cylinderColliders": [],
@@ -1246,6 +1258,16 @@
     "cylinderColliders": [],
     "orientedColliders": []
   },
+  "prop_debris_cluster.glb": {
+    "colliders": [],
+    "cylinderColliders": [],
+    "orientedColliders": []
+  },
+  "prop_lantern_post.glb": {
+    "colliders": [],
+    "cylinderColliders": [],
+    "orientedColliders": []
+  },
   "sv_prop_iron_brazier.glb": {
     "colliders": [
       {
@@ -1276,6 +1298,152 @@
           1.55,
           2.0,
           0.65
+        ]
+      }
+    ],
+    "cylinderColliders": [],
+    "orientedColliders": []
+  },
+  "castle_citadel_keep.glb": {
+    "colliders": [],
+    "cylinderColliders": [],
+    "orientedColliders": []
+  },
+  "landmark_market_fountain.glb": {
+    "colliders": [],
+    "cylinderColliders": [
+      {
+        "center": [
+          0.0,
+          2.2,
+          0.0
+        ],
+        "halfHeight": 2.2,
+        "radius": 3.78
+      }
+    ],
+    "orientedColliders": []
+  },
+  "landmark_market_pillar.glb": {
+    "colliders": [
+      {
+        "center": [
+          0.0,
+          2.5,
+          -0.0
+        ],
+        "half": [
+          0.925,
+          2.5,
+          0.925
+        ]
+      }
+    ],
+    "cylinderColliders": [],
+    "orientedColliders": []
+  },
+  "stall_01_bakery.glb": {
+    "colliders": [
+      {
+        "center": [
+          0.0,
+          1.25,
+          0.0
+        ],
+        "half": [
+          1.95,
+          1.25,
+          1.17
+        ]
+      }
+    ],
+    "cylinderColliders": [],
+    "orientedColliders": []
+  },
+  "stall_02_produce.glb": {
+    "colliders": [
+      {
+        "center": [
+          0.0,
+          1.25,
+          0.0
+        ],
+        "half": [
+          2.05,
+          1.25,
+          1.17
+        ]
+      }
+    ],
+    "cylinderColliders": [],
+    "orientedColliders": []
+  },
+  "stall_04_pottery.glb": {
+    "colliders": [
+      {
+        "center": [
+          0.0,
+          1.25,
+          0.0
+        ],
+        "half": [
+          2.0,
+          1.25,
+          1.17
+        ]
+      }
+    ],
+    "cylinderColliders": [],
+    "orientedColliders": []
+  },
+  "stall_06_spices.glb": {
+    "colliders": [
+      {
+        "center": [
+          0.0,
+          1.25,
+          0.0
+        ],
+        "half": [
+          2.15,
+          1.25,
+          1.17
+        ]
+      }
+    ],
+    "cylinderColliders": [],
+    "orientedColliders": []
+  },
+  "stall_07_drapery.glb": {
+    "colliders": [
+      {
+        "center": [
+          0.0,
+          1.25,
+          0.0
+        ],
+        "half": [
+          2.05,
+          1.25,
+          1.17
+        ]
+      }
+    ],
+    "cylinderColliders": [],
+    "orientedColliders": []
+  },
+  "stall_08_jeweler.glb": {
+    "colliders": [
+      {
+        "center": [
+          0.0,
+          1.25,
+          0.0
+        ],
+        "half": [
+          1.8,
+          1.25,
+          1.17
         ]
       }
     ],

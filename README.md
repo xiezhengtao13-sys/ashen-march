@@ -5,19 +5,21 @@
 ## ▶ 一键在线游玩（浏览器直玩）
 
 [![立即在线游玩 - Ashen March](https://img.shields.io/badge/▶_立即在线游玩-Ashen_March_灰烬边境-d9a043?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/)
-[![一键试玩 - 灰烬城 Visual Fidelity V3 史东薇尔式山城](https://img.shields.io/badge/▶_一键试玩_灰烬城_V3-史东薇尔式四层山堡-8f2d1f?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-art-direction-v3/?zone=city)
+[![一键试玩 - 灰烬城 Visual Polish V4 环境精修版](https://img.shields.io/badge/▶_最新试玩_灰烬城_V4-高品质环境美术精修版-6b2218?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-visual-polish-v4/?zone=city)
+[![一键试玩 - 灰烬城 Visual Fidelity V3 基线](https://img.shields.io/badge/▶_对比基线_灰烬城_V3-史东薇尔式四层山堡-8f2d1f?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-art-direction-v3/?zone=city)
 [![一键试玩 - 灰烬城山城重设计 Phase 2 基线](https://img.shields.io/badge/▶_灰烬城基线-Phase_2_依山样板区-b54524?style=for-the-badge)](https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city)
 
 - **开放世界试玩入口（溪谷村出生点）**：https://xiezhengtao13-sys.github.io/ashen-march/
-- **最新入口 — 灰烬城 Visual Fidelity V3 (`feature/ashenhold-art-direction-v3` · 史东薇尔式四层立体山堡)**：
-  - **一键在线试玩（`-4m` 黑石拱顶排水暗渠 → `0m` 南城门与曲折石巷 → 透光双层酒馆 → `+3.5m` 哥特拱廊市集 → `+7.5/+9.5m` 北堡垒、西城墙与跨街石桥 → `+19.5m` 悬崖瞭望塔顶，全程零传送步行贯通）**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-art-direction-v3/?zone=city
-  - **上一阶段山城基线对比预览**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city
-  - **调试与诊断接口**：打开浏览器控制台可调用 `window.__ASHEN_MARCH__.setDebugMode('albedo' | 'normal' | 'roughness' | 'no_ao' | 'no_post' | 'final')` 与 `setPostFX({ enabled, fxaa, sharpen, grain })` 实时检查材质与后处理。
+- **最新入口 — 灰烬城 Visual Polish V4 (`feature/ashenhold-visual-polish-v4` · 高品质环境美术精修与渲染提升)**：
+  - **一键在线试玩（BMesh 雕刻缺角条石与层理断崖、1024px 多尺度 HBAO Packed ORM 材质、十字肋拱、S 形路缘排水铁箅、哥特喷泉与粗麻市集、室内天光遮蔽与四层零传送步行贯通）**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-visual-polish-v4/?zone=city
+  - **V3 基线对比预览**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-art-direction-v3/?zone=city
+  - **Phase 2 山城基线对比预览**：https://xiezhengtao13-sys.github.io/ashen-march/preview/ashenhold-hillside-redesign/?zone=city
+  - **调试与管线四阶段诊断接口**：打开浏览器控制台可调用 `window.__ASHEN_MARCH__.setDebugMode('albedo' | 'normal' | 'roughness' | 'no_ao' | 'no_post' | 'final')` 与 `setPostFX({ enabled, tonemap, fxaa, sharpen, grain })` 实时检查 PBR 通道与后处理阶段。
 - **零安装直玩**：由 GitHub Actions 自动构建并托管于 GitHub Pages，点击上方按钮即可在桌面浏览器（支持 WebGL2）中直接运行，存档自动保存于浏览器本地 IndexedDB。
 
 ## 核心特性
 
-- **灰烬城 Visual Fidelity V3（Grounded Gothic Mountain Citadel）**：基于 `scripts/city/texgen_v3.c` 无黑描边 Packed ORM PBR 贴图、`CityMaterialLibrary.ts` 世界空间宏观风化/雨痕/青苔/湿润着色器、`CityPostFX.ts` 线性 HDR Neutral ToneMapping + FXAA + 对比度自适应锐化，以及 `scripts/city/stormveil_kit.py` 逐块 3D 凹凸砌石与阶梯扶壁构建的四层无传送立体山堡（详情见 [ART_DIRECTION_V3.md](docs/ART_DIRECTION_V3.md)）。
+- **灰烬城 Visual Polish V4（高品质环境美术精修版）**：基于 `scripts/city/texgen_v4.c` 1024/512 双尺度法线与 8 向 HBAO Packed ORM 贴图、`scripts/city/v4_sculpt_helpers.py` 缺角倒棱条石/层理裂解断崖/十字肋拱/锻铁笼灯雕刻模型、40° 斜射侧光与室内天光遮蔽、以及地底暗渠/分房间/分街区裁剪优化的四层立体山堡（总面数较 V3 降低 12%–30%，详情见 [VISUAL_POLISH_V4.md](docs/VISUAL_POLISH_V4.md) 与 [ART_DIRECTION_V3.md](docs/ART_DIRECTION_V3.md)）。
 - **第一人称 3D 自由探索**：真实 Rapier 3D 物理碰撞、重力、斜坡行走与可进入建筑/地下城。
 - **五个特色区域（512 × 512 米固定种子世界，完整保留）**：
   - **溪谷村 (Ravendale Village)**：玩家出生点、可进入的村长长屋、铁匠铺、猎人小屋与水井广场。

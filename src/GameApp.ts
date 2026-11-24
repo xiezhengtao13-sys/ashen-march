@@ -468,16 +468,43 @@ export class GameApp {
     this.ui.setInteractPrompt(this.activeInteractable?.label ?? null);
     this.ui.refreshHUD();
 
-    if (this.state.player.currentZone === 'ashenhold_city' && this.cityPostFx.options.enabled) {
-      this.cityPostFx.render(this.engine.renderer, this.engine.scene, this.engine.camera, elapsed);
+    this.dayNight.lastShadowCalls = 0;
+    this.dayNight.lastShadowTris = 0;
+    if (this.state.player.currentZone === 'ashenhold_city') {
+      const p = this.cityPostFx.render(this.engine.renderer, this.engine.scene, this.engine.camera, elapsed);
+      const shCalls = this.dayNight.lastShadowCalls;
+      const shTris = this.dayNight.lastShadowTris;
+      this.quality.recordPassBreakdown(
+        { drawCalls: shCalls, triangles: shTris },
+        { drawCalls: Math.max(0, p.sceneCalls - shCalls), triangles: Math.max(0, p.sceneTris - shTris) },
+        { drawCalls: p.postCalls, triangles: p.postTris },
+      );
     } else {
+      const r = this.engine.renderer;
+      const prev = r.info.autoReset;
+      r.info.autoReset = false;
+      r.info.reset();
       this.engine.render();
+      const shCalls = this.dayNight.lastShadowCalls;
+      const shTris = this.dayNight.lastShadowTris;
+      this.quality.recordPassBreakdown(
+        { drawCalls: shCalls, triangles: shTris },
+        { drawCalls: Math.max(0, r.info.render.calls - shCalls), triangles: Math.max(0, r.info.render.triangles - shTris) },
+        { drawCalls: 0, triangles: 0 },
+      );
+      r.info.autoReset = prev;
     }
   };
 
   setDebugMode(mode: MaterialDebugMode): void {
     this.cityMaterials?.setDebugMode(mode);
     this.cityPostFx.options.enabled = mode === 'final';
+    if (mode === 'final') {
+      this.cityPostFx.options.tonemap = true;
+      this.cityPostFx.options.fxaa = true;
+      this.cityPostFx.options.sharpen = 0.18;
+      this.cityPostFx.options.grain = 0.0025;
+    }
   }
 
   private exposeDebugBridge(): void {

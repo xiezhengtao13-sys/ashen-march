@@ -1,0 +1,102 @@
+[
+  {
+    "name": "pipe_1_raw_no_post",
+    "zone": "city",
+    "time": 13.0,
+    "pos": [0.0, 0.25, 16.2],
+    "yaw": 0.0,
+    "pitch": 0.08,
+    "debugMode": "final",
+    "postFx": { "tonemap": false, "fxaa": false, "sharpen": false, "grain": false }
+  },
+  {
+    "name": "pipe_2_tonemap_only",
+    "zone": "city",
+    "time": 13.0,
+    "pos": [0.0, 0.25, 16.2],
+    "yaw": 0.0,
+    "pitch": 0.08,
+    "debugMode": "final",
+    "postFx": { "tonemap": true, "fxaa": false, "sharpen": false, "grain": false }
+  },
+  {
+    "name": "pipe_3_tonemap_fxaa",
+    "zone": "city",
+    "time": 13.0,
+    "pos": [0.0, 0.25, 16.2],
+    "yaw": 0.0,
+    "pitch": 0.08,
+    "debugMode": "final",
+    "postFx": { "tonemap": true, "fxaa": true, "sharpen": false, "grain": false }
+  },
+  {
+    "name": "pipe_4_final",
+    "zone": "city",
+    "time": 13.0,
+    "pos": [0.0, 0.25, 16.2],
+    "yaw": 0.0,
+    "pitch": 0.08,
+    "debugMode": "final",
+    "postFx": { "tonemap": true, "fxaa": true, "sharpen": true, "grain": true }
+  },
+  {
+    "name": "diag_albedo",
+    "zone": "city",
+    "time": 13.0,
+    "pos": [0.0, 3.95, -49.2],
+    "yaw": 0.0,
+    "pitch": 0.04,
+    "debugMode": "albedo",
+    "postFx": { "tonemap": false, "fxaa": false, "sharpen": false, "grain": false }
+  },
+  {
+    "name": "diag_normal",
+    "zone": "city",
+    "time": 13.0,
+    "pos": [0.0, 3.95, -49.2],
+    "yaw": 0.0,
+    "pitch": 0.04,
+    "debugMode": "normal",
+    "postFx": { "tonemap": false, "fxaa": false, "sharpen": false, "grain": false }
+  },
+  {
+    "name": "diag_roughness",
+    "zone": "city",
+    "time": 13.0,
+    "pos": [0.0, 3.95, -49.2],
+    "yaw": 0.0,
+    "pitch": 0.04,
+    "debugMode": "roughness",
+    "postFx": { "tonemap": false, "fxaa": false, "sharpen": false, "grain": false }
+  },
+  {
+    "name": "diag_no_ao",
+    "zone": "city",
+    "time": 13.0,
+    "pos": [0.0, 3.95, -49.2],
+    "yaw": 0.0,
+    "pitch": 0.04,
+    "debugMode": "no_ao",
+    "postFx": { "tonemap": true, "fxaa": true, "sharpen": true, "grain": true }
+  },
+  {
+    "name": "v4_undercroft_minus4m",
+    "zone": "city",
+    "time": 13.0,
+    "pos": [-12.5, -3.55, -18.5],
+    "yaw": 0.0,
+    "pitch": 0.02,
+    "debugMode": "final",
+    "postFx": { "tonemap": true, "fxaa": true, "sharpen": true, "grain": true }
+  },
+  {
+    "name": "v4_summit_plus19m",
+    "zone": "city",
+    "time": 13.0,
+    "pos": [-3.2, 20.1, -63.5],
+    "yaw": 3.10,
+    "pitch": -0.26,
+    "debugMode": "final",
+    "postFx": { "tonemap": true, "fxaa": true, "sharpen": true, "grain": true }
+  }
+]
